@@ -8,10 +8,29 @@ export const getItems = async (page = 1, limit = 5) => {
             console.log('请求URL:', url);
         }
         
-        const response = await fetch(url);
+        // 添加超时设置
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            signal: controller.signal
+        });
         
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('服务器响应错误:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         const items = await response.json();
@@ -42,6 +61,10 @@ export const getItems = async (page = 1, limit = 5) => {
             }
         };
     } catch (error) {
+        if (error.name === 'AbortError') {
+            console.error('请求超时');
+            throw new Error('请求超时，请检查网络连接');
+        }
         console.error('获取物品列表失败:', error);
         throw error;
     }
