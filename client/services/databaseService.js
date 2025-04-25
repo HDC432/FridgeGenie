@@ -1,24 +1,39 @@
-import config from '../config/database';
+import { API_URL, DEBUG } from '../config/database';
 
-const API_URL = config.apiUrl;
-
+// 获取所有物品
 export const getItems = async () => {
     try {
-        console.log('正在请求数据，API URL:', API_URL);
-        const response = await fetch(`${API_URL}/items`);
-        console.log('响应状态:', response.status);
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('服务器响应错误:', errorText);
-            throw new Error(`获取数据失败: ${response.status} ${errorText}`);
+        const url = `${API_URL}/items`;
+        if (DEBUG) {
+            console.log('请求URL:', url);
         }
-        return await response.json();
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (DEBUG) {
+            console.log('API响应数据:', {
+                items: data,
+                totalItems: data.length
+            });
+        }
+        
+        if (!data || !Array.isArray(data)) {
+            throw new Error('返回的数据格式不正确');
+        }
+        
+        return data;
     } catch (error) {
-        console.error('获取数据时出错:', error);
+        console.error('获取物品列表失败:', error);
         throw error;
     }
 };
 
+// 添加新物品
 export const addItem = async (item) => {
     try {
         const response = await fetch(`${API_URL}/items`, {
@@ -28,17 +43,19 @@ export const addItem = async (item) => {
             },
             body: JSON.stringify(item),
         });
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`添加数据失败: ${response.status} ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         return await response.json();
     } catch (error) {
-        console.error('添加数据时出错:', error);
+        console.error('添加物品失败:', error);
         throw error;
     }
 };
 
+// 更新物品
 export const updateItem = async (id, item) => {
     try {
         const response = await fetch(`${API_URL}/items/${id}`, {
@@ -48,29 +65,32 @@ export const updateItem = async (id, item) => {
             },
             body: JSON.stringify(item),
         });
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`更新数据失败: ${response.status} ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         return await response.json();
     } catch (error) {
-        console.error('更新数据时出错:', error);
+        console.error('更新物品失败:', error);
         throw error;
     }
 };
 
+// 删除物品
 export const deleteItem = async (id) => {
     try {
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'DELETE',
         });
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`删除数据失败: ${response.status} ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         return await response.json();
     } catch (error) {
-        console.error('删除数据时出错:', error);
+        console.error('删除物品失败:', error);
         throw error;
     }
 }; 
