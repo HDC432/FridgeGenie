@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import ItemList from './components/ItemList';
+import AddItemScreen from './screens/AddItemScreen';
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,13 @@ export default function App() {
             component={ItemList}
             options={{
               title: '冰箱物品清单',
+            }}
+          />
+          <Stack.Screen
+            name="AddItem"
+            component={AddItemScreen}
+            options={{
+              title: '添加新物品',
             }}
           />
         </Stack.Navigator>

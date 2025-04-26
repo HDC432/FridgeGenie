@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItems, deleteItem } from '../services/databaseService';
+import { getItems, deleteItem, addItem } from '../services/databaseService';
 
-const useItems = () => {
+export const useItems = () => {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
@@ -10,69 +10,83 @@ const useItems = () => {
     const [totalPages, setTotalPages] = useState(1);
 
     const fetchItems = useCallback(async (page = currentPage) => {
+        console.log('开始获取物品，页码:', page);
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true);
-            setError(null);
-            console.log('开始获取数据，页码:', page);
+            const response = await getItems(page);
+            console.log('获取物品响应:', response);
             
-            const data = await getItems(page);
-            console.log('获取到的数据:', data);
-
-            if (!data || !data.items || !Array.isArray(data.items)) {
-                throw new Error('返回的数据格式不正确');
+            if (response && response.items && response.pagination) {
+                setItems(response.items);
+                setTotalPages(response.pagination.totalPages);
+                setCurrentPage(response.pagination.currentPage);
+                setLastRefreshTime(Date.now());
+                console.log('更新后的分页信息:', {
+                    currentPage: response.pagination.currentPage,
+                    totalPages: response.pagination.totalPages,
+                    itemsCount: response.items.length,
+                    totalItems: response.pagination.totalItems
+                });
+            } else {
+                console.error('响应格式不正确:', response);
+                setError('获取数据失败：响应格式不正确');
             }
-
-            setItems(data.items);
-            setTotalPages(data.pagination.totalPages);
-            setCurrentPage(data.pagination.currentPage);
-            setLastRefreshTime(Date.now());
-
-            console.log('更新后的状态:', {
-                currentPage: data.pagination.currentPage,
-                totalPages: data.pagination.totalPages,
-                itemsCount: data.items.length
-            });
         } catch (error) {
-            console.error('获取数据失败:', error);
-            setError(error.message);
-            setItems([]);
+            console.error('获取物品时出错:', error);
+            setError(error.message || '获取数据失败');
         } finally {
             setLoading(false);
         }
     }, [currentPage]);
 
     const handleDelete = useCallback(async (id) => {
+        console.log('开始删除物品，ID:', id);
         try {
-            setLoading(true);
-            setError(null);
-            console.log('开始删除物品，ID:', id);
             await deleteItem(id);
-            console.log('删除成功');
+            console.log('删除成功，刷新数据');
             
-            // 重新获取当前页数据
-            await fetchItems(currentPage);
-            
-            // 如果当前页没有数据了，且不是第一页，则返回上一页
-            if (items.length === 0 && currentPage > 1) {
+            // 检查当前页是否还有物品
+            if (items.length > 1) {
+                // 如果当前页还有物品，刷新当前页
+                await fetchItems(currentPage);
+            } else if (currentPage > 1) {
+                // 如果当前页没有物品了，且不是第一页，返回上一页
                 await fetchItems(currentPage - 1);
+            } else {
+                // 如果是第一页且没有物品了，刷新当前页
+                await fetchItems(currentPage);
             }
         } catch (error) {
-            console.error('删除失败:', error);
-            setError(error.message);
-        } finally {
-            setLoading(false);
+            console.error('删除物品时出错:', error);
+            setError(error.message || '删除失败');
         }
-    }, [currentPage, fetchItems, items.length]);
+    }, [items.length, currentPage, fetchItems]);
+
+    const handleAddItem = useCallback(async (newItem) => {
+        console.log('开始添加物品:', newItem);
+        try {
+            await addItem(newItem);
+            console.log('添加成功，立即刷新数据');
+            
+            // 立即刷新第一页数据
+            await fetchItems(1);
+            
+            // 返回添加成功的结果
+            return true;
+        } catch (error) {
+            console.error('添加物品时出错:', error);
+            setError(error.message || '添加失败');
+            throw error;
+        }
+    }, [fetchItems]);
 
     const handlePageChange = useCallback((newPage) => {
+        console.log('切换页面:', newPage);
         if (newPage >= 1 && newPage <= totalPages) {
             fetchItems(newPage);
         }
     }, [totalPages, fetchItems]);
-
-    const refreshItems = useCallback(() => {
-        fetchItems(currentPage);
-    }, [currentPage, fetchItems]);
 
     // 自动刷新
     useEffect(() => {
@@ -98,8 +112,9 @@ const useItems = () => {
         error,
         lastRefreshTime,
         handleDelete,
+        handleAddItem,
         handlePageChange,
-        refreshItems
+        refreshItems: fetchItems
     };
 };
 

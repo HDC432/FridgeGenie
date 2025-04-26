@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import useItems from '../hooks/useItems';
 import Pagination from './Pagination';
 
-const ItemList = () => {
+const ItemList = ({ navigation }) => {
     const {
         items,
         currentPage,
@@ -23,12 +24,22 @@ const ItemList = () => {
         }
     }, [error]);
 
+    // 监听导航变化，当从添加页面返回时刷新数据
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            console.log('ItemList 获得焦点，刷新数据');
+            refreshItems(1);
+        });
+
+        return unsubscribe;
+    }, [navigation, refreshItems]);
+
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
             <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.name}</Text>
                 <Text style={styles.itemDetails}>
-                    数量: {item.quantity} | 过期日期: {item.expiryDate}
+                    数量: {item.quantity} | 过期日期: {new Date(item.expiryDate).toLocaleDateString()}
                 </Text>
             </View>
             <TouchableOpacity
@@ -60,6 +71,14 @@ const ItemList = () => {
             <Text style={styles.lastUpdateText}>
                 最后更新时间: {new Date(lastRefreshTime).toLocaleTimeString()}
             </Text>
+            
+            {/* 悬浮的添加按钮 */}
+            <TouchableOpacity
+                style={styles.addButton}
+                onPress={() => navigation.navigate('AddItem')}
+            >
+                <Ionicons name="add" size={24} color="white" />
+            </TouchableOpacity>
         </View>
     );
 };
@@ -110,6 +129,25 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 12,
         padding: 8,
+    },
+    addButton: {
+        position: 'absolute',
+        right: 20,
+        bottom: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: '#4CAF50',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
 });
 
