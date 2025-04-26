@@ -109,15 +109,27 @@ class ItemService {
 
     static async deleteItem(id) {
         try {
-            // 检查物品是否存在
-            const existingItem = await ItemModel.findById(id);
-            if (!existingItem) {
-                throw new Error('物品不存在');
+            console.log('开始删除物品，ID:', id);
+            
+            try {
+                const result = await ItemModel.delete(id);
+                console.log('删除操作完成，结果:', result);
+                return result;
+            } catch (dbError) {
+                console.error('数据库删除操作失败:', {
+                    id,
+                    error: dbError.message,
+                    stack: dbError.stack
+                });
+                throw new Error(`数据库操作失败: ${dbError.message}`);
             }
-
-            return await ItemModel.delete(id);
         } catch (error) {
-            throw new Error('删除物品失败');
+            console.error('删除物品失败:', {
+                id,
+                error: error.message,
+                stack: error.stack
+            });
+            throw error;
         }
     }
 }
