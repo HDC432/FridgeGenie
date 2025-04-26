@@ -1,5 +1,5 @@
 const config = {
-    apiUrl: 'http://10.110.132.115:3001', // 使用局域网 IP 地址
+    apiUrl: 'http://localhost:3001', // 使用 localhost
     debug: true, // 添加调试模式
     timeout: 10000, // 请求超时时间（毫秒）
     retryCount: 3, // 请求失败重试次数
