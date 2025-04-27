@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
-import ItemList from './components/ItemList';
+import { StatusBar } from 'expo-status-bar';
+
+import HomeScreen from './screens/HomeScreen';
 import AddItemScreen from './screens/AddItemScreen';
 
 const Stack = createStackNavigator();
@@ -24,19 +25,15 @@ export default function App() {
             },
           }}
         >
-          <Stack.Screen 
-            name="Home" 
-            component={ItemList}
-            options={{
-              title: '冰箱物品清单',
-            }}
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ title: '冰箱物品清单' }}
           />
           <Stack.Screen
             name="AddItem"
             component={AddItemScreen}
-            options={{
-              title: '添加新物品',
-            }}
+            options={{ title: '添加新物品' }}
           />
         </Stack.Navigator>
       </View>
@@ -49,4 +46,4 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-}); 
+});

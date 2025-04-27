@@ -1,5 +1,6 @@
 const config = {
-    apiUrl: 'http://localhost:3001', // 使用 localhost
+    // 使用你的电脑的 IP 地址替换 localhost
+    apiUrl: 'http://localhost:3001', // 如果在同一台电脑上运行，使用 localhost
     debug: true, // 添加调试模式
     timeout: 10000, // 请求超时时间（毫秒）
     retryCount: 3, // 请求失败重试次数

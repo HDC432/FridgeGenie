@@ -1,10 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { CosmosClient } = require('@azure/cosmos');
-require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = 3001;
 
 // 中间件
 app.use(cors({
@@ -16,13 +15,19 @@ app.use(express.json());
 
 // Azure Cosmos DB 配置
 const cosmosClient = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
+    endpoint: 'https://fridgegenie-db.documents.azure.com:443/',
+    key: 'WOKhsjYMsn4pDid4n9tqZwKV2foZdqbZRPSaKIX68vsI5TtbEy70OqPZgvDn1fh85PL8gVgOjzW8ACDbQO8xHQ=='
 });
 
 // 数据库和容器引用
-const database = cosmosClient.database(process.env.COSMOS_DATABASE);
-const container = database.container(process.env.COSMOS_CONTAINER);
+const database = cosmosClient.database('fridgegenie-db');
+const container = database.container('items');
+
+// 错误处理中间件
+app.use((err, req, res, next) => {
+    console.error('服务器错误:', err);
+    res.status(500).json({ error: '服务器内部错误' });
+});
 
 // API 路由
 // 获取所有物品

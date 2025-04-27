@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -6,11 +6,13 @@ import {
   FlatList, 
   TouchableOpacity, 
   RefreshControl, 
-  Alert 
+  Alert,
+  Platform,
 } from 'react-native';
-import { getItems, deleteItem } from '../services/databaseService';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { differenceInCalendarDays } from 'date-fns';  // npm install date-fns
+import { differenceInCalendarDays } from 'date-fns'; // npm install date-fns
+import { getItems, deleteItem } from '../services/databaseService';
 
 export default function HomeScreen({ navigation }) {
   const [items, setItems] = useState([]);
@@ -18,14 +20,15 @@ export default function HomeScreen({ navigation }) {
 
   const loadItems = async () => {
     try {
-      const fetchedItems = await getItems();
-      // 按过期日期升序排序
-      fetchedItems.sort((a, b) => 
+      const resp = await getItems(1, 1000); // 拿所有
+      const rawItems = resp.items;
+
+      rawItems.sort((a, b) =>
         new Date(a.expiryDate) - new Date(b.expiryDate)
       );
-      setItems(fetchedItems);
-    } catch (error) {
-      console.error('获取物品时出错:', error);
+      setItems(rawItems);
+    } catch (err) {
+      console.error('加载物品失败:', err);
     }
   };
 
@@ -33,16 +36,22 @@ export default function HomeScreen({ navigation }) {
     loadItems();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadItems();
+    }, [])
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadItems();
     setRefreshing(false);
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = item => {
     Alert.alert(
       '确认删除',
-      `确定要删除 ${item.name} 吗？`,
+      `确定要删除 "${item.name}" 吗？`,
       [
         { text: '取消', style: 'cancel' },
         {
@@ -53,49 +62,52 @@ export default function HomeScreen({ navigation }) {
               await deleteItem(item.id);
               await loadItems();
               Alert.alert('成功', '物品已删除');
-            } catch (error) {
-              console.error('删除物品时出错:', error);
+            } catch (err) {
+              console.error('删除失败:', err);
               Alert.alert('错误', '删除物品失败，请重试');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   const renderItem = ({ item }) => {
-    const daysLeft = differenceInCalendarDays(
-      new Date(item.expiryDate),
-      new Date()
-    );
-    // 根据剩余天数设置左侧颜色条
-    let borderColor = '#4CD964'; // > 7 天：绿色
-    if (daysLeft <= 1)      borderColor = '#FF3B30'; // ≤1 天：红色
-    else if (daysLeft <= 3) borderColor = '#FF9500'; // ≤3 天：橙色
-    else if (daysLeft <= 7) borderColor = '#FFCC00'; // ≤7 天：黄色
+    const expiry = new Date(item.expiryDate);
+    if (isNaN(expiry.getTime())) {
+      return null;
+    }
+    const daysLeft = differenceInCalendarDays(expiry, new Date());
+
+    let stripeColor = '#4CD964'; // > 7 天：绿
+    if (daysLeft <= 1)      stripeColor = '#FF3B30'; // ≤1 天：红
+    else if (daysLeft <= 3) stripeColor = '#FF9500'; // ≤3 天：橙
+    else if (daysLeft <= 7) stripeColor = '#FFCC00'; // ≤7 天：黄
 
     return (
-      <View style={[styles.itemContainer, { borderLeftWidth: 5, borderLeftColor: borderColor }]}>
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemName}>{item.name}</Text>
-          <Text style={styles.itemDetails}>
-            数量: {item.quantity} | 
-            过期日期: {new Date(item.expiryDate).toLocaleDateString()} ({daysLeft} 天)
-          </Text>
-        </View>
-        <View style={styles.itemActions}>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('AddItem')}
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#4CAF50" />
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.actionButton}
-            onPress={() => handleDelete(item)}
-          >
-            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-          </TouchableOpacity>
+      <View style={styles.itemWrapper}>
+        <View style={[styles.stripe, { backgroundColor: stripeColor }]} />
+        <View style={styles.itemContainer}>
+          <View style={styles.itemInfo}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemDetails}>
+              数量: {item.quantity} | 过期: {expiry.toLocaleDateString()} ({daysLeft} 天)
+            </Text>
+          </View>
+          <View style={styles.itemActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => navigation.navigate('AddItem')}
+            >
+              <Ionicons name="add-circle-outline" size={24} color="#4CAF50" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleDelete(item)}
+            >
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -105,7 +117,7 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>我的冰箱</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('AddItem')}
         >
@@ -116,7 +128,7 @@ export default function HomeScreen({ navigation }) {
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>冰箱是空的</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addFirstButton}
             onPress={() => navigation.navigate('AddItem')}
           >
@@ -126,13 +138,10 @@ export default function HomeScreen({ navigation }) {
       ) : (
         <FlatList
           data={items}
-          renderItem={renderItem}
           keyExtractor={item => item.id}
+          renderItem={renderItem}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-            />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
           contentContainerStyle={styles.listContainer}
         />
@@ -142,10 +151,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -154,10 +160,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
+  title: { fontSize: 24, fontWeight: 'bold' },
   addButton: {
     backgroundColor: '#4CAF50',
     width: 40,
@@ -166,57 +169,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContainer: {
-    padding: 16,
+  listContainer: { padding: 16 },
+  itemWrapper: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  stripe: {
+    width: 5,
+    height: '100%',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
   },
   itemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  itemInfo: {
     flex: 1,
-  },
-  itemName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  itemDetails: {
-    fontSize: 14,
-    color: '#666',
-  },
-  itemActions: {
     flexDirection: 'row',
+    backgroundColor: '#f9f9f9',
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+    padding: 16,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  actionButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
+  itemInfo: { flex: 1 },
+  itemName: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
+  itemDetails: { fontSize: 14, color: '#666' },
+  itemActions: { flexDirection: 'row', alignItems: 'center' },
+  actionButton: { padding: 8, marginLeft: 8 },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
-  emptyText: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 16,
-  },
+  emptyText: { fontSize: 18, color: '#666', marginBottom: 16 },
   addFirstButton: {
     backgroundColor: '#4CAF50',
     padding: 16,
     borderRadius: 8,
   },
-  addFirstButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });

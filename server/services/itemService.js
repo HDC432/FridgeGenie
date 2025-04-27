@@ -7,11 +7,11 @@ class ItemService {
             const allItems = await ItemModel.findAll();
             console.log('获取到的所有物品数量:', allItems.length);
             
-            // 按创建时间倒序排序
+            // 按过期时间升序排序
             const sortedItems = allItems.sort((a, b) => {
-                const dateA = new Date(a.createdAt || a.addedDate);
-                const dateB = new Date(b.createdAt || b.addedDate);
-                return dateB - dateA;
+                const dateA = new Date(a.expiryDate);
+                const dateB = new Date(b.expiryDate);
+                return dateA - dateB;
             });
             console.log('排序后的前5个物品:', sortedItems.slice(0, 5));
 
