@@ -17,19 +17,22 @@ export default function AddItemScreen({ navigation }) {
 
   // 本地状态
   const [name, setName] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [year, setYear]     = useState(currentYear);
-  const [month, setMonth]   = useState(today.getMonth() + 1);
-  const [day, setDay]       = useState(today.getDate());
+  const [quantity, setQuantity] = useState('1');
+  const [year, setYear]     = useState(currentYear.toString());
+  const [month, setMonth]   = useState((today.getMonth() + 1).toString());
+  const [day, setDay]       = useState(today.getDate().toString());
   const [daysInMonth, setDaysInMonth] = useState(
     new Date(currentYear, today.getMonth() + 1, 0).getDate()
   );
 
   // 当年或月改变时，更新当月天数，并确保日不超出范围
   useEffect(() => {
-    const dim = new Date(year, month, 0).getDate();
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+    const dim = new Date(yearNum, monthNum, 0).getDate();
     setDaysInMonth(dim);
-    if (day > dim) setDay(dim);
+    const dayNum = parseInt(day);
+    if (dayNum > dim) setDay(dim.toString());
   }, [year, month]);
 
   const handleSubmit = async () => {
@@ -38,11 +41,14 @@ export default function AddItemScreen({ navigation }) {
       return;
     }
     // 组合年月日为 Date 对象
-    const expiry = new Date(year, month - 1, day);
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+    const dayNum = parseInt(day);
+    const expiry = new Date(yearNum, monthNum - 1, dayNum);
     try {
       const newItem = {
         name: name.trim(),
-        quantity,
+        quantity: parseInt(quantity),
         expiryDate: expiry.toISOString(),
       };
       const success = await handleAddItem(newItem);
@@ -61,7 +67,7 @@ export default function AddItemScreen({ navigation }) {
   // 年份选项：当前年前后各 5 年
   const yearOptions = Array.from(
     { length: 11 },
-    (_, i) => currentYear - 5 + i
+    (_, i) => (currentYear - 5 + i).toString()
   );
 
   return (
@@ -78,10 +84,11 @@ export default function AddItemScreen({ navigation }) {
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={quantity}
-          onValueChange={setQuantity}
+          onValueChange={(value) => setQuantity(value)}
+          style={{ color: '#000' }}
         >
-          {Array.from({ length: 100 }, (_, i) => i + 1).map(n => (
-            <Picker.Item key={n} label={`${n}`} value={n} />
+          {Array.from({ length: 100 }, (_, i) => (i + 1).toString()).map(n => (
+            <Picker.Item key={n} label={n} value={n} color="#000" />
           ))}
         </Picker>
       </View>
@@ -92,10 +99,12 @@ export default function AddItemScreen({ navigation }) {
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={year}
-            onValueChange={setYear}
+            onValueChange={(value) => setYear(value)}
+            style={{ color: '#000', height: 180 }}
+            itemStyle={{ fontSize: 14 }}
           >
             {yearOptions.map(y => (
-              <Picker.Item key={y} label={`${y}年`} value={y} />
+              <Picker.Item key={y} label={`${y}年`} value={y} color="#000" style={{ fontSize: 14 }} />
             ))}
           </Picker>
         </View>
@@ -103,10 +112,12 @@ export default function AddItemScreen({ navigation }) {
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={month}
-            onValueChange={setMonth}
+            onValueChange={(value) => setMonth(value)}
+            style={{ color: '#000', height: 180 }}
+            itemStyle={{ fontSize: 14 }}
           >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-              <Picker.Item key={m} label={`${m}月`} value={m} />
+            {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map(m => (
+              <Picker.Item key={m} label={`${m}月`} value={m} color="#000" style={{ fontSize: 14 }} />
             ))}
           </Picker>
         </View>
@@ -114,10 +125,12 @@ export default function AddItemScreen({ navigation }) {
         <View style={styles.pickerWrapper}>
           <Picker
             selectedValue={day}
-            onValueChange={setDay}
+            onValueChange={(value) => setDay(value)}
+            style={{ color: '#000', height: 180 }}
+            itemStyle={{ fontSize: 14 }}
           >
-            {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-              <Picker.Item key={d} label={`${d}日`} value={d} />
+            {Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString()).map(d => (
+              <Picker.Item key={d} label={`${d}日`} value={d} color="#000" style={{ fontSize: 14 }} />
             ))}
           </Picker>
         </View>
@@ -147,24 +160,28 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     borderRadius: 4,
+    color: '#000',
   },
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 4,
     marginBottom: 10,
+    color: '#000',
   },
   datePickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginHorizontal: -2,
   },
   pickerWrapper: {
     flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 4,
-    marginRight: 5,
+    marginHorizontal: 2,
     overflow: 'hidden',
+    height: 180,
   },
   submitButton: {
     marginTop: 30,
