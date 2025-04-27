@@ -20,7 +20,7 @@ export default function HomeScreen({ navigation }) {
 
   const loadItems = async () => {
     try {
-      const resp = await getItems(1, 1000); // 拿所有
+      const resp = await getItems(1, 1000); // 拿所有 
       const rawItems = resp.items;
 
       rawItems.sort((a, b) =>
@@ -95,12 +95,6 @@ export default function HomeScreen({ navigation }) {
             </Text>
           </View>
           <View style={styles.itemActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('AddItem')}
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#4CAF50" />
-            </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleDelete(item)}
@@ -198,15 +192,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     borderTopRightRadius: 8,
     borderBottomRightRadius: 8,
-    padding: 16,
-    alignItems: 'center',
+    padding: 12,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  itemInfo: { flex: 1 },
-  itemName: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
-  itemDetails: { fontSize: 14, color: '#666' },
-  itemActions: { flexDirection: 'row', alignItems: 'center' },
-  actionButton: { padding: 8, marginLeft: 8 },
+  itemInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+    color: '#000',
+  },
+  itemDetails: {
+    fontSize: 14,
+    color: '#666',
+  },
+  itemActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
+    padding: 4,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
