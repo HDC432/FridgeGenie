@@ -19,7 +19,7 @@ import { Picker } from '@react-native-picker/picker';
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
-  const { items, updateItemQuantity } = useItems();
+  const { items, updateItemQuantity, handleDelete } = useItems();
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState({});
@@ -113,7 +113,11 @@ export default function RecipeScreen({ navigation }) {
           await updateItemQuantity(fridgeItem.id, newQuantity);
         }
       }
-      Alert.alert('成功', '食材已更新');
+      if (Platform.OS === 'web') {
+        window.alert('食材已更新');
+      } else {
+        Alert.alert('成功', '食材已更新');
+      }
       setIsModalVisible(false);
       setSelectedRecipe(null);
     } catch (error) {
@@ -124,59 +128,53 @@ export default function RecipeScreen({ navigation }) {
 
   const renderQuantityPicker = (ingredient) => {
     const fridgeItem = items.find(item => item.name === ingredient.name);
-    if (!fridgeItem) return null;
+    if (!fridgeItem) {
+      return (
+        <Text style={{ color: 'red', marginBottom: 8 }}>
+          冰箱没有 {ingredient.name}，无法消耗
+        </Text>
+      );
+    }
 
     const maxQuantity = fridgeItem.quantity;
-    const quantities = Array.from({ length: maxQuantity + 1 }, (_, i) => i.toString());
+    const quantities = Array.from({ length: maxQuantity + 1 }, (_, i) => i);
+    const currentQuantity = selectedQuantities[ingredient.name] || 0;
 
     return (
       <View style={styles.pickerContainer} key={ingredient.name}>
         <Text style={styles.pickerLabel}>{ingredient.name}</Text>
-        <View style={styles.pickerWrapper}>
-          {Platform.OS === 'ios' ? (
-            <View style={styles.iosPickerContainer}>
-              <Picker
-                selectedValue={selectedQuantities[ingredient.name]?.toString()}
-                onValueChange={(value) => 
-                  setSelectedQuantities(prev => ({
-                    ...prev,
-                    [ingredient.name]: parseInt(value)
-                  }))
-                }
-                style={styles.iosPicker}
-                itemStyle={styles.iosPickerItem}
-              >
-                {quantities.map(q => (
-                  <Picker.Item 
-                    key={q} 
-                    label={`${q}${ingredient.quantity.replace(/[0-9]/g, '')}`} 
-                    value={q}
-                    color="#000000"
-                  />
-                ))}
-              </Picker>
-            </View>
-          ) : (
-            <Picker
-              selectedValue={selectedQuantities[ingredient.name]?.toString()}
-              onValueChange={(value) => 
+        <View style={styles.quantityControlContainer}>
+          <TouchableOpacity 
+            style={[styles.quantityButton, currentQuantity <= 0 && styles.quantityButtonDisabled]}
+            onPress={() => {
+              if (currentQuantity > 0) {
                 setSelectedQuantities(prev => ({
                   ...prev,
-                  [ingredient.name]: parseInt(value)
-                }))
+                  [ingredient.name]: currentQuantity - 1
+                }));
               }
-              style={styles.androidPicker}
-            >
-              {quantities.map(q => (
-                <Picker.Item 
-                  key={q} 
-                  label={`${q}${ingredient.quantity.replace(/[0-9]/g, '')}`} 
-                  value={q}
-                  color="#000000"
-                />
-              ))}
-            </Picker>
-          )}
+            }}
+            disabled={currentQuantity <= 0}
+          >
+            <Text style={styles.quantityButtonText}>-</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.quantityText}>{currentQuantity}</Text>
+          
+          <TouchableOpacity 
+            style={[styles.quantityButton, currentQuantity >= maxQuantity && styles.quantityButtonDisabled]}
+            onPress={() => {
+              if (currentQuantity < maxQuantity) {
+                setSelectedQuantities(prev => ({
+                  ...prev,
+                  [ingredient.name]: currentQuantity + 1
+                }));
+              }
+            }}
+            disabled={currentQuantity >= maxQuantity}
+          >
+            <Text style={styles.quantityButtonText}>+</Text>
+          </TouchableOpacity>
         </View>
         <Text style={styles.availableText}>
           (冰箱现有: {fridgeItem.quantity})
@@ -210,6 +208,15 @@ export default function RecipeScreen({ navigation }) {
             {selectedRecipe?.ingredients.map(ing => renderQuantityPicker(ing))}
           </ScrollView>
 
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryTitle}>使用食材汇总：</Text>
+            {Object.entries(selectedQuantities).map(([name, quantity]) => (
+              <Text key={name} style={styles.summaryText}>
+                • {name}: {quantity}个
+              </Text>
+            ))}
+          </View>
+
           <View style={styles.modalActions}>
             <TouchableOpacity
               style={[styles.modalButton, styles.cancelButton]}
@@ -218,10 +225,15 @@ export default function RecipeScreen({ navigation }) {
               <Text style={styles.cancelButtonText}>取消</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.modalButton, styles.confirmButton]}
+              style={[
+                styles.modalButton,
+                styles.confirmButton,
+                Object.keys(selectedQuantities).length === 0 && styles.disabledButton
+              ]}
               onPress={handleConfirmConsumption}
+              disabled={Object.keys(selectedQuantities).length === 0}
             >
-              <Text style={styles.confirmButtonText}>确认</Text>
+              <Text style={styles.confirmButtonText}>确认使用</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -284,13 +296,21 @@ export default function RecipeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>推荐食谱</Text>
-        <TouchableOpacity
-          style={styles.refreshButton}
-          onPress={generateRecipes}
-        >
-          <Text style={styles.refreshButtonText}>刷新推荐</Text>
-        </TouchableOpacity>
+        <Text style={styles.title}>我的冰箱</Text>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('Recipe')}
+          >
+            <Ionicons name="restaurant-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddItem')}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -336,15 +356,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-  refreshButton: {
-    backgroundColor: '#4CAF50',
-    padding: 8,
-    borderRadius: 8,
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  refreshButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
+  headerButton: {
+    padding: 8,
+  },
+  addButton: {
+    padding: 8,
   },
   listContainer: {
     padding: 16,
@@ -372,7 +392,7 @@ const styles = StyleSheet.create({
   recipeName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#000000',
   },
   caloriesBadge: {
     flexDirection: 'row',
@@ -394,7 +414,7 @@ const styles = StyleSheet.create({
   },
   recipeDetail: {
     fontSize: 14,
-    color: '#666',
+    color: '#000000',
     marginRight: 12,
   },
   ingredientsSection: {
@@ -406,12 +426,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#000000',
     marginBottom: 8,
   },
   ingredientText: {
     fontSize: 14,
-    color: '#444',
+    color: '#000000',
     marginBottom: 4,
   },
   nutritionSection: {
@@ -430,13 +450,13 @@ const styles = StyleSheet.create({
   },
   nutritionLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#000000',
     marginBottom: 2,
   },
   nutritionValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#000000',
   },
   loadingContainer: {
     flex: 1,
@@ -446,7 +466,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#000000',
   },
   emptyContainer: {
     flex: 1,
@@ -456,7 +476,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#000000',
     textAlign: 'center',
   },
   modalOverlay: {
@@ -477,11 +497,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 12,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#000000',
   },
   closeButton: {
     padding: 4,
@@ -489,11 +512,11 @@ const styles = StyleSheet.create({
   modalRecipeName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: '#000000',
     marginBottom: 16,
   },
   ingredientsList: {
-    maxHeight: 400,
+    maxHeight: 300,
   },
   pickerContainer: {
     marginBottom: 16,
@@ -504,34 +527,62 @@ const styles = StyleSheet.create({
   pickerLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: '#000000',
     marginBottom: 8,
   },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginBottom: 4,
-  },
-  iosPickerContainer: {
-    height: 120,
+  quantityControlContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    padding: 8,
+    marginVertical: 8,
   },
-  iosPicker: {
-    height: 120,
+  quantityButton: {
+    width: 36,
+    height: 36,
+    backgroundColor: '#4CAF50',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  iosPickerItem: {
-    fontSize: 16,
-    color: '#000000',
+  quantityButtonDisabled: {
+    backgroundColor: '#cccccc',
   },
-  androidPicker: {
-    height: 120,
+  quantityButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  quantityText: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginHorizontal: 16,
+    minWidth: 30,
+    textAlign: 'center',
   },
   availableText: {
     fontSize: 14,
-    color: '#666',
+    color: '#000000',
     fontStyle: 'italic',
+  },
+  summaryContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  summaryText: {
+    fontSize: 14,
+    color: '#000000',
+    marginBottom: 4,
   },
   modalActions: {
     flexDirection: 'row',
@@ -550,6 +601,9 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#4CAF50',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
   },
   cancelButtonText: {
     color: '#666',
