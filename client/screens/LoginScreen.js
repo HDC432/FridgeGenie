@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, COMMON_STYLES } = theme;
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -48,7 +51,7 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <View style={styles.logoCircle}>
-          <Ionicons name="snow-outline" size={64} color="#1F2B40" />
+          <Ionicons name="snow-outline" size={64} color={COLORS.SECONDARY} />
         </View>
         <Text style={styles.appName}>FridgeGenie</Text>
         <Text style={styles.tagline}>智能管理你的冰箱，减少食物浪费</Text>
@@ -89,7 +92,7 @@ const LoginScreen = ({ navigation }) => {
         disabled={loading}
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#1F2B40" />
+          <ActivityIndicator size="small" color={COLORS.SECONDARY} />
         ) : (
           <Text style={styles.loginButtonText}>登录</Text>
         )}
@@ -103,13 +106,13 @@ const LoginScreen = ({ navigation }) => {
 
       <View style={styles.socialButtons}>
         <TouchableOpacity style={styles.socialButton}>
-          <Ionicons name="logo-google" size={24} color="#1F2B40" />
+          <Ionicons name="logo-google" size={24} color={COLORS.SECONDARY} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialButton}>
-          <Ionicons name="logo-apple" size={24} color="#1F2B40" />
+          <Ionicons name="logo-apple" size={24} color={COLORS.SECONDARY} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialButton}>
-          <Ionicons name="logo-facebook" size={24} color="#1F2B40" />
+          <Ionicons name="logo-facebook" size={24} color={COLORS.SECONDARY} />
         </TouchableOpacity>
       </View>
 
@@ -125,121 +128,109 @@ const LoginScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 24,
+    ...COMMON_STYLES.CONTAINER,
+    padding: SPACING.XXLARGE,
     justifyContent: 'center',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: SPACING.XXXLARGE,
   },
   logoCircle: {
     width: 120,
     height: 120,
-    backgroundColor: '#FFC107',
-    borderRadius: 60,
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: BORDER_RADIUS.CIRCLE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.LARGE,
   },
   appName: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.XXXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   tagline: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
   },
   formGroup: {
-    marginBottom: 20,
+    marginBottom: SPACING.XLARGE,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   input: {
-    backgroundColor: '#F5F7FA',
-    height: 48,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#1F2B40',
+    ...COMMON_STYLES.INPUT,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: SPACING.XXLARGE,
   },
   forgotPasswordText: {
-    fontSize: 14,
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_PRIMARY,
   },
   loginButton: {
-    backgroundColor: '#FFC107',
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+    ...COMMON_STYLES.BUTTON,
+    marginBottom: SPACING.LARGE,
   },
   loginButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2B40',
+    ...COMMON_STYLES.BUTTON_TEXT,
   },
   orContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: SPACING.XLARGE,
   },
   orLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLORS.DIVIDER,
   },
   orText: {
-    marginHorizontal: 10,
-    color: '#666',
-    fontSize: 14,
+    marginHorizontal: SPACING.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: FONT_SIZE.SMALL,
   },
   socialButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: SPACING.XXXLARGE,
   },
   socialButton: {
     width: 50,
     height: 50,
-    borderRadius: 25,
+    borderRadius: BORDER_RADIUS.CIRCLE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
-    backgroundColor: '#F5F7FA',
+    marginHorizontal: SPACING.SMALL,
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
   },
   registerText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
   },
   registerLink: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2B40',
-    marginLeft: 4,
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginLeft: SPACING.TINY,
   },
   errorText: {
-    color: '#F44336',
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 16,
+    color: COLORS.DANGER,
+    fontSize: FONT_SIZE.SMALL,
+    marginTop: SPACING.TINY,
+    marginBottom: SPACING.LARGE,
   },
 });
 
