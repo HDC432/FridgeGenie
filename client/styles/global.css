@@ -1,1 +1,147 @@
- 
+ /* global.css */
+
+:root {
+  /* Theme Colors */
+  --color-white: #FFFFFF;
+  --color-primary: #FFC107;
+  --color-background: #FFFFFF;
+  --color-text-primary: #1F2B40;
+  --color-text-secondary: #666666;
+  --color-light-gray: #F5F7FA;
+  
+  /* Status Colors */
+  --color-success: #4CAF50;
+  --color-warning: #FFEB3B;
+  --color-caution: #FF9800;
+  --color-danger: #F44336;
+  
+  /* Font Sizes */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 28px;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 20px;
+  --radius-circle: 50%;
+  
+  /* Shadows */
+  --shadow-light: 0px 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  --shadow-heavy: 0px 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Common Button Styles */
+.btn {
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--radius-xl);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+}
+
+.btn-secondary {
+  background-color: var(--color-light-gray);
+}
+
+.btn-dark {
+  background-color: var(--color-text-primary);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+}
+
+/* Common Text Styles */
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-white {
+  color: var(--color-white);
+}
+
+.text-danger {
+  color: var(--color-danger);
+}
+
+.text-primary-color {
+  color: var(--color-primary);
+}
+
+/* Common Form Styles */
+.form-input {
+  background-color: var(--color-light-gray);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+}
+
+.form-label {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Common Card Styles */
+.card {
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  shadow-color: '#000';
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 2;
+}
+
+/* Common Container Styles */
+.container {
+  flex: 1;
+  background-color: var(--color-background);
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
