@@ -26,9 +26,11 @@ const container = database.container('items');
 
 // 导入路由
 const userRoutes = require('./routes/userRoutes');
+const familyRoutes = require('./routes/familyRoutes');
 
 // 使用路由
 app.use('/api/users', userRoutes);
+app.use('/api/families', familyRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

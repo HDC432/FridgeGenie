@@ -43,13 +43,13 @@ class User {
         return bcrypt.compare(candidatePassword, this.password);
     }
 
-    // 查找用户
-    static async findByUsername(username) {
+    // 查找用户（通过ID）
+    static async findById(userId) {
         try {
-            console.log('查找用户 - 通过用户名:', username);
+            console.log('查找用户 - 通过用户ID:', userId);
             const { resources } = await container.items.query({
-                query: "SELECT * FROM c WHERE c.username = @username",
-                parameters: [{ name: "@username", value: username }]
+                query: "SELECT * FROM c WHERE c.id = @userId",
+                parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
             console.log('查找用户 - 查询结果:', resources[0]);
             return resources[0];
@@ -75,13 +75,29 @@ class User {
         }
     }
 
+    // 查找用户（通过用户名）
+    static async findByUsername(username) {
+        try {
+            console.log('查找用户 - 通过用户名:', username);
+            const { resources } = await container.items.query({
+                query: "SELECT * FROM c WHERE c.username = @username",
+                parameters: [{ name: "@username", value: username }]
+            }).fetchAll();
+            console.log('查找用户 - 查询结果:', resources[0]);
+            return resources[0];
+        } catch (error) {
+            console.error('查找用户错误:', error);
+            throw error;
+        }
+    }
+
     // 更新最后登录时间
     static async updateLastLogin(userId) {
         try {
             console.log('更新登录时间 - 用户ID:', userId);
             const { resources } = await container.items.query({
-                query: "SELECT * FROM c WHERE c.id = @id",
-                parameters: [{ name: "@id", value: userId }]
+                query: "SELECT * FROM c WHERE c.id = @userId",
+                parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
 
             if (!resources || resources.length === 0) {
