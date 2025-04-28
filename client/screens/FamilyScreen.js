@@ -33,7 +33,7 @@ const FamilyScreen = () => {
       const token = await getToken();
       console.log('FamilyScreen - 获取到的token:', token);
 
-      const response = await fetch(`${API_URL}/api/families`, {
+      const response = await fetch(`${API_URL}/families`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -84,7 +84,7 @@ const FamilyScreen = () => {
       const requestBody = { name: familyName };
       console.log('FamilyScreen - 创建家庭请求体:', requestBody);
 
-      const response = await fetch(`${API_URL}/api/families`, {
+      const response = await fetch(`${API_URL}/families`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ const FamilyScreen = () => {
       const requestBody = { inviteCode };
       console.log('FamilyScreen - 加入家庭请求体:', requestBody);
 
-      const response = await fetch(`${API_URL}/api/families/join`, {
+      const response = await fetch(`${API_URL}/families/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ const FamilyScreen = () => {
       const token = await getToken();
       console.log('FamilyScreen - 移除成员使用的token:', token);
 
-      const response = await fetch(`${API_URL}/api/families/${family.id}/members/${memberId}`, {
+      const response = await fetch(`${API_URL}/families/${family.id}/members/${memberId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -211,9 +211,9 @@ const FamilyScreen = () => {
               setLoading(true);
               const token = await getToken();
               console.log('FamilyScreen - 获取到的token:', token);
-              console.log('FamilyScreen - 准备发送退出请求:', `${API_URL}/api/families/${family.id}/leave`);
+              console.log('FamilyScreen - 准备发送退出请求:', `${API_URL}/families/${family.id}/leave`);
 
-              const response = await fetch(`${API_URL}/api/families/${family.id}/leave`, {
+              const response = await fetch(`${API_URL}/families/${family.id}/leave`, {
                 method: 'DELETE',
                 headers: {
                   'Authorization': `Bearer ${token}`,

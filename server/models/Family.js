@@ -47,6 +47,22 @@ class Family {
         }
     }
 
+    // 查找家庭（通过用户ID）
+    static async findByUserId(userId) {
+        try {
+            console.log('查找家庭 - 通过用户ID:', userId);
+            const { resources } = await familiesContainer.items.query({
+                query: "SELECT * FROM c WHERE ARRAY_CONTAINS(c.members, {userId: @userId}, true)",
+                parameters: [{ name: "@userId", value: userId }]
+            }).fetchAll();
+            console.log('查找家庭 - 查询结果:', resources[0]);
+            return resources[0];
+        } catch (error) {
+            console.error('查找家庭错误:', error);
+            throw error;
+        }
+    }
+
     // 查找家庭（通过邀请码）
     static async findByInviteCode(inviteCode) {
         try {
