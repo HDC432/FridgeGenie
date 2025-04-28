@@ -134,8 +134,13 @@ export const deleteItem = async (id) => {
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
-        console.log('删除成功:', id);
-        return true;
+        // 检查响应状态
+        if (response.status === 204 || response.status === 200) {
+            console.log('删除成功:', id);
+            return true;
+        } else {
+            throw new Error(`删除失败，状态码: ${response.status}`);
+        }
     } catch (error) {
         console.error('删除物品失败:', error);
         throw error;

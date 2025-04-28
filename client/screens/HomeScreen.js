@@ -65,33 +65,19 @@ const HomeScreen = ({ navigation }) => {
 
   const handleDelete = async (item) => {
     console.log('点击删除按钮:', item);
-    Alert.alert(
-      '确认删除',
-      `确定要删除 "${item.name}" 吗？`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('开始删除物品:', item);
-              const success = await deleteItem(item.id);
-              if (success) {
-                console.log('删除成功，刷新列表');
-                await loadItems();
-                Alert.alert('成功', '物品已删除');
-              } else {
-                throw new Error('删除失败');
-              }
-            } catch (err) {
-              console.error('删除失败:', err);
-              Alert.alert('错误', '删除物品失败，请重试');
-            }
-          },
-        },
-      ]
-    );
+    // 直接执行删除逻辑，跳过 Alert 测试
+    try {
+      const success = await deleteItem(item.id);
+      if (success) {
+        await loadItems();
+        Alert.alert('成功', '物品已删除');
+      } else {
+        throw new Error('删除失败');
+      }
+    } catch (err) {
+      console.error('删除失败:', err);
+      Alert.alert('错误', '删除物品失败，请重试');
+    }
   };
 
   const handleEditQuantity = (item) => {
@@ -110,23 +96,36 @@ const HomeScreen = ({ navigation }) => {
     }
 
     try {
-      const updatedItem = {
-        ...selectedItem,
-        quantity: quantity,
-        updatedAt: new Date().toISOString()
-      };
-
-      const success = await updateItem(selectedItem.id, updatedItem);
-      if (success) {
-        await loadItems();
-        setIsQuantityModalVisible(false);
-        Alert.alert('成功', '数量已更新');
+      if (quantity === 0) {
+        // 如果数量为0，直接删除物品
+        const success = await deleteItem(selectedItem.id);
+        if (success) {
+          await loadItems();
+          setIsQuantityModalVisible(false);
+          Alert.alert('成功', '物品已删除');
+        } else {
+          throw new Error('删除失败');
+        }
       } else {
-        throw new Error('更新失败');
+        // 更新物品数量
+        const updatedItem = {
+          ...selectedItem,
+          quantity: quantity,
+          updatedAt: new Date().toISOString()
+        };
+
+        const success = await updateItem(selectedItem.id, updatedItem);
+        if (success) {
+          await loadItems();
+          setIsQuantityModalVisible(false);
+          Alert.alert('成功', '数量已更新');
+        } else {
+          throw new Error('更新失败');
+        }
       }
     } catch (err) {
-      console.error('更新数量失败:', err);
-      Alert.alert('错误', '更新数量失败，请重试');
+      console.error('操作失败:', err);
+      Alert.alert('错误', '操作失败，请重试');
     }
   };
 

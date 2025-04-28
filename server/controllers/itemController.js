@@ -53,11 +53,7 @@ class ItemController {
             const result = await ItemService.deleteItem(id);
             console.log('删除成功，结果:', result);
             
-            res.status(200).json({
-                success: true,
-                message: '物品已成功删除',
-                data: result
-            });
+            res.status(204).send();
         } catch (error) {
             console.error('删除物品失败:', error);
             res.status(500).json({ 
