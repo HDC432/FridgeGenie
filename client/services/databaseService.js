@@ -95,6 +95,7 @@ export const addItem = async (item) => {
 // 更新物品
 export const updateItem = async (id, item) => {
     try {
+        console.log('发送更新请求:', { id, item });
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'PUT',
             headers: {
@@ -104,10 +105,13 @@ export const updateItem = async (id, item) => {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
-        return await response.json();
+        const updatedItem = await response.json();
+        console.log('更新成功:', updatedItem);
+        return updatedItem;
     } catch (error) {
         console.error('更新物品失败:', error);
         throw error;
@@ -117,53 +121,21 @@ export const updateItem = async (id, item) => {
 // 删除物品
 export const deleteItem = async (id) => {
     try {
-        const url = `${API_URL}/items/${id}`;
-        if (DEBUG) {
-            console.log('删除物品请求URL:', url);
-        }
-        
-        const response = await fetch(url, {
+        console.log('发送删除请求:', id);
+        const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             }
         });
         
-        // 检查响应状态
         if (!response.ok) {
-            let errorMessage;
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.error || errorData.message || '删除失败';
-            } catch (e) {
-                errorMessage = await response.text() || '删除失败';
-            }
-            console.error('删除物品失败，响应内容:', errorMessage);
-            throw new Error(`删除失败: ${errorMessage}`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
-        // 尝试解析响应
-        let data;
-        try {
-            data = await response.json();
-        } catch (e) {
-            // 如果响应为空，返回成功状态
-            if (response.status === 204) {
-                return {
-                    success: true,
-                    message: '物品已成功删除',
-                    id
-                };
-            }
-            throw new Error('无法解析服务器响应');
-        }
-        
-        if (DEBUG) {
-            console.log('删除物品成功，响应数据:', data);
-        }
-        
-        return data;
+        console.log('删除成功:', id);
+        return true;
     } catch (error) {
         console.error('删除物品失败:', error);
         throw error;

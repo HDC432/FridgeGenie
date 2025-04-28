@@ -10,6 +10,8 @@ import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import FamilyScreen from './screens/FamilyScreen';
+import AddItemScreen from './screens/AddItemScreen';
+import RecipeScreen from './screens/RecipeScreen';
 import UserAvatar from './components/UserAvatar';
 import UserMenu from './components/UserMenu';
 
@@ -19,9 +21,17 @@ const Navigation = () => {
   const { user, loading } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
 
+  console.log('Navigation rendered, user:', user);
+  console.log('Menu visible:', menuVisible);
+
   if (loading) {
     return null; // 或者显示加载指示器
   }
+
+  const handleMenuPress = () => {
+    console.log('Menu button pressed');
+    setMenuVisible(true);
+  };
 
   return (
     <>
@@ -42,15 +52,27 @@ const Navigation = () => {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={({ navigation }) => ({
+              options={{
                 title: '冰箱物品清单',
                 headerRight: () => (
-                  <UserAvatar
-                    user={user}
-                    onPress={() => setMenuVisible(true)}
-                  />
+                  <View style={styles.headerRight}>
+                    <UserAvatar
+                      user={user}
+                      onPress={handleMenuPress}
+                    />
+                  </View>
                 ),
-              })}
+              }}
+            />
+            <Stack.Screen
+              name="AddItem"
+              component={AddItemScreen}
+              options={{ title: '添加物品' }}
+            />
+            <Stack.Screen
+              name="Recipe"
+              component={RecipeScreen}
+              options={{ title: '菜谱' }}
             />
             <Stack.Screen
               name="UserProfile"
@@ -82,10 +104,9 @@ const Navigation = () => {
 
       <UserMenu
         visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        onNavigate={(screen) => {
+        onClose={() => {
+          console.log('Menu closing');
           setMenuVisible(false);
-          navigation.navigate(screen);
         }}
       />
     </>
@@ -115,5 +136,10 @@ const styles = StyleSheet.create({
         overflow: 'visible',
       },
     }),
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
   },
 });

@@ -14,16 +14,30 @@ const UserMenu = ({ visible, onClose }) => {
   const { user, logout } = useAuth();
   const navigation = useNavigation();
 
+  console.log('UserMenu rendered, visible:', visible);
+  console.log('User:', user);
+
   const handleLogout = async () => {
+    console.log('Logout pressed');
     await logout();
     onClose();
   };
 
   const menuItems = [
     {
+      icon: 'restaurant-menu',
+      label: '菜谱',
+      onPress: () => {
+        console.log('Recipe pressed');
+        navigation.navigate('Recipe');
+        onClose();
+      },
+    },
+    {
       icon: 'person',
       label: '用户信息',
       onPress: () => {
+        console.log('UserProfile pressed');
         navigation.navigate('UserProfile');
         onClose();
       },
@@ -32,6 +46,7 @@ const UserMenu = ({ visible, onClose }) => {
       icon: 'people',
       label: '我的家庭',
       onPress: () => {
+        console.log('Family pressed');
         navigation.navigate('Family');
         onClose();
       },

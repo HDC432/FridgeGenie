@@ -4,10 +4,16 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { generateAvatarText, generateAvatarColor } from '../utils/avatarUtils';
 
 const UserAvatar = ({ user, onPress }) => {
+  const handlePress = () => {
+    console.log('UserAvatar pressed');
+    console.log('User:', user);
+    onPress();
+  };
+
   if (!user) {
     return (
-      <TouchableOpacity onPress={onPress} style={styles.container}>
-        <MaterialIcons name="account-circle" size={40} color="#666" />
+      <TouchableOpacity onPress={handlePress} style={styles.container}>
+        <MaterialIcons name="account-circle" size={40} color="#fff" />
       </TouchableOpacity>
     );
   }
@@ -16,7 +22,7 @@ const UserAvatar = ({ user, onPress }) => {
   const backgroundColor = generateAvatarColor(user.username);
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.container}>
+    <TouchableOpacity onPress={handlePress} style={styles.container}>
       <View style={[styles.avatar, { backgroundColor }]}>
         <Text style={styles.initials}>{initials}</Text>
       </View>
@@ -27,6 +33,9 @@ const UserAvatar = ({ user, onPress }) => {
 const styles = StyleSheet.create({
   container: {
     padding: 8,
+    marginRight: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   avatar: {
     width: 40,
@@ -34,6 +43,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
   initials: {
     color: '#FFFFFF',

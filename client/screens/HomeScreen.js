@@ -22,14 +22,23 @@ const HomeScreen = ({ navigation }) => {
 
   const loadItems = async () => {
     try {
-      const resp = await getItems(1, 1000);
-      const rawItems = resp.items;
-      rawItems.sort((a, b) =>
-        new Date(a.expiryDate) - new Date(b.expiryDate)
-      );
-      setItems(rawItems);
+      console.log('开始加载物品列表...');
+      const resp = await getItems(1, 1000); // 获取所有物品
+      console.log('获取到的物品数据:', resp);
+      
+      if (resp && resp.items) {
+        const rawItems = resp.items;
+        // 按过期时间升序排序
+        rawItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+        console.log('排序后的物品列表:', rawItems);
+        setItems(rawItems);
+      } else {
+        console.error('返回的数据格式不正确:', resp);
+        Alert.alert('错误', '获取数据失败，请重试');
+      }
     } catch (err) {
       console.error('加载物品失败:', err);
+      Alert.alert('错误', '加载物品失败，请重试');
     }
   };
 
@@ -50,6 +59,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleDelete = item => {
+    console.log('点击删除按钮:', item);
     Alert.alert(
       '确认删除',
       `确定要删除 "${item.name}" 吗？`,
@@ -60,9 +70,15 @@ const HomeScreen = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteItem(item.id);
-              await loadItems();
-              Alert.alert('成功', '物品已删除');
+              console.log('开始删除物品:', item);
+              const success = await deleteItem(item.id);
+              if (success) {
+                console.log('删除成功，刷新列表');
+                await loadItems();
+                Alert.alert('成功', '物品已删除');
+              } else {
+                throw new Error('删除失败');
+              }
             } catch (err) {
               console.error('删除失败:', err);
               Alert.alert('错误', '删除物品失败，请重试');
@@ -95,14 +111,13 @@ const HomeScreen = ({ navigation }) => {
               数量: {item.quantity} | 过期: {expiry.toLocaleDateString()} ({daysLeft} 天)
             </Text>
           </View>
-          <View style={styles.itemActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => handleDelete(item)}
-            >
-              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDelete(item)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -112,12 +127,20 @@ const HomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>我的冰箱</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddItem')}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('Recipe')}
+          >
+            <Ionicons name="restaurant-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddItem')}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {items.length === 0 ? (
@@ -249,20 +272,39 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 16,
   },
+  addButton: {
+    backgroundColor: '#4CAF50',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addFirstButton: {
     backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
   },
   addFirstButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
   welcomeText: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
 

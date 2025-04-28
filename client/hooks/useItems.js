@@ -1,9 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-<<<<<<< HEAD
-import { getItems, deleteItem, addItem } from '../services/databaseService';
-=======
 import { getItems, deleteItem, addItem, updateItem } from '../services/databaseService';
->>>>>>> origin/mvp
 
 export const useItems = () => {
     const [items, setItems] = useState([]);
@@ -18,20 +14,13 @@ export const useItems = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getItems(page);
+            // 设置一个很大的 limit 值来获取所有物品
+            const response = await getItems(1, 1000);
             console.log('获取物品响应:', response);
             
-            if (response && response.items && response.pagination) {
+            if (response && response.items) {
                 setItems(response.items);
-                setTotalPages(response.pagination.totalPages);
-                setCurrentPage(response.pagination.currentPage);
                 setLastRefreshTime(Date.now());
-                console.log('更新后的分页信息:', {
-                    currentPage: response.pagination.currentPage,
-                    totalPages: response.pagination.totalPages,
-                    itemsCount: response.items.length,
-                    totalItems: response.pagination.totalItems
-                });
             } else {
                 console.error('响应格式不正确:', response);
                 setError('获取数据失败：响应格式不正确');
@@ -42,7 +31,7 @@ export const useItems = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage]);
+    }, []);
 
     const handleDelete = useCallback(async (id) => {
         console.log('开始删除物品，ID:', id);
@@ -92,8 +81,6 @@ export const useItems = () => {
         }
     }, [totalPages, fetchItems]);
 
-<<<<<<< HEAD
-=======
     const updateItemQuantity = useCallback(async (itemId, newQuantity) => {
         console.log('更新物品数量:', { itemId, newQuantity });
         try {
@@ -109,19 +96,24 @@ export const useItems = () => {
             }
 
             // 更新物品数量
-            await updateItem(itemId, { ...item, quantity: newQuantity });
+            const updatedItem = {
+                ...item,
+                quantity: newQuantity,
+                updatedAt: new Date().toISOString()
+            };
+            
+            await updateItem(itemId, updatedItem);
             
             // 刷新物品列表
-            await fetchItems(currentPage);
+            await fetchItems(1);
             
             return true;
         } catch (error) {
             console.error('更新物品数量失败:', error);
             throw error;
         }
-    }, [items, currentPage, fetchItems, handleDelete]);
+    }, [items, fetchItems, handleDelete]);
 
->>>>>>> origin/mvp
     // 自动刷新
     useEffect(() => {
         console.log('组件挂载，开始获取数据');
@@ -148,12 +140,8 @@ export const useItems = () => {
         handleDelete,
         handleAddItem,
         handlePageChange,
-<<<<<<< HEAD
-        refreshItems: fetchItems
-=======
         refreshItems: fetchItems,
         updateItemQuantity
->>>>>>> origin/mvp
     };
 };
 
