@@ -8,16 +8,21 @@ import {
   Alert,
   Platform,
   StyleSheet,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInCalendarDays } from 'date-fns';
-import { getItems, deleteItem } from '../services/databaseService';
+import { getItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 
 const HomeScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isQuantityModalVisible, setIsQuantityModalVisible] = useState(false);
+  const [newQuantity, setNewQuantity] = useState('');
   const { user } = useAuth();
 
   const loadItems = async () => {
@@ -58,7 +63,7 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const handleDelete = item => {
+  const handleDelete = async (item) => {
     console.log('点击删除按钮:', item);
     Alert.alert(
       '确认删除',
@@ -89,6 +94,42 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
+  const handleEditQuantity = (item) => {
+    setSelectedItem(item);
+    setNewQuantity(item.quantity.toString());
+    setIsQuantityModalVisible(true);
+  };
+
+  const handleUpdateQuantity = async () => {
+    if (!selectedItem) return;
+
+    const quantity = parseInt(newQuantity, 10);
+    if (isNaN(quantity) || quantity < 0) {
+      Alert.alert('错误', '请输入有效的数量');
+      return;
+    }
+
+    try {
+      const updatedItem = {
+        ...selectedItem,
+        quantity: quantity,
+        updatedAt: new Date().toISOString()
+      };
+
+      const success = await updateItem(selectedItem.id, updatedItem);
+      if (success) {
+        await loadItems();
+        setIsQuantityModalVisible(false);
+        Alert.alert('成功', '数量已更新');
+      } else {
+        throw new Error('更新失败');
+      }
+    } catch (err) {
+      console.error('更新数量失败:', err);
+      Alert.alert('错误', '更新数量失败，请重试');
+    }
+  };
+
   const renderItem = ({ item }) => {
     const expiry = new Date(item.expiryDate);
     if (isNaN(expiry.getTime())) {
@@ -111,17 +152,75 @@ const HomeScreen = ({ navigation }) => {
               数量: {item.quantity} | 过期: {expiry.toLocaleDateString()} ({daysLeft} 天)
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => handleDelete(item)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-          </TouchableOpacity>
+          <View style={styles.itemActions}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleEditQuantity(item)}
+            >
+              <Ionicons name="pencil-outline" size={24} color="#1F2B40" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handleDelete(item)}
+            >
+              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
   };
+
+  const renderQuantityModal = () => (
+    <Modal
+      visible={isQuantityModalVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setIsQuantityModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>编辑数量</Text>
+            <TouchableOpacity
+              onPress={() => setIsQuantityModalVisible(false)}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.modalItemName}>{selectedItem?.name}</Text>
+          
+          <View style={styles.quantityInputContainer}>
+            <Text style={styles.quantityLabel}>数量:</Text>
+            <TextInput
+              style={styles.quantityInput}
+              value={newQuantity}
+              onChangeText={setNewQuantity}
+              keyboardType="number-pad"
+              placeholder="请输入数量"
+            />
+          </View>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setIsQuantityModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.confirmButton]}
+              onPress={handleUpdateQuantity}
+            >
+              <Text style={styles.confirmButtonText}>确认</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <View style={styles.container}>
@@ -164,6 +263,7 @@ const HomeScreen = ({ navigation }) => {
           contentContainerStyle={styles.listContainer}
         />
       )}
+      {renderQuantityModal()}
     </View>
   );
 }
@@ -247,7 +347,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  deleteButton: {
+  itemActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
     padding: 8,
     borderRadius: 8,
     backgroundColor: '#FFFFFF',
@@ -278,6 +382,83 @@ const styles = StyleSheet.create({
     color: '#1F2B40',
     fontSize: 16,
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2B40',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalItemName: {
+    fontSize: 18,
+    fontWeight: '500',
+    color: '#1F2B40',
+    marginBottom: 16,
+  },
+  quantityInputContainer: {
+    marginBottom: 20,
+  },
+  quantityLabel: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 8,
+  },
+  quantityInput: {
+    backgroundColor: '#F5F7FA',
+    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: '#1F2B40',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#F5F7FA',
+  },
+  confirmButton: {
+    backgroundColor: '#FFC107',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmButtonText: {
+    color: '#1F2B40',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
