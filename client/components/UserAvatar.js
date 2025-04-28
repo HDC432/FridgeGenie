@@ -1,55 +1,80 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { generateAvatarText, generateAvatarColor } from '../utils/avatarUtils';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
-const UserAvatar = ({ user, onPress }) => {
-  const handlePress = () => {
-    console.log('UserAvatar pressed');
-    console.log('User:', user);
-    onPress();
-  };
-
+const UserAvatar = ({ user, onPress, size = 40 }) => {
   if (!user) {
-    return (
-      <TouchableOpacity onPress={handlePress} style={styles.container}>
-        <MaterialIcons name="account-circle" size={40} color="#fff" />
-      </TouchableOpacity>
-    );
+    return null;
   }
 
-  const initials = generateAvatarText(user.username);
-  const backgroundColor = generateAvatarColor(user.username);
+  const getInitials = () => {
+    if (!user.name) return '?';
+    return user.name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+  };
 
   return (
-    <TouchableOpacity onPress={handlePress} style={styles.container}>
-      <View style={[styles.avatar, { backgroundColor }]}>
-        <Text style={styles.initials}>{initials}</Text>
+    <TouchableOpacity onPress={onPress} disabled={!onPress}>
+      <View 
+        style={[
+          styles.avatarContainer, 
+          size && { 
+            width: size, 
+            height: size, 
+            borderRadius: size / 2 
+          }
+        ]}
+      >
+        {user.avatar ? (
+          <Image
+            style={[
+              styles.avatarImage,
+              size && { 
+                width: size - 4, 
+                height: size - 4, 
+                borderRadius: (size - 4) / 2 
+              }
+            ]}
+            source={{ uri: user.avatar }}
+          />
+        ) : (
+          <Text 
+            style={[
+              styles.avatarInitial, 
+              size && { fontSize: size / 2.5 }
+            ]}
+          >
+            {getInitials()}
+          </Text>
+        )}
       </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 8,
-    marginRight: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  avatar: {
+  avatarContainer: {
+    overflow: 'hidden',
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: '#F5F7FA',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: '#FFC107',
   },
-  initials: {
-    color: '#FFFFFF',
+  avatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  avatarInitial: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#1F2B40',
   },
 });
 

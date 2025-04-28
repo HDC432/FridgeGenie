@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
-  StyleSheet, 
   FlatList, 
   TouchableOpacity, 
   RefreshControl, 
   Alert,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -96,10 +96,10 @@ const HomeScreen = ({ navigation }) => {
     }
     const daysLeft = differenceInCalendarDays(expiry, new Date());
 
-    let stripeColor = '#4CD964'; // > 7 天：绿
-    if (daysLeft <= 1)      stripeColor = '#FF3B30'; // ≤1 天：红
-    else if (daysLeft <= 3) stripeColor = '#FF9500'; // ≤3 天：橙
-    else if (daysLeft <= 7) stripeColor = '#FFCC00'; // ≤7 天：黄
+    let stripeColor = '#4CAF50'; // > 7 天：绿
+    if (daysLeft <= 1)      stripeColor = '#F44336'; // ≤1 天：红
+    else if (daysLeft <= 3) stripeColor = '#FF9800'; // ≤3 天：橙
+    else if (daysLeft <= 7) stripeColor = '#FFEB3B'; // ≤7 天：黄
 
     return (
       <View style={styles.itemWrapper}>
@@ -135,10 +135,10 @@ const HomeScreen = ({ navigation }) => {
             <Ionicons name="restaurant-outline" size={24} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, { marginLeft: 12 }]}
             onPress={() => navigation.navigate('AddItem')}
           >
-            <Ionicons name="add" size={24} color="#fff" />
+            <Ionicons name="add" size={24} color="#1F2B40" />
           </TouchableOpacity>
         </View>
       </View>
@@ -169,74 +169,66 @@ const HomeScreen = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
-    zIndex: 1,
+    borderBottomColor: '#F5F7FA',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2B40',
   },
   headerButtons: {
     flexDirection: 'row',
+    gap: 12,
   },
   headerButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#1F2B40',
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 24, fontWeight: 'bold' },
-
-  content: {
-    flex: 1,
-    backgroundColor: '#fff',
-    ...Platform.select({
-      web: {
-        overflow: 'auto', // let FlatList scroll here
-      },
-    }),
+  addButton: {
+    backgroundColor: '#FFC107',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
   listContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 32,
+    padding: 16,
   },
-
   itemWrapper: {
     flexDirection: 'row',
     marginBottom: 12,
+    borderRadius: 8,
     overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   stripe: {
     width: 5,
     height: '100%',
-    borderTopLeftRadius: 8,
-    borderBottomLeftRadius: 8,
   },
   itemContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
-    borderTopRightRadius: 8,
-    borderBottomRightRadius: 8,
+    backgroundColor: '#F5F7FA',
     padding: 12,
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -248,18 +240,22 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#1F2B40',
     marginBottom: 4,
   },
   itemDetails: {
     fontSize: 14,
     color: '#666',
   },
-  itemActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionButton: {
-    padding: 4,
+  deleteButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   emptyContainer: {
     flex: 1,
@@ -272,39 +268,16 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 16,
   },
-  addButton: {
-    backgroundColor: '#4CAF50',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   addFirstButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFC107',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
   },
   addFirstButtonText: {
-    color: '#fff',
+    color: '#1F2B40',
     fontSize: 16,
     fontWeight: '500',
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  deleteButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
   },
 });
 

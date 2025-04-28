@@ -1,0 +1,161 @@
+/* RecipeScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+}
+
+.header {
+  padding: 16px;
+  background-color: #FFFFFF;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+}
+
+.searchContainer {
+  background-color: #F5F7FA;
+  flex-direction: row;
+  align-items: center;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.searchInput {
+  flex: 1;
+  height: 40px;
+  margin-left: 8px;
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.tabsContainer {
+  flex-direction: row;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding-vertical: 8px;
+  padding-horizontal: 16px;
+  margin-right: 8px;
+  border-radius: 20px;
+}
+
+.activeTab {
+  background-color: #FFC107;
+}
+
+.inactiveTab {
+  background-color: #F5F7FA;
+}
+
+.tabText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.activeTabText {
+  color: #1F2B40;
+}
+
+.inactiveTabText {
+  color: #666;
+}
+
+.recipeList {
+  padding: 16px;
+}
+
+.recipeCard {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  shadow-color: '#000';
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 3;
+}
+
+.recipeImage {
+  width: '100%';
+  height: 180px;
+}
+
+.recipeContent {
+  padding: 16px;
+}
+
+.recipeTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.recipeInfo {
+  flex-direction: row;
+  margin-bottom: 8px;
+}
+
+.recipeInfoItem {
+  flex-direction: row;
+  align-items: center;
+  margin-right: 16px;
+}
+
+.recipeInfoText {
+  margin-left: 4px;
+  font-size: 14px;
+  color: #666;
+}
+
+.recipeDescription {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+.matchedIngredients {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.ingredient {
+  background-color: #F5F7FA;
+  padding-vertical: 4px;
+  padding-horizontal: 8px;
+  border-radius: 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.ingredientText {
+  font-size: 12px;
+  color: #1F2B40;
+}
+
+.matchedIngredient {
+  background-color: #FFFAE0;
+}
+
+.matchedIngredientText {
+  color: #FFC107;
+}
+
+.emptyContainer {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.emptyText {
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 16px;
+} 

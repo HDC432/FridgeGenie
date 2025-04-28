@@ -2,158 +2,189 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   Modal,
+  TouchableWithoutFeedback,
+  StyleSheet,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
+import UserAvatar from './UserAvatar';
 
 const UserMenu = ({ visible, onClose }) => {
-  const { user, logout } = useAuth();
   const navigation = useNavigation();
+  const { user, logout } = useAuth();
 
-  console.log('UserMenu rendered, visible:', visible);
-  console.log('User:', user);
+  if (!visible || !user) {
+    return null;
+  }
 
-  const handleLogout = async () => {
-    console.log('Logout pressed');
-    await logout();
+  const handleNavigation = (screen) => {
+    console.log(`Navigating to ${screen}`);
     onClose();
+    navigation.navigate(screen);
   };
 
-  const menuItems = [
-    {
-      icon: 'restaurant-menu',
-      label: '菜谱',
-      onPress: () => {
-        console.log('Recipe pressed');
-        navigation.navigate('Recipe');
-        onClose();
-      },
-    },
-    {
-      icon: 'person',
-      label: '用户信息',
-      onPress: () => {
-        console.log('UserProfile pressed');
-        navigation.navigate('UserProfile');
-        onClose();
-      },
-    },
-    {
-      icon: 'people',
-      label: '我的家庭',
-      onPress: () => {
-        console.log('Family pressed');
-        navigation.navigate('Family');
-        onClose();
-      },
-    },
-    {
-      icon: 'logout',
-      label: '登出',
-      onPress: handleLogout,
-    },
-  ];
+  const handleLogout = async () => {
+    console.log('Logging out');
+    onClose();
+    await logout();
+  };
 
   return (
     <Modal
-      visible={visible}
       transparent
+      visible={visible}
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={onClose}
-      >
-        <View style={styles.menuContainer}>
-          <View style={styles.userInfo}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.username?.charAt(0).toUpperCase()}
-              </Text>
-            </View>
-            <Text style={styles.username}>{user?.username}</Text>
-            <Text style={styles.email}>{user?.email}</Text>
-          </View>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.menuContainer}>
+              <View style={styles.header}>
+                <View style={styles.avatarContainer}>
+                  <UserAvatar user={user} size={40} />
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{user.name}</Text>
+                  <Text style={styles.userEmail}>{user.email}</Text>
+                </View>
+              </View>
 
-          <View style={styles.menuItems}>
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.menuItem}
-                onPress={item.onPress}
-              >
-                <MaterialIcons name={item.icon} size={24} color="#666" />
-                <Text style={styles.menuItemText}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+              <View style={styles.menuItems}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('UserProfile')}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="person-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>个人信息</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('Family')}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="people-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>我的家庭</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem}>
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="notifications-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>通知设置</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem}>
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="settings-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>应用设置</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.menuItem, styles.logoutItem]}
+                  onPress={handleLogout}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="log-out-outline" size={20} color="#F44336" />
+                  </View>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>退出登录</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </TouchableOpacity>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  menuContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
-  },
-  userInfo: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#f4511e',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    zIndex: 999,
   },
-  avatarText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
+  menuContainer: {
+    width: 240,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+    position: 'absolute',
+    top: 60,
+    right: 16,
   },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F7FA',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  email: {
-    fontSize: 14,
+  avatarContainer: {
+    marginRight: 12,
+  },
+  userInfo: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2B40',
+    marginBottom: 2,
+  },
+  userEmail: {
+    fontSize: 12,
     color: '#666',
   },
   menuItems: {
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    paddingVertical: 8,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    padding: 12,
+    paddingHorizontal: 16,
+  },
+  menuItemActive: {
+    backgroundColor: '#F5F7FA',
+  },
+  menuItemIcon: {
+    marginRight: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuItemText: {
-    fontSize: 16,
-    marginLeft: 15,
-    color: '#333',
+    fontSize: 14,
+    color: '#1F2B40',
+  },
+  logoutItem: {
+    borderTopWidth: 1,
+    borderTopColor: '#F5F7FA',
+    marginTop: 8,
+  },
+  logoutText: {
+    color: '#F44336',
   },
 });
 

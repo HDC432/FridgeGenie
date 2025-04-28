@@ -11,10 +11,13 @@ import {
   Modal,
   ScrollView,
   Platform,
+  TextInput,
 } from 'react-native';
 import useItems from '../hooks/useItems';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import '../styles/screens/RecipeScreen.css';
+import { getItems } from '../services/databaseService';
 
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
@@ -23,6 +26,9 @@ export default function RecipeScreen({ navigation }) {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [refrigeratorItems, setRefrigeratorItems] = useState([]);
 
   const generateRecipes = async () => {
     setLoading(true);
@@ -84,7 +90,25 @@ export default function RecipeScreen({ navigation }) {
 
   useEffect(() => {
     generateRecipes();
+    loadRefrigeratorItems();
   }, [items]);
+
+  const loadRefrigeratorItems = async () => {
+    try {
+      setLoading(true);
+      const response = await getItems(1, 1000); // 获取所有冰箱物品
+      if (response && response.items) {
+        // 提取物品名称，用于菜谱匹配
+        const items = response.items.map(item => item.name.toLowerCase());
+        setRefrigeratorItems(items);
+      }
+    } catch (error) {
+      console.error('获取冰箱物品失败:', error);
+      Alert.alert('错误', '获取冰箱物品失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRecipePress = (recipe) => {
     // 初始化每个食材的选择数量
@@ -293,45 +317,109 @@ export default function RecipeScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  const getFilteredRecipes = () => {
+    let filteredRecipes = recipes;
+
+    // 根据搜索关键词过滤
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filteredRecipes = filteredRecipes.filter(
+        recipe =>
+          recipe.name.toLowerCase().includes(query) ||
+          recipe.ingredients.some(ing => ing.name.toLowerCase().includes(query))
+      );
+    }
+
+    // 根据标签过滤
+    if (activeTab === 'matched') {
+      // 只显示能够使用冰箱中食材的菜谱
+      filteredRecipes = filteredRecipes.filter(recipe =>
+        recipe.ingredients.some(ing =>
+          refrigeratorItems.includes(ing.name.toLowerCase())
+        )
+      );
+    }
+
+    return filteredRecipes;
+  };
+
+  const getMatchedIngredients = recipe => {
+    return recipe.ingredients.filter(ing =>
+      refrigeratorItems.includes(ing.name.toLowerCase())
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>我的冰箱</Text>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Recipe')}
-          >
-            <Ionicons name="restaurant-outline" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AddItem')}
-          >
-            <Ionicons name="add" size={24} color="#fff" />
-          </TouchableOpacity>
+        <Text style={styles.title}>菜谱推荐</Text>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#666" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="搜索菜谱..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsContainer}
+        >
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
+            onPress={() => setActiveTab('all')}
+          >
+            <Text
+              style={[styles.tabText, activeTab === 'all' ? styles.activeTabText : styles.inactiveTabText]}
+            >
+              全部菜谱
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'matched' ? styles.activeTab : styles.inactiveTab]}
+            onPress={() => setActiveTab('matched')}
+          >
+            <Text
+              style={[styles.tabText, activeTab === 'matched' ? styles.activeTabText : styles.inactiveTabText]}
+            >
+              冰箱食材可做
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'fav' ? styles.activeTab : styles.inactiveTab]}
+            onPress={() => setActiveTab('fav')}
+          >
+            <Text
+              style={[styles.tabText, activeTab === 'fav' ? styles.activeTabText : styles.inactiveTabText]}
+            >
+              我的收藏
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
-          <Text style={styles.loadingText}>正在生成食谱推荐...</Text>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#FFC107" />
         </View>
-      ) : (
+      ) : getFilteredRecipes().length > 0 ? (
         <FlatList
-          data={recipes}
+          data={getFilteredRecipes()}
           renderItem={renderRecipe}
           keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                暂无推荐食谱
-              </Text>
-            </View>
-          }
+          contentContainerStyle={styles.recipeList}
         />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {activeTab === 'matched'
+              ? '没有找到可以用冰箱食材制作的菜谱'
+              : '没有找到匹配的菜谱'}
+          </Text>
+        </View>
       )}
 
       {renderConfirmationModal()}
@@ -342,43 +430,75 @@ export default function RecipeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#F5F7FA',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#1F2B40',
+    marginBottom: 16,
   },
-  headerButtons: {
+  searchContainer: {
+    backgroundColor: '#F5F7FA',
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  headerButton: {
+    borderRadius: 8,
     padding: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
   },
-  addButton: {
-    padding: 8,
+  searchInput: {
+    flex: 1,
+    height: 40,
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#1F2B40',
   },
-  listContainer: {
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    borderRadius: 20,
+  },
+  activeTab: {
+    backgroundColor: '#FFC107',
+  },
+  inactiveTab: {
+    backgroundColor: '#F5F7FA',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: '#1F2B40',
+  },
+  inactiveTabText: {
+    color: '#666',
+  },
+  recipeList: {
     padding: 16,
   },
   recipeCard: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
     marginBottom: 16,
-    elevation: 2,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    elevation: 3,
   },
   recipeHeader: {
     marginBottom: 12,
@@ -392,18 +512,18 @@ const styles = StyleSheet.create({
   recipeName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#1F2B40',
   },
   caloriesBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFE5E5',
+    backgroundColor: '#FFFAE0',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
   },
   caloriesText: {
-    color: '#FF6B6B',
+    color: '#FFC107',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 4,
@@ -414,30 +534,30 @@ const styles = StyleSheet.create({
   },
   recipeDetail: {
     fontSize: 14,
-    color: '#000000',
+    color: '#666',
     marginRight: 12,
   },
   ingredientsSection: {
     marginBottom: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#F5F7FA',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 8,
   },
   ingredientText: {
     fontSize: 14,
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 4,
   },
   nutritionSection: {
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#F5F7FA',
   },
   nutritionGrid: {
     flexDirection: 'row',
@@ -450,34 +570,25 @@ const styles = StyleSheet.create({
   },
   nutritionLabel: {
     fontSize: 12,
-    color: '#000000',
+    color: '#666',
     marginBottom: 2,
   },
   nutritionValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#000000',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#000000',
+    color: '#1F2B40',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#000000',
+    fontSize: 18,
+    color: '#666',
     textAlign: 'center',
+    marginBottom: 16,
   },
   modalOverlay: {
     flex: 1,
@@ -486,7 +597,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     width: '90%',
     maxHeight: '80%',
@@ -498,13 +609,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#F5F7FA',
     paddingBottom: 12,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#1F2B40',
   },
   closeButton: {
     padding: 4,
@@ -512,7 +623,7 @@ const styles = StyleSheet.create({
   modalRecipeName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 16,
   },
   ingredientsList: {
@@ -521,20 +632,20 @@ const styles = StyleSheet.create({
   pickerContainer: {
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#F5F7FA',
     paddingBottom: 12,
   },
   pickerLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 8,
   },
   quantityControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F7FA',
     borderRadius: 8,
     padding: 8,
     marginVertical: 8,
@@ -542,16 +653,16 @@ const styles = StyleSheet.create({
   quantityButton: {
     width: 36,
     height: 36,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFC107',
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
   quantityButtonDisabled: {
-    backgroundColor: '#cccccc',
+    backgroundColor: '#E0E0E0',
   },
   quantityButtonText: {
-    color: '#fff',
+    color: '#1F2B40',
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -561,27 +672,28 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     minWidth: 30,
     textAlign: 'center',
+    color: '#1F2B40',
   },
   availableText: {
     fontSize: 14,
-    color: '#000000',
+    color: '#666',
     fontStyle: 'italic',
   },
   summaryContainer: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F5F7FA',
     borderRadius: 8,
   },
   summaryTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 8,
   },
   summaryText: {
     fontSize: 14,
-    color: '#000000',
+    color: '#1F2B40',
     marginBottom: 4,
   },
   modalActions: {
@@ -597,13 +709,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   cancelButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F5F7FA',
   },
   confirmButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFC107',
   },
   disabledButton: {
-    backgroundColor: '#cccccc',
+    backgroundColor: '#E0E0E0',
   },
   cancelButtonText: {
     color: '#666',
@@ -611,7 +723,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   confirmButtonText: {
-    color: '#fff',
+    color: '#1F2B40',
     fontSize: 16,
     fontWeight: '600',
   },

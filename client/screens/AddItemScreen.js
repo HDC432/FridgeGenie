@@ -1,189 +1,280 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
+  TouchableOpacity,
   Alert,
+  Platform,
+  StyleSheet,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { useItems } from '../hooks/useItems';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { addItem } from '../services/databaseService';
 
-export default function AddItemScreen({ navigation }) {
-  const { handleAddItem } = useItems();
-  const today = new Date();
-  const currentYear = today.getFullYear();
-
-  // 本地状态
+const AddItemScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
-  const [year, setYear]     = useState(currentYear.toString());
-  const [month, setMonth]   = useState((today.getMonth() + 1).toString());
-  const [day, setDay]       = useState(today.getDate().toString());
-  const [daysInMonth, setDaysInMonth] = useState(
-    new Date(currentYear, today.getMonth() + 1, 0).getDate()
-  );
-
-  // 当年或月改变时，更新当月天数，并确保日不超出范围
-  useEffect(() => {
-    const yearNum = parseInt(year);
-    const monthNum = parseInt(month);
-    const dim = new Date(yearNum, monthNum, 0).getDate();
-    setDaysInMonth(dim);
-    const dayNum = parseInt(day);
-    if (dayNum > dim) setDay(dim.toString());
-  }, [year, month]);
+  const [expiryDate, setExpiryDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('错误', '请填写物品名称');
+      Alert.alert('提示', '请输入物品名称');
       return;
     }
-    // 组合年月日为 Date 对象
-    const yearNum = parseInt(year);
-    const monthNum = parseInt(month);
-    const dayNum = parseInt(day);
-    const expiry = new Date(yearNum, monthNum - 1, dayNum);
+
     try {
-      const newItem = {
+      setLoading(true);
+      console.log('添加物品:', { name, quantity, expiryDate });
+      
+      const success = await addItem({
         name: name.trim(),
-        quantity: parseInt(quantity),
-        expiryDate: expiry.toISOString(),
-      };
-      const success = await handleAddItem(newItem);
+        quantity: parseInt(quantity, 10) || 1,
+        expiryDate: expiryDate.toISOString(),
+      });
+
       if (success) {
-        Alert.alert('成功', '物品添加成功');
-        navigation.goBack();
+        console.log('添加成功');
+        Alert.alert('成功', '物品已添加到冰箱', [
+          {
+            text: 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
       } else {
-        Alert.alert('错误', '添加物品失败');
+        throw new Error('添加失败');
       }
     } catch (err) {
-      console.error(err);
-      Alert.alert('错误', '添加物品失败');
+      console.error('添加物品失败:', err);
+      Alert.alert('错误', '添加物品失败，请重试');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 年份选项：当前年前后各 5 年
-  const yearOptions = Array.from(
-    { length: 11 },
-    (_, i) => (currentYear - 5 + i).toString()
-  );
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setExpiryDate(selectedDate);
+    }
+  };
+
+  const increaseQuantity = () => {
+    const current = parseInt(quantity, 10) || 0;
+    setQuantity((current + 1).toString());
+  };
+
+  const decreaseQuantity = () => {
+    const current = parseInt(quantity, 10) || 0;
+    if (current > 1) {
+      setQuantity((current - 1).toString());
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>物品名称</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="请输入物品名称"
-        value={name}
-        onChangeText={setName}
-      />
+      <View style={styles.header}>
+        <Text style={styles.title}>添加物品</Text>
+        <Text style={styles.subtitle}>
+          将新的食品添加到你的冰箱清单中，并设置过期日期
+        </Text>
+      </View>
 
-      <Text style={styles.label}>数量</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={quantity}
-          onValueChange={(value) => setQuantity(value)}
-          style={{ color: '#000' }}
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>物品名称</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="例如：牛奶、鸡蛋..."
+          value={name}
+          onChangeText={setName}
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>数量</Text>
+        <View style={styles.quantityRow}>
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={decreaseQuantity}
+          >
+            <Ionicons name="remove" size={20} color="#1F2B40" />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.quantityInput}
+            value={quantity}
+            onChangeText={setQuantity}
+            keyboardType="number-pad"
+          />
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={increaseQuantity}
+          >
+            <Ionicons name="add" size={20} color="#1F2B40" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>过期日期</Text>
+        <TouchableOpacity
+          style={styles.datePickerBtn}
+          onPress={() => setShowDatePicker(true)}
         >
-          {Array.from({ length: 100 }, (_, i) => (i + 1).toString()).map(n => (
-            <Picker.Item key={n} label={n} value={n} color="#000" />
-          ))}
-        </Picker>
+          <Text style={styles.dateText}>
+            {format(expiryDate, 'yyyy年MM月dd日')}
+          </Text>
+          <Ionicons name="calendar-outline" size={20} color="#1F2B40" />
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={expiryDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+          />
+        )}
       </View>
 
-      <Text style={styles.label}>过期日期</Text>
-      <View style={styles.datePickerRow}>
-        {/* 年 */}
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={year}
-            onValueChange={(value) => setYear(value)}
-            style={{ color: '#000', height: 180 }}
-            itemStyle={{ fontSize: 14 }}
-          >
-            {yearOptions.map(y => (
-              <Picker.Item key={y} label={`${y}年`} value={y} color="#000" style={{ fontSize: 14 }} />
-            ))}
-          </Picker>
-        </View>
-        {/* 月 */}
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={month}
-            onValueChange={(value) => setMonth(value)}
-            style={{ color: '#000', height: 180 }}
-            itemStyle={{ fontSize: 14 }}
-          >
-            {Array.from({ length: 12 }, (_, i) => (i + 1).toString()).map(m => (
-              <Picker.Item key={m} label={`${m}月`} value={m} color="#000" style={{ fontSize: 14 }} />
-            ))}
-          </Picker>
-        </View>
-        {/* 日 */}
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={day}
-            onValueChange={(value) => setDay(value)}
-            style={{ color: '#000', height: 180 }}
-            itemStyle={{ fontSize: 14 }}
-          >
-            {Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString()).map(d => (
-              <Picker.Item key={d} label={`${d}日`} value={d} color="#000" style={{ fontSize: 14 }} />
-            ))}
-          </Picker>
-        </View>
-      </View>
-
-      <View style={styles.submitButton}>
-        <Button title="添加物品" onPress={handleSubmit} />
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.cameraButton}
+          onPress={() => Alert.alert('提示', '扫描功能即将上线')}
+        >
+          <Ionicons name="camera-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.cameraButtonText}>扫码添加物品</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          <Text style={styles.submitButtonText}>
+            {loading ? '添加中...' : '添加到冰箱'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 20, 
-    backgroundColor: '#fff' 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
   },
-  label: { 
-    fontSize: 16, 
-    marginTop: 15, 
-    marginBottom: 5 
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2B40',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  formGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1F2B40',
+    marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 10,
+    backgroundColor: '#F5F7FA',
+    height: 48,
+    borderRadius: 8,
+    paddingHorizontal: 12,
     fontSize: 16,
-    borderRadius: 4,
-    color: '#000',
+    color: '#1F2B40',
   },
   pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    marginBottom: 10,
-    color: '#000',
-  },
-  datePickerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: -2,
-  },
-  pickerWrapper: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 4,
-    marginHorizontal: 2,
+    backgroundColor: '#F5F7FA',
+    borderRadius: 8,
     overflow: 'hidden',
-    height: 180,
+  },
+  datePickerBtn: {
+    backgroundColor: '#F5F7FA',
+    height: 48,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#1F2B40',
+  },
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  quantityBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F7FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quantityInput: {
+    backgroundColor: '#F5F7FA',
+    height: 48,
+    marginHorizontal: 12,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    color: '#1F2B40',
+    textAlign: 'center',
+    minWidth: 80,
+  },
+  buttonContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    marginTop: 24,
   },
   submitButton: {
-    marginTop: 30,
+    backgroundColor: '#FFC107',
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2B40',
+  },
+  errorText: {
+    color: '#F44336',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  cameraButton: {
+    backgroundColor: '#1F2B40',
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexDirection: 'row',
+  },
+  cameraButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 8,
   },
 });
+
+export default AddItemScreen;

@@ -1,0 +1,180 @@
+/* FamilyScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+}
+
+.header {
+  padding: 16px;
+  background-color: #FFFFFF;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+}
+
+.familyCard {
+  background-color: #F5F7FA;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.familyHeader {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.familyName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2B40;
+}
+
+.manageButton {
+  background-color: #FFC107;
+  padding-vertical: 4px;
+  padding-horizontal: 12px;
+  border-radius: 16px;
+}
+
+.manageButtonText {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1F2B40;
+}
+
+.membersList {
+  margin-bottom: 16px;
+}
+
+.memberItem {
+  flex-direction: row;
+  align-items: center;
+  padding-vertical: 8px;
+}
+
+.memberAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: #E0E0E0;
+  margin-right: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.memberInitial {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1F2B40;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+}
+
+.memberRole {
+  font-size: 14px;
+  color: #666;
+}
+
+.adminBadge {
+  background-color: #FFC107;
+  padding-vertical: 2px;
+  padding-horizontal: 8px;
+  border-radius: 12px;
+}
+
+.adminBadgeText {
+  font-size: 12px;
+  color: #1F2B40;
+}
+
+.inviteSection {
+  margin-top: 24px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2B40;
+  margin-bottom: 12px;
+}
+
+.inviteInput {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 8px;
+  padding-horizontal: 12px;
+  font-size: 16px;
+  color: #1F2B40;
+  margin-bottom: 12px;
+}
+
+.inviteButton {
+  background-color: #FFC107;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.inviteButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2B40;
+}
+
+.createFamilyButton {
+  background-color: #1F2B40;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.createFamilyButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.emptyContainer {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.emptyText {
+  font-size: 18px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 24px;
+} 

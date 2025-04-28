@@ -1,0 +1,67 @@
+/* Pagination.css */
+
+.container {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-vertical: 16px;
+  margin-top: 8px;
+}
+
+.pageInfo {
+  font-size: 14px;
+  color: #666;
+}
+
+.buttonsContainer {
+  flex-direction: row;
+}
+
+.pageButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  justify-content: center;
+  align-items: center;
+  margin-horizontal: 4px;
+}
+
+.activeButton {
+  background-color: #FFC107;
+}
+
+.inactiveButton {
+  background-color: #F5F7FA;
+}
+
+.disabledButton {
+  background-color: #E0E0E0;
+  opacity: 0.5;
+}
+
+.buttonText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.activeButtonText {
+  color: #1F2B40;
+}
+
+.inactiveButtonText {
+  color: #666;
+}
+
+.disabledButtonText {
+  color: #999;
+}
+
+.arrowButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: #F5F7FA;
+  justify-content: center;
+  align-items: center;
+  margin-horizontal: 4px;
+} 

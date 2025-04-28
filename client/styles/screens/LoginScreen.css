@@ -1,0 +1,135 @@
+/* LoginScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+  padding: 24px;
+  justify-content: center;
+}
+
+.logoContainer {
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 16px;
+}
+
+.appName {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.tagline {
+  font-size: 16px;
+  color: #666;
+  text-align: center;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.input {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 8px;
+  padding-horizontal: 12px;
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.forgotPassword {
+  align-self: flex-end;
+  margin-bottom: 24px;
+}
+
+.forgotPasswordText {
+  font-size: 14px;
+  color: #1F2B40;
+}
+
+.loginButton {
+  background-color: #FFC107;
+  height: 50px;
+  border-radius: 25px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.loginButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2B40;
+}
+
+.orContainer {
+  flex-direction: row;
+  align-items: center;
+  margin-vertical: 20px;
+}
+
+.orLine {
+  flex: 1;
+  height: 1px;
+  background-color: #E0E0E0;
+}
+
+.orText {
+  margin-horizontal: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.socialButtons {
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.socialButton {
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  justify-content: center;
+  align-items: center;
+  margin-horizontal: 10px;
+  background-color: #F5F7FA;
+}
+
+.registerContainer {
+  flex-direction: row;
+  justify-content: center;
+}
+
+.registerText {
+  font-size: 14px;
+  color: #666;
+}
+
+.registerLink {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2B40;
+  margin-left: 4px;
+}
+
+.errorText {
+  color: #F44336;
+  font-size: 14px;
+  margin-top: 4px;
+  margin-bottom: 16px;
+} 

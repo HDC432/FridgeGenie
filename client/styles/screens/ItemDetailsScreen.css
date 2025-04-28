@@ -1,0 +1,157 @@
+/* ItemDetailsScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+}
+
+.imageContainer {
+  height: 200px;
+  background-color: #F5F7FA;
+  justify-content: center;
+  align-items: center;
+}
+
+.itemImage {
+  width: '100%';
+  height: '100%';
+}
+
+.imagePlaceholder {
+  align-items: center;
+}
+
+.placeholderIcon {
+  margin-bottom: 8px;
+}
+
+.placeholderText {
+  font-size: 16px;
+  color: #666;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.itemName {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-bottom: 4px;
+}
+
+.itemCategory {
+  font-size: 16px;
+  color: #666;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2B40;
+  margin-bottom: 12px;
+}
+
+.infoRow {
+  flex-direction: row;
+  justify-content: space-between;
+  padding-vertical: 12px;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+}
+
+.infoLabel {
+  font-size: 16px;
+  color: #666;
+}
+
+.infoValue {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+}
+
+.statusCircle {
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  margin-right: 8px;
+}
+
+.statusGreen {
+  background-color: #4CAF50;
+}
+
+.statusYellow {
+  background-color: #FFEB3B;
+}
+
+.statusOrange {
+  background-color: #FF9800;
+}
+
+.statusRed {
+  background-color: #F44336;
+}
+
+.statusRow {
+  flex-direction: row;
+  align-items: center;
+}
+
+.notesContainer {
+  background-color: #F5F7FA;
+  padding: 12px;
+  border-radius: 8px;
+  min-height: 80px;
+}
+
+.notesText {
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.actionsContainer {
+  margin-top: 24px;
+}
+
+.actionButton {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 24px;
+  margin-bottom: 12px;
+}
+
+.editButton {
+  background-color: #FFC107;
+}
+
+.deleteButton {
+  background-color: #F5F7FA;
+}
+
+.actionButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.editButtonText {
+  color: #1F2B40;
+}
+
+.deleteButtonText {
+  color: #F44336;
+} 

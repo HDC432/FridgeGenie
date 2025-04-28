@@ -1,0 +1,93 @@
+/* UserMenu.css */
+
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: 'rgba(0, 0, 0, 0.5)';
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.menuContainer {
+  width: 240px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  shadow-color: '#000';
+  shadow-offset: 0px 4px;
+  shadow-opacity: 0.2;
+  shadow-radius: 8px;
+  elevation: 8;
+  position: absolute;
+  top: 60px;
+  right: 16px;
+}
+
+.header {
+  padding: 16px;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+  flex-direction: row;
+  align-items: center;
+}
+
+.avatarContainer {
+  margin-right: 12px;
+}
+
+.userInfo {
+  flex: 1;
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2B40;
+  margin-bottom: 2px;
+}
+
+.userEmail {
+  font-size: 12px;
+  color: #666;
+}
+
+.menuItems {
+  padding-vertical: 8px;
+}
+
+.menuItem {
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+}
+
+.menuItemActive {
+  background-color: #F5F7FA;
+}
+
+.menuItemIcon {
+  margin-right: 12px;
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.menuItemText {
+  font-size: 14px;
+  color: #1F2B40;
+}
+
+.logoutItem {
+  border-top-width: 1px;
+  border-top-color: #F5F7FA;
+  margin-top: 8px;
+}
+
+.logoutText {
+  color: #F44336;
+} 

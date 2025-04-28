@@ -1,0 +1,133 @@
+/* AddItemScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+  padding: 16px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.input {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 8px;
+  padding-horizontal: 12px;
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.pickerContainer {
+  background-color: #F5F7FA;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.datePickerBtn {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 8px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-horizontal: 12px;
+}
+
+.dateText {
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.quantityRow {
+  flex-direction: row;
+  align-items: center;
+}
+
+.quantityBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: #F5F7FA;
+  justify-content: center;
+  align-items: center;
+}
+
+.quantityInput {
+  background-color: #F5F7FA;
+  height: 48px;
+  margin-horizontal: 12px;
+  border-radius: 8px;
+  padding-horizontal: 12px;
+  font-size: 16px;
+  color: #1F2B40;
+  text-align: center;
+  min-width: 80px;
+}
+
+.buttonContainer {
+  flex: 1;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.submitButton {
+  background-color: #FFC107;
+  height: 50px;
+  border-radius: 25px;
+  justify-content: center;
+  align-items: center;
+}
+
+.submitButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2B40;
+}
+
+.errorText {
+  color: #F44336;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.cameraButton {
+  background-color: #1F2B40;
+  height: 50px;
+  border-radius: 25px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-direction: row;
+}
+
+.cameraButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-left: 8px;
+} 

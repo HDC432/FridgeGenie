@@ -1,0 +1,145 @@
+/* HomeScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+}
+
+.header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #FFFFFF;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1F2B40;
+}
+
+.headerButtons {
+  flex-direction: row;
+  gap: 12px;
+}
+
+.headerButton {
+  background-color: #1F2B40;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.addButton {
+  background-color: #FFC107;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.listContainer {
+  padding: 16px;
+}
+
+.itemWrapper {
+  flex-direction: row;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  shadow-color: #000;
+  shadow-offset: 0px 2px;
+  shadow-opacity: 0.1;
+  shadow-radius: 4px;
+  elevation: 2;
+}
+
+.stripe {
+  width: 5px;
+  height: '100%';
+}
+
+.stripeGreen {
+  background-color: #4CAF50;
+}
+
+.stripeYellow {
+  background-color: #FFEB3B;
+}
+
+.stripeOrange {
+  background-color: #FF9800;
+}
+
+.stripeRed {
+  background-color: #F44336;
+}
+
+.itemContainer {
+  flex: 1;
+  flex-direction: row;
+  background-color: #F5F7FA;
+  padding: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itemInfo {
+  flex: 1;
+  margin-right: 8px;
+}
+
+.itemName {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+  margin-bottom: 4px;
+}
+
+.itemDetails {
+  font-size: 14px;
+  color: #666;
+}
+
+.deleteButton {
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  shadow-color: #000;
+  shadow-offset: 0px 1px;
+  shadow-opacity: 0.2;
+  shadow-radius: 2px;
+  elevation: 2;
+}
+
+.emptyContainer {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.emptyText {
+  font-size: 18px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.addFirstButton {
+  background-color: #FFC107;
+  padding-horizontal: 20px;
+  padding-vertical: 10px;
+  border-radius: 20px;
+}
+
+.addFirstButtonText {
+  color: #1F2B40;
+  font-size: 16px;
+  font-weight: 500;
+} 

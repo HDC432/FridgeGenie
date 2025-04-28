@@ -1,0 +1,140 @@
+/* UserProfileScreen.css */
+
+.container {
+  flex: 1;
+  background-color: #FFFFFF;
+}
+
+.header {
+  padding: 24px;
+  align-items: center;
+  background-color: #F5F7FA;
+}
+
+.avatarContainer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  background-color: #E0E0E0;
+  overflow: hidden;
+  margin-bottom: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatarImage {
+  width: 100px;
+  height: 100px;
+}
+
+.avatarPlaceholder {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1F2B40;
+}
+
+.changePhotoButton {
+  background-color: #FFC107;
+  padding-vertical: 4px;
+  padding-horizontal: 12px;
+  border-radius: 16px;
+}
+
+.changePhotoText {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1F2B40;
+}
+
+.userName {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1F2B40;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.userEmail {
+  font-size: 16px;
+  color: #666;
+}
+
+.content {
+  flex: 1;
+  padding: 16px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1F2B40;
+  margin-bottom: 12px;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2B40;
+  margin-bottom: 8px;
+}
+
+.input {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 8px;
+  padding-horizontal: 12px;
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.saveButton {
+  background-color: #FFC107;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.saveButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2B40;
+}
+
+.settingItem {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-vertical: 12px;
+  border-bottom-width: 1px;
+  border-bottom-color: #F5F7FA;
+}
+
+.settingLabel {
+  font-size: 16px;
+  color: #1F2B40;
+}
+
+.logoutButton {
+  background-color: #F5F7FA;
+  height: 48px;
+  border-radius: 24px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.logoutButtonText {
+  font-size: 16px;
+  font-weight: 600;
+  color: #F44336;
+} 
