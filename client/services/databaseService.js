@@ -1,9 +1,9 @@
 import { API_URL, DEBUG } from '../config/database';
 
 // 获取所有物品
-export const getItems = async (page = 1, limit = 5) => {
+export const getItems = async () => {
     try {
-        const url = `${API_URL}/items?page=${page}&limit=${limit}`;
+        const url = `${API_URL}/items`;
         if (DEBUG) {
             console.log('请求URL:', url);
         }
@@ -44,22 +44,13 @@ export const getItems = async (page = 1, limit = 5) => {
             throw new Error('返回的数据格式不正确');
         }
 
-        // 计算分页信息
-        const totalItems = items.length;
-        const totalPages = Math.ceil(totalItems / limit);
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        const paginatedItems = items.slice(startIndex, endIndex);
+        // 过滤掉 Cosmos DB 的内部字段
+        const processedItems = items.map(item => {
+            const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
+            return cleanItem;
+        });
 
-        return {
-            items: paginatedItems,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalItems,
-                itemsPerPage: limit
-            }
-        };
+        return { items: processedItems };
     } catch (error) {
         if (error.name === 'AbortError') {
             console.error('请求超时');

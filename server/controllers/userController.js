@@ -75,11 +75,24 @@ class UserController {
 
       const decoded = userService.verifyToken(token);
       
+      // 从数据库获取完整的用户信息
+      const user = await userService.getUserById(decoded.id);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: '用户不存在'
+        });
+      }
+
       res.status(200).json({
         success: true,
         data: {
-          id: decoded.id,
-          email: decoded.email
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          createdAt: user.createdAt,
+          lastLogin: user.lastLogin
         }
       });
     } catch (error) {

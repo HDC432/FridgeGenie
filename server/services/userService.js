@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { usersContainer } = require('../config/database');
 
 class UserService {
   // 用户注册
@@ -98,6 +99,16 @@ class UserService {
       return jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
       throw new Error('无效的 token');
+    }
+  }
+
+  async getUserById(id) {
+    try {
+      const { resource } = await usersContainer.items.item(id).read();
+      return resource;
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      throw error;
     }
   }
 }

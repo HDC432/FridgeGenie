@@ -5,7 +5,7 @@ class AuthService {
   // 用户注册
   async register(username, email, password) {
     try {
-      const response = await fetch(`${API_URL}/api/users/register`, {
+      const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +29,7 @@ class AuthService {
   // 用户登录
   async login(email, password) {
     try {
-      const response = await fetch(`${API_URL}/api/users/login`, {
+      const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ class AuthService {
         throw new Error('未登录');
       }
 
-      const response = await fetch(`${API_URL}/api/users/me`, {
+      const response = await fetch(`${API_URL}/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

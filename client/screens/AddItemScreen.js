@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,10 +20,15 @@ const AddItemScreen = ({ navigation }) => {
   const [expiryDate, setExpiryDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('提示', '请输入物品名称');
+      if (Platform.OS === 'web') {
+        alert('请输入物品名称');
+      } else {
+        Alert.alert('提示', '请输入物品名称');
+      }
       return;
     }
 
@@ -38,21 +44,32 @@ const AddItemScreen = ({ navigation }) => {
 
       if (success) {
         console.log('添加成功');
-        Alert.alert('成功', '物品已添加到冰箱', [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]);
+        setShowSuccessModal(true);
       } else {
         throw new Error('添加失败');
       }
     } catch (err) {
       console.error('添加物品失败:', err);
-      Alert.alert('错误', '添加物品失败，请重试');
+      if (Platform.OS === 'web') {
+        alert('添加物品失败，请重试');
+      } else {
+        Alert.alert('错误', '添加物品失败，请重试');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleContinue = () => {
+    setShowSuccessModal(false);
+    setName('');
+    setQuantity('1');
+    setExpiryDate(new Date());
+  };
+
+  const handleBackToHome = () => {
+    setShowSuccessModal(false);
+    navigation.navigate('Home');
   };
 
   const handleDateChange = (event, selectedDate) => {
@@ -157,6 +174,34 @@ const AddItemScreen = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>添加成功</Text>
+            <Text style={styles.modalMessage}>物品已添加到冰箱</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.continueButton]}
+                onPress={handleContinue}
+              >
+                <Text style={styles.buttonText}>继续添加</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.homeButton]}
+                onPress={handleBackToHome}
+              >
+                <Text style={styles.buttonText}>返回首页</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -274,6 +319,53 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1F2B40',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  modalButton: {
+    flex: 1,
+    padding: 10,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  continueButton: {
+    backgroundColor: '#FFC107',
+  },
+  homeButton: {
+    backgroundColor: '#1F2B40',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 
