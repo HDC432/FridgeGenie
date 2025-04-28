@@ -9,13 +9,16 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { register } from '../services/authService';
+import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 const RegisterScreen = ({ navigation }) => {
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -40,9 +43,9 @@ const RegisterScreen = ({ navigation }) => {
     try {
       setLoading(true);
       setError('');
-      const success = await register(name, email, password);
+      const userData = await register(name, email, password, inviteCode);
       
-      if (success) {
+      if (userData) {
         Alert.alert(
           '注册成功',
           '您已成功注册，现在可以登录了',
@@ -124,6 +127,17 @@ const RegisterScreen = ({ navigation }) => {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry={!showPassword}
+        />
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>邀请码（可选）</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="如果您有邀请码，请在此输入"
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          autoCapitalize="none"
         />
       </View>
 

@@ -3,14 +3,14 @@ import { API_URL } from '../config/constants';
 
 class AuthService {
   // 用户注册
-  async register(username, email, password) {
+  async register(username, email, password, inviteCode = '') {
     try {
       const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, inviteCode }),
       });
 
       const data = await response.json();

@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Family = require('../models/Family');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { usersContainer } = require('../config/database');
@@ -7,7 +8,7 @@ class UserService {
   // 用户注册
   async register(userData) {
     try {
-      const { username, email, password } = userData;
+      const { username, email, password, inviteCode } = userData;
       
       // 检查用户是否已存在
       const existingUser = await User.findByEmail(email) || await User.findByUsername(username);
@@ -16,9 +17,32 @@ class UserService {
         throw new Error('用户名或邮箱已被注册');
       }
 
+      let familyId = null;
+
+      // 如果有邀请码，查找对应的家庭
+      if (inviteCode) {
+        const family = await Family.findByInviteCode(inviteCode);
+        if (!family) {
+          throw new Error('邀请码无效');
+        }
+        familyId = family.id;
+      } else {
+        // 如果没有邀请码，创建新家庭
+        const family = new Family(username + '的家庭', null);
+        const savedFamily = await family.save();
+        familyId = savedFamily.id;
+      }
+
       // 创建新用户
-      const user = new User(username, email, password);
+      const user = new User(username, email, password, familyId);
       const savedUser = await user.save();
+      
+      // 如果是新创建的家庭，将用户设置为家庭创建者
+      if (!inviteCode) {
+        await Family.addMember(familyId, savedUser.id, 'admin');
+      } else {
+        await Family.addMember(familyId, savedUser.id, 'member');
+      }
       
       // 生成 JWT token
       const token = this.generateToken(savedUser);
@@ -27,7 +51,8 @@ class UserService {
         user: {
           id: savedUser.id,
           username: savedUser.username,
-          email: savedUser.email
+          email: savedUser.email,
+          familyId: savedUser.familyId
         },
         token
       };

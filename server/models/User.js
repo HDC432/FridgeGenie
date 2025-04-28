@@ -2,10 +2,11 @@ const { usersContainer } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 class User {
-    constructor(username, email, password) {
+    constructor(username, email, password, familyId = null) {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.familyId = familyId;
         this.createdAt = new Date();
         this.lastLogin = null;
     }
