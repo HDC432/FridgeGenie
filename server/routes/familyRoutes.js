@@ -22,6 +22,6 @@ router.delete('/:familyId/members/:userId', familyController.removeMember);
 router.put('/:familyId/members/:userId/role', familyController.updateMemberRole);
 
 // 退出家庭
-router.delete('/:familyId/leave', auth, familyController.leaveFamily.bind(familyController));
+router.delete('/:familyId/leave', familyController.leaveFamily.bind(familyController));
 
 module.exports = router; 

@@ -34,8 +34,11 @@ class UserService {
       
       // 如果没有邀请码，创建新家庭并将用户设置为管理员
       if (!inviteCode) {
+        console.log('UserService - 开始创建新家庭');
         const family = new Family(username + '的家庭', savedUser.id);
+        console.log('UserService - 新家庭对象:', family);
         const savedFamily = await family.save();
+        console.log('UserService - 保存家庭结果:', savedFamily);
         await User.updateFamilyId(savedUser.id, savedFamily.id);
         familyId = savedFamily.id;
       } else {

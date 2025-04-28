@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItems, deleteItem, addItem, updateItem } from '../services/databaseService';
+import { getItems, deleteItem, addItem, updateItem, updateItemQuantity } from '../services/databaseService';
 
 export const useItems = () => {
     const [items, setItems] = useState([]);
@@ -15,9 +15,9 @@ export const useItems = () => {
             const response = await getItems();
             console.log('获取物品响应:', response);
             
-            if (Array.isArray(response)) {
+            if (response && response.items && Array.isArray(response.items)) {
                 // 确保每个物品都有必要的字段
-                const processedItems = response.map(item => ({
+                const processedItems = response.items.map(item => ({
                     id: item.id,
                     name: item.name || '',
                     quantity: item.quantity || 0,
@@ -81,6 +81,19 @@ export const useItems = () => {
         }
     };
 
+    const handleUpdateItemQuantity = async (id, newQuantity) => {
+        try {
+            const result = await updateItemQuantity(id, newQuantity);
+            setItems(prevItems => 
+                prevItems.map(item => item.id === id ? result : item)
+            );
+            return result;
+        } catch (error) {
+            console.error('更新物品数量失败:', error);
+            throw error;
+        }
+    };
+
     return {
         items,
         loading,
@@ -89,7 +102,8 @@ export const useItems = () => {
         fetchItems,
         addItem: handleAddItem,
         updateItem: handleUpdateItem,
-        deleteItem: handleDeleteItem
+        deleteItem: handleDeleteItem,
+        updateItemQuantity: handleUpdateItemQuantity
     };
 };
 

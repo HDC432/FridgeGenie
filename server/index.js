@@ -1,25 +1,23 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const itemRoutes = require('./routes/itemRoutes');
 
 const app = express();
-const port = process.env.PORT || 3001;
 
 // 中间件
 app.use(cors());
 app.use(express.json());
 
-// 导入路由
-const userRoutes = require('./routes/userRoutes');
-const familyRoutes = require('./routes/familyRoutes');
-const itemRoutes = require('./routes/itemRoutes');
-
-// 使用路由
-app.use('/users', userRoutes);
-app.use('/families', familyRoutes);
+// 路由
 app.use('/items', itemRoutes);
 
-// 启动服务器
-app.listen(port, () => {
-  console.log(`服务器运行在 http://localhost:${port}`);
+// 错误处理中间件
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: '服务器内部错误' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`服务器运行在端口 ${PORT}`);
 }); 

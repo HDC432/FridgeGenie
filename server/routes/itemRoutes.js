@@ -13,6 +13,20 @@ router.get('/', async (req, res) => {
     }
 });
 
+// 获取单个物品
+router.get('/:id', async (req, res) => {
+    try {
+        const item = await ItemModel.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ error: '物品不存在' });
+        }
+        res.json(item);
+    } catch (error) {
+        console.error('获取物品时出错:', error);
+        res.status(500).json({ error: '获取物品失败' });
+    }
+});
+
 // 添加新物品
 router.post('/', async (req, res) => {
     try {

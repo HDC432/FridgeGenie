@@ -119,7 +119,7 @@ class FamilyService {
             // 如果是最后一个成员，删除整个家庭
             if (family.members.length === 1) {
                 console.log('FamilyService - 最后一个成员，准备删除家庭');
-                await Family.deleteById(familyId);
+                await Family.delete(familyId);
                 console.log('FamilyService - 家庭已删除');
                 return null;
             }
@@ -137,9 +137,9 @@ class FamilyService {
             console.log('FamilyService - 准备移除成员');
             family.members = family.members.filter(m => m.userId !== userId);
             console.log('FamilyService - 开始保存更新后的家庭信息');
-            await family.save();
+            const updatedFamily = await Family.update(familyId, family);
             console.log('FamilyService - 家庭信息已更新');
-            return family;
+            return updatedFamily;
         } catch (error) {
             console.error('FamilyService - 移除成员失败:', error);
             throw error;

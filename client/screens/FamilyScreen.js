@@ -24,8 +24,10 @@ const FamilyScreen = () => {
 
   useEffect(() => {
     console.log('FamilyScreen - 组件挂载');
-    fetchFamilyInfo();
-  }, []);
+    if (user) {
+      fetchFamilyInfo();
+    }
+  }, [user]);
 
   const fetchFamilyInfo = async () => {
     try {

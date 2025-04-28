@@ -138,22 +138,56 @@ export const deleteItem = async (id) => {
     }
 };
 
-// 更新物品数量
-export const updateItemQuantity = async (id, newQuantity) => {
+// 获取单个物品
+export const getItemById = async (id) => {
     try {
         const response = await fetch(`${API_URL}/items/${id}`, {
-            method: 'PATCH',
+            method: 'GET',
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ quantity: newQuantity }),
+            }
         });
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        return await response.json();
+        const item = await response.json();
+        return item;
+    } catch (error) {
+        console.error('获取物品失败:', error);
+        throw error;
+    }
+};
+
+// 更新物品数量
+export const updateItemQuantity = async (id, newQuantity) => {
+    try {
+        // 首先获取当前物品
+        const currentItem = await getItemById(id);
+
+        // 更新数量
+        const updatedItem = {
+            ...currentItem,
+            quantity: newQuantity,
+            updatedAt: new Date().toISOString()
+        };
+
+        // 使用 PUT 方法更新整个物品
+        const updateResponse = await fetch(`${API_URL}/items/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedItem),
+        });
+        
+        if (!updateResponse.ok) {
+            throw new Error(`HTTP error! status: ${updateResponse.status}`);
+        }
+        
+        return await updateResponse.json();
     } catch (error) {
         console.error('更新物品数量失败:', error);
         throw error;
