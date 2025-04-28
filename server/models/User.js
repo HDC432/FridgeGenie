@@ -15,6 +15,10 @@ class User {
     async save() {
         try {
             console.log('保存用户 - 开始:', this);
+            // 加密密码
+            const salt = await bcrypt.genSalt(10);
+            this.password = await bcrypt.hash(this.password, salt);
+            
             const { resource } = await usersContainer.items.create(this);
             console.log('保存用户 - 完成:', resource);
             return resource;
@@ -81,15 +85,50 @@ class User {
     static async updateLastLogin(userId) {
         try {
             console.log('更新最后登录时间 - 用户ID:', userId);
-            const { resource } = await usersContainer.items.item(userId).patch({
-                operations: [
-                    { op: 'replace', path: '/lastLogin', value: new Date() }
-                ]
+            
+            // 首先检查用户是否存在
+            const user = await User.findById(userId);
+            if (!user) {
+                console.error('更新最后登录时间错误: 用户不存在');
+                throw new Error('用户不存在');
+            }
+
+            // 使用 replace 操作而不是 patch
+            const { resource } = await usersContainer.item(userId, userId).replace({
+                ...user,
+                lastLogin: new Date()
             });
+            
             console.log('更新最后登录时间 - 完成:', resource);
             return resource;
         } catch (error) {
             console.error('更新最后登录时间错误:', error);
+            throw error;
+        }
+    }
+
+    // 更新用户家庭ID
+    static async updateFamilyId(userId, familyId) {
+        try {
+            console.log('更新用户家庭ID - 用户ID:', userId, '家庭ID:', familyId);
+            
+            // 首先检查用户是否存在
+            const user = await User.findById(userId);
+            if (!user) {
+                console.error('更新用户家庭ID错误: 用户不存在');
+                throw new Error('用户不存在');
+            }
+
+            // 使用 replace 操作而不是 patch
+            const { resource } = await usersContainer.item(userId, userId).replace({
+                ...user,
+                familyId: familyId
+            });
+            
+            console.log('更新用户家庭ID - 完成:', resource);
+            return resource;
+        } catch (error) {
+            console.error('更新用户家庭ID错误:', error);
             throw error;
         }
     }

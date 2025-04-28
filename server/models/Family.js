@@ -38,7 +38,7 @@ class Family {
     static async findById(id) {
         try {
             console.log('查找家庭 - 通过ID:', id);
-            const { resource } = await familiesContainer.items.item(id).read();
+            const { resource } = await familiesContainer.item(id).read();
             console.log('查找家庭 - 查询结果:', resource);
             return resource;
         } catch (error) {
@@ -83,7 +83,7 @@ class Family {
     static async update(id, updateData) {
         try {
             console.log('更新家庭 - 开始:', { id, updateData });
-            const { resource } = await familiesContainer.items.item(id).replace(updateData);
+            const { resource } = await familiesContainer.item(id).replace(updateData);
             console.log('更新家庭 - 完成:', resource);
             return resource;
         } catch (error) {
@@ -96,11 +96,45 @@ class Family {
     static async delete(id) {
         try {
             console.log('删除家庭 - 开始:', id);
-            await familiesContainer.items.item(id).delete();
+            await familiesContainer.item(id).delete();
             console.log('删除家庭 - 完成');
             return true;
         } catch (error) {
             console.error('删除家庭错误:', error);
+            throw error;
+        }
+    }
+
+    // 添加成员
+    static async addMember(familyId, userId) {
+        try {
+            console.log('添加成员 - 开始:', { familyId, userId });
+            const family = await Family.findById(familyId);
+            
+            if (!family) {
+                throw new Error('家庭不存在');
+            }
+
+            // 检查用户是否已经是成员
+            const isMember = family.members.some(member => member.userId === userId);
+            if (isMember) {
+                throw new Error('用户已经是家庭成员');
+            }
+
+            // 添加新成员
+            family.members.push({
+                userId,
+                role: 'member',
+                status: 'active',
+                joinedAt: new Date()
+            });
+
+            // 更新家庭信息
+            const updatedFamily = await Family.update(familyId, family);
+            console.log('添加成员 - 完成:', updatedFamily);
+            return updatedFamily;
+        } catch (error) {
+            console.error('添加成员错误:', error);
             throw error;
         }
     }

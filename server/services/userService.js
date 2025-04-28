@@ -26,22 +26,21 @@ class UserService {
           throw new Error('邀请码无效');
         }
         familyId = family.id;
-      } else {
-        // 如果没有邀请码，创建新家庭
-        const family = new Family(username + '的家庭', null);
-        const savedFamily = await family.save();
-        familyId = savedFamily.id;
       }
 
       // 创建新用户
       const user = new User(username, email, password, familyId);
       const savedUser = await user.save();
       
-      // 如果是新创建的家庭，将用户设置为家庭创建者
+      // 如果没有邀请码，创建新家庭并将用户设置为管理员
       if (!inviteCode) {
-        await Family.addMember(familyId, savedUser.id, 'admin');
+        const family = new Family(username + '的家庭', savedUser.id);
+        const savedFamily = await family.save();
+        await User.updateFamilyId(savedUser.id, savedFamily.id);
+        familyId = savedFamily.id;
       } else {
-        await Family.addMember(familyId, savedUser.id, 'member');
+        // 如果有邀请码，将用户添加为普通成员
+        await Family.addMember(familyId, savedUser.id);
       }
       
       // 生成 JWT token
@@ -52,7 +51,7 @@ class UserService {
           id: savedUser.id,
           username: savedUser.username,
           email: savedUser.email,
-          familyId: savedUser.familyId
+          familyId: familyId
         },
         token
       };
@@ -96,7 +95,10 @@ class UserService {
         user: {
           id: user.id,
           username: user.username,
-          email: user.email
+          email: user.email,
+          familyId: user.familyId,
+          createdAt: user.createdAt,
+          lastLogin: new Date()
         },
         token
       };
@@ -129,8 +131,7 @@ class UserService {
 
   async getUserById(id) {
     try {
-      const { resource } = await usersContainer.items.item(id).read();
-      return resource;
+      return await User.findById(id);
     } catch (error) {
       console.error('获取用户信息失败:', error);
       throw error;

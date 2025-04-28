@@ -4,7 +4,7 @@ class UserController {
   // 用户注册
   async register(req, res) {
     try {
-      const { username, email, password } = req.body;
+      const { username, email, password, inviteCode } = req.body;
       
       // 验证请求数据
       if (!username || !email || !password) {
@@ -14,7 +14,15 @@ class UserController {
         });
       }
 
-      const result = await userService.register({ username, email, password });
+      // 验证邀请码格式（如果提供）
+      if (inviteCode && !/^[A-Z0-9]{6}$/.test(inviteCode)) {
+        return res.status(400).json({
+          success: false,
+          message: '邀请码格式不正确'
+        });
+      }
+
+      const result = await userService.register({ username, email, password, inviteCode });
       
       res.status(201).json({
         success: true,
@@ -91,6 +99,7 @@ class UserController {
           id: user.id,
           username: user.username,
           email: user.email,
+          familyId: user.familyId,
           createdAt: user.createdAt,
           lastLogin: user.lastLogin
         }
