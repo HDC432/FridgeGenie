@@ -16,7 +16,6 @@ import {
 import useItems from '../hooks/useItems';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import '../styles/screens/RecipeScreen.css';
 import { getItems } from '../services/databaseService';
 
 export default function RecipeScreen({ navigation }) {
