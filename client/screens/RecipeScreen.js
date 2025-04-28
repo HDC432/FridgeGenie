@@ -20,11 +20,11 @@ import { getItems } from '../services/databaseService';
 
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { items, updateItemQuantity, handleDelete } = useItems();
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedQuantities, setSelectedQuantities] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
@@ -95,11 +95,11 @@ export default function RecipeScreen({ navigation }) {
   const loadRefrigeratorItems = async () => {
     try {
       setLoading(true);
-      const response = await getItems(1, 1000); // 获取所有冰箱物品
-      if (response && response.items) {
+      const response = await getItems(); // 获取所有冰箱物品
+      if (response && response.items && Array.isArray(response.items)) {
         // 提取物品名称，用于菜谱匹配
-        const items = response.items.map(item => item.name.toLowerCase());
-        setRefrigeratorItems(items);
+        const itemNames = response.items.map(item => item.name.toLowerCase());
+        setRefrigeratorItems(itemNames);
       }
     } catch (error) {
       console.error('获取冰箱物品失败:', error);
@@ -127,25 +127,25 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const handleConfirmConsumption = async () => {
+    if (!selectedRecipe) return;
+    
     try {
-      // 更新每个食材的数量
-      for (const [itemName, consumeQuantity] of Object.entries(selectedQuantities)) {
-        const fridgeItem = items.find(item => item.name === itemName);
-        if (fridgeItem) {
-          const newQuantity = fridgeItem.quantity - consumeQuantity;
-          await updateItemQuantity(fridgeItem.id, newQuantity);
+      for (const [name, quantity] of Object.entries(selectedQuantities)) {
+        const item = items.find(i => i.name === name);
+        if (item) {
+          const newQuantity = item.quantity - quantity;
+          await updateItemQuantity(item.id, newQuantity);
         }
       }
-      if (Platform.OS === 'web') {
-        window.alert('食材已更新');
-      } else {
-        Alert.alert('成功', '食材已更新');
-      }
+
+      Alert.alert('成功', '食材使用已确认');
       setIsModalVisible(false);
       setSelectedRecipe(null);
+      setSelectedQuantities({});
+      loadRefrigeratorItems();
     } catch (error) {
-      console.error('更新食材数量失败:', error);
-      Alert.alert('错误', '更新食材数量失败');
+      console.error('确认使用食材时出错:', error);
+      Alert.alert('错误', '确认使用食材失败');
     }
   };
 
@@ -228,13 +228,17 @@ export default function RecipeScreen({ navigation }) {
           <Text style={styles.modalRecipeName}>{selectedRecipe?.name}</Text>
           
           <ScrollView style={styles.ingredientsList}>
-            {selectedRecipe?.ingredients.map(ing => renderQuantityPicker(ing))}
+            {selectedRecipe?.ingredients.map((ing, index) => (
+              <View key={`${selectedRecipe.id}-ingredient-${index}`}>
+                {renderQuantityPicker(ing)}
+              </View>
+            ))}
           </ScrollView>
 
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>使用食材汇总：</Text>
             {Object.entries(selectedQuantities).map(([name, quantity]) => (
-              <Text key={name} style={styles.summaryText}>
+              <Text key={`${selectedRecipe.id}-summary-${name}`} style={styles.summaryText}>
                 • {name}: {quantity}个
               </Text>
             ))}
@@ -286,7 +290,7 @@ export default function RecipeScreen({ navigation }) {
       <View style={styles.ingredientsSection}>
         <Text style={styles.sectionTitle}>所需食材:</Text>
         {item.ingredients.map((ing, index) => (
-          <Text key={index} style={styles.ingredientText}>
+          <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
             • {ing.name} ({ing.quantity})
           </Text>
         ))}
@@ -295,19 +299,19 @@ export default function RecipeScreen({ navigation }) {
       <View style={styles.nutritionSection}>
         <Text style={styles.sectionTitle}>营养成分:</Text>
         <View style={styles.nutritionGrid}>
-          <View style={styles.nutritionItem}>
+          <View key={`${item.id}-protein`} style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>蛋白质</Text>
             <Text style={styles.nutritionValue}>{item.nutrition.protein}</Text>
           </View>
-          <View style={styles.nutritionItem}>
+          <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>碳水</Text>
             <Text style={styles.nutritionValue}>{item.nutrition.carbs}</Text>
           </View>
-          <View style={styles.nutritionItem}>
+          <View key={`${item.id}-fat`} style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>脂肪</Text>
             <Text style={styles.nutritionValue}>{item.nutrition.fat}</Text>
           </View>
-          <View style={styles.nutritionItem}>
+          <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
             <Text style={styles.nutritionLabel}>膳食纤维</Text>
             <Text style={styles.nutritionValue}>{item.nutrition.fiber}</Text>
           </View>
