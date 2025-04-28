@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+<<<<<<< HEAD
 import { getItems, deleteItem, addItem } from '../services/databaseService';
+=======
+import { getItems, deleteItem, addItem, updateItem } from '../services/databaseService';
+>>>>>>> origin/mvp
 
 export const useItems = () => {
     const [items, setItems] = useState([]);
@@ -88,6 +92,36 @@ export const useItems = () => {
         }
     }, [totalPages, fetchItems]);
 
+<<<<<<< HEAD
+=======
+    const updateItemQuantity = useCallback(async (itemId, newQuantity) => {
+        console.log('更新物品数量:', { itemId, newQuantity });
+        try {
+            const item = items.find(i => i.id === itemId);
+            if (!item) {
+                throw new Error('物品不存在');
+            }
+
+            // 如果新数量为0，删除物品
+            if (newQuantity <= 0) {
+                await handleDelete(itemId);
+                return;
+            }
+
+            // 更新物品数量
+            await updateItem(itemId, { ...item, quantity: newQuantity });
+            
+            // 刷新物品列表
+            await fetchItems(currentPage);
+            
+            return true;
+        } catch (error) {
+            console.error('更新物品数量失败:', error);
+            throw error;
+        }
+    }, [items, currentPage, fetchItems, handleDelete]);
+
+>>>>>>> origin/mvp
     // 自动刷新
     useEffect(() => {
         console.log('组件挂载，开始获取数据');
@@ -114,7 +148,12 @@ export const useItems = () => {
         handleDelete,
         handleAddItem,
         handlePageChange,
+<<<<<<< HEAD
         refreshItems: fetchItems
+=======
+        refreshItems: fetchItems,
+        updateItemQuantity
+>>>>>>> origin/mvp
     };
 };
 

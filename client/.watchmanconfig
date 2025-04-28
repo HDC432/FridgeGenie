@@ -1,0 +1,19 @@
+{
+  "ignore_dirs": [
+    "node_modules",
+    ".git",
+    "build",
+    "dist",
+    "coverage",
+    ".expo",
+    "ios",
+    "android"
+  ],
+  "ignore_files": [
+    "*.log",
+    "*.tmp",
+    "*.temp",
+    "*.swp",
+    "*.swo"
+  ]
+} 

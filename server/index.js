@@ -1,27 +1,36 @@
 const express = require('express');
 const cors = require('cors');
 const { CosmosClient } = require('@azure/cosmos');
+require('dotenv').config();
 
 const app = express();
 const port = 3001;
 
 // 中间件
 app.use(cors({
-    origin: '*', // 允许所有来源的请求
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type']
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
 // Azure Cosmos DB 配置
 const cosmosClient = new CosmosClient({
-    endpoint: 'https://fridgegenie-db.documents.azure.com:443/',
-    key: 'WOKhsjYMsn4pDid4n9tqZwKV2foZdqbZRPSaKIX68vsI5TtbEy70OqPZgvDn1fh85PL8gVgOjzW8ACDbQO8xHQ=='
+    endpoint: process.env.COSMOS_ENDPOINT,
+    key: process.env.COSMOS_KEY
 });
 
 // 数据库和容器引用
 const database = cosmosClient.database('fridgegenie-db');
 const container = database.container('items');
+
+// 导入路由
+const userRoutes = require('./routes/userRoutes');
+const familyRoutes = require('./routes/familyRoutes');
+
+// 使用路由
+app.use('/api/users', userRoutes);
+app.use('/api/families', familyRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

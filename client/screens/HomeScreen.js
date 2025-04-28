@@ -11,18 +11,19 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { differenceInCalendarDays } from 'date-fns'; // npm install date-fns
+import { differenceInCalendarDays } from 'date-fns';
 import { getItems, deleteItem } from '../services/databaseService';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
 
   const loadItems = async () => {
     try {
-      const resp = await getItems(1, 1000); // 拿所有 
+      const resp = await getItems(1, 1000);
       const rawItems = resp.items;
-
       rawItems.sort((a, b) =>
         new Date(a.expiryDate) - new Date(b.expiryDate)
       );
@@ -153,9 +154,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+    zIndex: 1,
   },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  addButton: {
+  headerButtons: {
+    flexDirection: 'row',
+  },
+  headerButton: {
     backgroundColor: '#4CAF50',
     width: 40,
     height: 40,
@@ -163,7 +168,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContainer: { padding: 16 },
+  title: { fontSize: 24, fontWeight: 'bold' },
+
+  content: {
+    flex: 1,
+    backgroundColor: '#fff',
+    ...Platform.select({
+      web: {
+        overflow: 'auto', // let FlatList scroll here
+      },
+    }),
+  },
+
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+
   itemWrapper: {
     flexDirection: 'row',
     marginBottom: 12,
@@ -193,8 +215,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
     borderBottomRightRadius: 8,
     padding: 12,
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   itemInfo: {
     flex: 1,
@@ -204,7 +226,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 4,
-    color: '#000',
   },
   itemDetails: {
     fontSize: 14,
@@ -223,11 +244,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  emptyText: { fontSize: 18, color: '#666', marginBottom: 16 },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 16,
+  },
   addFirstButton: {
     backgroundColor: '#4CAF50',
     padding: 16,
     borderRadius: 8,
   },
-  addFirstButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  addFirstButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
 });
+
+export default HomeScreen;

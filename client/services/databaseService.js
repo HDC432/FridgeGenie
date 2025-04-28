@@ -168,4 +168,26 @@ export const deleteItem = async (id) => {
         console.error('删除物品失败:', error);
         throw error;
     }
+};
+
+// 更新物品数量
+export const updateItemQuantity = async (id, newQuantity) => {
+    try {
+        const response = await fetch(`${API_URL}/items/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity: newQuantity }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('更新物品数量失败:', error);
+        throw error;
+    }
 }; 
