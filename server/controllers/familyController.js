@@ -135,38 +135,36 @@ class FamilyController {
 
     async leaveFamily(req, res) {
         try {
-            console.log('FamilyController - 开始处理退出家庭请求');
-            console.log('FamilyController - 请求参数:', req.params);
-            console.log('FamilyController - 用户信息:', req.user);
-            
             const { familyId } = req.params;
             const userId = req.user.id;
-            console.log('FamilyController - 退出家庭参数:', { familyId, userId });
-
-            console.log('FamilyController - 开始调用familyService.removeMember');
-            const family = await familyService.removeMember(familyId, userId);
-            console.log('FamilyController - 退出家庭结果:', family);
-
-            if (!family) {
-                console.log('FamilyController - 家庭已被删除');
-                return res.status(200).json({
-                    success: true,
-                    message: '已退出家庭',
-                    data: null
+            
+            console.log('FamilyController - leaveFamily - 开始处理请求');
+            console.log('FamilyController - leaveFamily - 请求参数:', { familyId, userId });
+            console.log('FamilyController - leaveFamily - 用户信息:', req.user);
+            
+            console.log('FamilyController - leaveFamily - 开始调用 familyService.removeMember');
+            const result = await familyService.removeMember(familyId, userId);
+            console.log('FamilyController - leaveFamily - 服务返回结果:', result);
+            
+            if (!result.success) {
+                console.log('FamilyController - leaveFamily - 操作失败:', result.message);
+                return res.status(400).json({
+                    success: false,
+                    message: result.message
                 });
             }
-
-            console.log('FamilyController - 返回更新后的家庭信息');
-            res.json({
+            
+            console.log('FamilyController - leaveFamily - 操作成功');
+            res.status(200).json({
                 success: true,
-                message: '已退出家庭',
-                data: family
+                data: null,
+                message: result.message
             });
         } catch (error) {
-            console.error('FamilyController - 退出家庭失败:', error);
-            res.status(400).json({
+            console.error('FamilyController - leaveFamily - 错误:', error);
+            res.status(500).json({
                 success: false,
-                message: error.message
+                message: '退出家庭失败'
             });
         }
     }

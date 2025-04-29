@@ -22,6 +22,14 @@ router.delete('/:familyId/members/:userId', familyController.removeMember);
 router.put('/:familyId/members/:userId/role', familyController.updateMemberRole);
 
 // 退出家庭
-router.delete('/:familyId/leave', familyController.leaveFamily.bind(familyController));
+router.delete('/:familyId/leave', (req, res, next) => {
+  console.log('FamilyRoutes - 收到退出家庭请求:', {
+    method: req.method,
+    url: req.url,
+    params: req.params,
+    user: req.user
+  });
+  next();
+}, familyController.leaveFamily.bind(familyController));
 
 module.exports = router; 

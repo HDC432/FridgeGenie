@@ -96,52 +96,49 @@ class FamilyService {
 
     // 移除家庭成员
     async removeMember(familyId, userId) {
-        console.log('FamilyService - 开始移除成员:', { familyId, userId });
         try {
-            console.log('FamilyService - 开始查找家庭');
+            console.log('FamilyService - removeMember - 开始:', { familyId, userId });
+            
+            // 查找家庭
             const family = await Family.findById(familyId);
-            console.log('FamilyService - 查找到的家庭:', family);
-            
             if (!family) {
-                console.log('FamilyService - 家庭不存在');
-                throw new Error('家庭不存在');
+                console.log('FamilyService - removeMember - 家庭不存在');
+                return { success: false, message: '家庭不存在' };
             }
 
-            console.log('FamilyService - 开始查找成员');
+            // 检查用户是否是家庭成员
             const memberIndex = family.members.findIndex(m => m.userId === userId);
-            console.log('FamilyService - 成员索引:', memberIndex);
-            
             if (memberIndex === -1) {
-                console.log('FamilyService - 成员不存在');
-                throw new Error('成员不存在');
+                console.log('FamilyService - removeMember - 用户不是家庭成员');
+                return { success: false, message: '用户不是家庭成员' };
             }
 
-            // 如果是最后一个成员，删除整个家庭
+            // 如果是最后一个成员，删除家庭
             if (family.members.length === 1) {
-                console.log('FamilyService - 最后一个成员，准备删除家庭');
+                console.log('FamilyService - removeMember - 删除最后一个成员，家庭将被删除');
                 await Family.delete(familyId);
-                console.log('FamilyService - 家庭已删除');
-                return null;
+                return { success: true, message: '家庭已删除' };
             }
 
-            // 如果是管理员，需要将管理员权限转移给其他成员
+            // 如果是管理员，需要转移管理员权限
             if (family.members[memberIndex].role === 'admin') {
-                console.log('FamilyService - 退出的是管理员，准备转移权限');
-                const otherMembers = family.members.filter(m => m.userId !== userId);
-                if (otherMembers.length > 0) {
-                    console.log('FamilyService - 将管理员权限转移给:', otherMembers[0].userId);
-                    otherMembers[0].role = 'admin';
+                console.log('FamilyService - removeMember - 管理员退出，需要转移权限');
+                // 找到第一个非管理员成员
+                const newAdminIndex = family.members.findIndex(m => m.role !== 'admin' && m.userId !== userId);
+                if (newAdminIndex !== -1) {
+                    family.members[newAdminIndex].role = 'admin';
                 }
             }
 
-            console.log('FamilyService - 准备移除成员');
+            // 直接从 members 数组中删除用户
             family.members = family.members.filter(m => m.userId !== userId);
-            console.log('FamilyService - 开始保存更新后的家庭信息');
-            const updatedFamily = await Family.update(familyId, family);
-            console.log('FamilyService - 家庭信息已更新');
-            return updatedFamily;
+
+            // 更新家庭信息
+            await Family.update(familyId, family);
+            console.log('FamilyService - removeMember - 完成');
+            return { success: true, message: '成功退出家庭' };
         } catch (error) {
-            console.error('FamilyService - 移除成员失败:', error);
+            console.error('FamilyService - removeMember - 错误:', error);
             throw error;
         }
     }

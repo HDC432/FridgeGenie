@@ -109,9 +109,12 @@ class AuthService {
   // 获取 token
   async getToken() {
     try {
-      return await AsyncStorage.getItem('token');
+      console.log('AuthService - 开始获取token');
+      const token = await AsyncStorage.getItem('token');
+      console.log('AuthService - 获取到的token:', token);
+      return token;
     } catch (error) {
-      console.error('获取 token 失败:', error);
+      console.error('AuthService - 获取token失败:', error);
       return null;
     }
   }

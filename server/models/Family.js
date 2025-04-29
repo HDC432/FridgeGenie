@@ -38,7 +38,7 @@ class Family {
     static async findById(id) {
         try {
             console.log('查找家庭 - 通过ID:', id);
-            const { resource } = await familiesContainer.item(id).read();
+            const { resource } = await familiesContainer.item(id, id).read();
             console.log('查找家庭 - 查询结果:', resource);
             return resource;
         } catch (error) {
@@ -83,7 +83,7 @@ class Family {
     static async update(id, updateData) {
         try {
             console.log('更新家庭 - 开始:', { id, updateData });
-            const { resource } = await familiesContainer.item(id).replace(updateData);
+            const { resource } = await familiesContainer.item(id, id).replace(updateData);
             console.log('更新家庭 - 完成:', resource);
             return resource;
         } catch (error) {
@@ -96,7 +96,7 @@ class Family {
     static async delete(id) {
         try {
             console.log('删除家庭 - 开始:', id);
-            await familiesContainer.item(id).delete();
+            await familiesContainer.item(id, id).delete();
             console.log('删除家庭 - 完成');
             return true;
         } catch (error) {
