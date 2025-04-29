@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const itemRoutes = require('./routes/itemRoutes');
+const familyRoutes = require('./routes/familyRoutes');
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 // 路由
 app.use('/items', itemRoutes);
+app.use('/families', familyRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
