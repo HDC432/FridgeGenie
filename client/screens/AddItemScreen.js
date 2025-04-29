@@ -13,8 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { addItem } from '../services/databaseService';
+import { useAuth } from '../contexts/AuthContext';
 
 const AddItemScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [expiryDate, setExpiryDate] = useState(new Date());
@@ -32,14 +34,24 @@ const AddItemScreen = ({ navigation }) => {
       return;
     }
 
+    if (!user?.familyId) {
+      if (Platform.OS === 'web') {
+        alert('请先加入一个家庭');
+      } else {
+        Alert.alert('提示', '请先加入一个家庭');
+      }
+      return;
+    }
+
     try {
       setLoading(true);
-      console.log('添加物品:', { name, quantity, expiryDate });
+      console.log('添加物品:', { name, quantity, expiryDate, familyId: user.familyId });
       
       const success = await addItem({
         name: name.trim(),
         quantity: parseInt(quantity, 10) || 1,
         expiryDate: expiryDate.toISOString(),
+        familyId: user.familyId,
       });
 
       if (success) {
