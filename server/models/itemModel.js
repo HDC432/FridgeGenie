@@ -8,6 +8,21 @@ class ItemModel {
         return resources;
     }
 
+    static async findByFamilyId(familyId) {
+        console.log('ItemModel - findByFamilyId - 开始查询家庭物品:', familyId);
+        try {
+            const { resources } = await itemsContainer.items.query({
+                query: "SELECT * FROM c WHERE c.familyId = @familyId",
+                parameters: [{ name: "@familyId", value: familyId }]
+            }).fetchAll();
+            console.log('ItemModel - findByFamilyId - 查询结果:', resources);
+            return resources;
+        } catch (error) {
+            console.error('ItemModel - findByFamilyId - 查询失败:', error);
+            throw error;
+        }
+    }
+
     static async findById(id) {
         console.log('ItemModel - findById - 开始查询物品:', id);
         const { resources } = await itemsContainer.items.query({
@@ -20,6 +35,9 @@ class ItemModel {
 
     static async create(item) {
         console.log('ItemModel - create - 开始创建物品:', item);
+        if (!item.familyId) {
+            throw new Error('familyId 是必填字段');
+        }
         const { resource } = await itemsContainer.items.create(item);
         console.log('ItemModel - create - 创建结果:', resource);
         return resource;
@@ -27,6 +45,9 @@ class ItemModel {
 
     static async update(id, item) {
         console.log('ItemModel - update - 开始更新物品:', { id, item });
+        if (!item.familyId) {
+            throw new Error('familyId 是必填字段');
+        }
         const { resource } = await itemsContainer.items.upsert(item);
         console.log('ItemModel - update - 更新结果:', resource);
         return resource;

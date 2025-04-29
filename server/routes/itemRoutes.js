@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ItemModel = require('../models/itemModel');
+const ItemService = require('../services/itemService');
 
 // 获取所有物品
 router.get('/', async (req, res) => {
@@ -10,6 +11,20 @@ router.get('/', async (req, res) => {
     } catch (error) {
         console.error('获取物品时出错:', error);
         res.status(500).json({ error: '获取物品失败' });
+    }
+});
+
+// 获取家庭物品
+router.get('/family/:familyId', async (req, res) => {
+    try {
+        const { familyId } = req.params;
+        console.log('获取家庭物品，familyId:', familyId);
+        const items = await ItemModel.findByFamilyId(familyId);
+        console.log('查询结果:', items);
+        res.json({ items });
+    } catch (error) {
+        console.error('获取家庭物品时出错:', error);
+        res.status(500).json({ error: '获取家庭物品失败' });
     }
 });
 

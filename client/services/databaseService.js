@@ -61,9 +61,55 @@ export const getItems = async () => {
     }
 };
 
+// 获取家庭物品
+export const getFamilyItems = async (familyId) => {
+    try {
+        const url = `${API_URL}/items/family/${familyId}`;
+        if (DEBUG) {
+            console.log('请求URL:', url);
+        }
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('获取到的家庭物品数据:', data);
+
+        // 确保返回的数据格式正确
+        if (!data || !Array.isArray(data.items)) {
+            console.error('返回的数据格式不正确:', data);
+            throw new Error('返回的数据格式不正确');
+        }
+
+        // 过滤掉 Cosmos DB 的内部字段
+        const processedItems = data.items.map(item => {
+            const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
+            return cleanItem;
+        });
+
+        return { items: processedItems };
+    } catch (error) {
+        console.error('获取家庭物品失败:', error);
+        throw error;
+    }
+};
+
 // 添加新物品
 export const addItem = async (item) => {
     try {
+        if (!item.familyId) {
+            throw new Error('familyId 是必填字段');
+        }
+
         const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
             headers: {
@@ -86,7 +132,10 @@ export const addItem = async (item) => {
 // 更新物品
 export const updateItem = async (id, item) => {
     try {
-        console.log('发送更新请求:', { id, item });
+        if (!item.familyId) {
+            throw new Error('familyId 是必填字段');
+        }
+
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'PUT',
             headers: {
@@ -96,13 +145,10 @@ export const updateItem = async (id, item) => {
         });
         
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const updatedItem = await response.json();
-        console.log('更新成功:', updatedItem);
-        return updatedItem;
+        return await response.json();
     } catch (error) {
         console.error('更新物品失败:', error);
         throw error;
@@ -112,7 +158,6 @@ export const updateItem = async (id, item) => {
 // 删除物品
 export const deleteItem = async (id) => {
     try {
-        console.log('发送删除请求:', id);
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'DELETE',
             headers: {
@@ -121,17 +166,10 @@ export const deleteItem = async (id) => {
         });
         
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        // 检查响应状态
-        if (response.status === 204 || response.status === 200) {
-            console.log('删除成功:', id);
-            return true;
-        } else {
-            throw new Error(`删除失败，状态码: ${response.status}`);
-        }
+        return true;
     } catch (error) {
         console.error('删除物品失败:', error);
         throw error;

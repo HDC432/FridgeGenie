@@ -14,7 +14,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInCalendarDays } from 'date-fns';
-import { getItems, deleteItem, updateItem } from '../services/databaseService';
+import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 
 const HomeScreen = ({ navigation }) => {
@@ -28,10 +28,17 @@ const HomeScreen = ({ navigation }) => {
   const loadItems = async () => {
     try {
       console.log('开始加载物品列表...');
-      const resp = await getItems(1, 1000); // 获取所有物品
+      if (!user?.familyId) {
+        console.error('用户未关联家庭');
+        Alert.alert('错误', '请先加入或创建一个家庭');
+        return;
+      }
+
+      console.log('用户家庭ID:', user.familyId);
+      const resp = await getFamilyItems(user.familyId);
       console.log('获取到的物品数据:', resp);
       
-      if (resp && resp.items) {
+      if (resp && Array.isArray(resp.items)) {
         const rawItems = resp.items;
         // 按过期时间升序排序
         rawItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
@@ -63,32 +70,9 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
-  const handleDelete = async (item) => {
-    console.log('点击删除按钮:', item);
-    // 直接执行删除逻辑，跳过 Alert 测试
-    try {
-      const success = await deleteItem(item.id);
-      if (success) {
-        await loadItems();
-        Alert.alert('成功', '物品已删除');
-      } else {
-        throw new Error('删除失败');
-      }
-    } catch (err) {
-      console.error('删除失败:', err);
-      Alert.alert('错误', '删除物品失败，请重试');
-    }
-  };
-
-  const handleEditQuantity = (item) => {
-    setSelectedItem(item);
-    setNewQuantity(item.quantity.toString());
-    setIsQuantityModalVisible(true);
-  };
-
-  const handleUpdateQuantity = async () => {
+  const handleQuantityUpdate = async () => {
     if (!selectedItem) return;
-
+    
     const quantity = parseInt(newQuantity, 10);
     if (isNaN(quantity) || quantity < 0) {
       Alert.alert('错误', '请输入有效的数量');
@@ -98,35 +82,63 @@ const HomeScreen = ({ navigation }) => {
     try {
       if (quantity === 0) {
         // 如果数量为0，直接删除物品
-        const success = await deleteItem(selectedItem.id);
-        if (success) {
-          await loadItems();
-          setIsQuantityModalVisible(false);
-          Alert.alert('成功', '物品已删除');
-        } else {
-          throw new Error('删除失败');
-        }
+        await deleteItem(selectedItem.id);
+        setItems(prevItems => prevItems.filter(item => item.id !== selectedItem.id));
+        setIsQuantityModalVisible(false);
+        Alert.alert('成功', '物品已删除');
       } else {
         // 更新物品数量
-        const updatedItem = {
+        const updatedItem = await updateItem(selectedItem.id, {
           ...selectedItem,
           quantity: quantity,
+          familyId: user.familyId,
           updatedAt: new Date().toISOString()
-        };
-
-        const success = await updateItem(selectedItem.id, updatedItem);
-        if (success) {
-          await loadItems();
-          setIsQuantityModalVisible(false);
-          Alert.alert('成功', '数量已更新');
-        } else {
-          throw new Error('更新失败');
-        }
+        });
+        
+        setItems(prevItems => 
+          prevItems.map(item => item.id === selectedItem.id ? updatedItem : item)
+        );
+        setIsQuantityModalVisible(false);
+        setNewQuantity('');
+        Alert.alert('成功', '数量已更新');
       }
-    } catch (err) {
-      console.error('操作失败:', err);
+    } catch (error) {
+      console.error('操作失败:', error);
       Alert.alert('错误', '操作失败，请重试');
     }
+  };
+
+  const handleDelete = (id) => {
+    console.log('点击删除按钮，ID:', id);
+    Alert.alert(
+      '确认删除',
+      '确定要删除这个物品吗？',
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '删除',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              console.log('开始删除物品，ID:', id);
+              await deleteItem(id);
+              console.log('删除成功，更新列表');
+              setItems(prevItems => prevItems.filter(item => item.id !== id));
+              Alert.alert('成功', '物品已删除');
+            } catch (err) {
+              console.error('删除失败:', err);
+              Alert.alert('错误', '删除失败，请重试');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditQuantity = (item) => {
+    setSelectedItem(item);
+    setNewQuantity(item.quantity.toString());
+    setIsQuantityModalVisible(true);
   };
 
   const renderItem = ({ item }) => {
@@ -160,7 +172,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => handleDelete(item)}
+              onPress={() => handleDelete(item.id)}
             >
               <Ionicons name="trash-outline" size={24} color="#FF3B30" />
             </TouchableOpacity>
@@ -211,7 +223,7 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton]}
-              onPress={handleUpdateQuantity}
+              onPress={handleQuantityUpdate}
             >
               <Text style={styles.confirmButtonText}>确认</Text>
             </TouchableOpacity>
