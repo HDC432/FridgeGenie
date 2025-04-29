@@ -157,7 +157,7 @@ const HealthProfileScreen = () => {
                             keyboardType="numeric"
                         />
                         <Picker
-                            selectedValue={healthProfile.basicInfo.gender}
+                            selectedValue={healthProfile.basicInfo.gender || ''}
                             onValueChange={(value) => setHealthProfile({
                                 ...healthProfile,
                                 basicInfo: {
@@ -166,7 +166,7 @@ const HealthProfileScreen = () => {
                                 }
                             })}
                         >
-                            <Picker.Item label="请选择性别" value={null} />
+                            <Picker.Item label="请选择性别" value="" />
                             <Picker.Item label="男" value="male" />
                             <Picker.Item label="女" value="female" />
                             <Picker.Item label="其他" value="other" />
