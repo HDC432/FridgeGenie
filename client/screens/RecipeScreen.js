@@ -13,9 +13,10 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
-import useItems from '../hooks/useItems';
 import { Ionicons } from '@expo/vector-icons';
-import { getItems } from '../services/databaseService';
+import { getFamilyItems, updateItemQuantity } from '../services/databaseService';
+import { generateRecipes } from '../services/aiService';
+import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
@@ -23,118 +24,56 @@ const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, CO
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { items, updateItemQuantity, handleDelete } = useItems();
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [selectedQuantities, setSelectedQuantities] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
+  const { user } = useAuth();
 
-  const generateRecipes = async () => {
-    setLoading(true);
+  const loadRefrigeratorItems = async () => {
     try {
-      // 获取所有食材名称和数量
-      const ingredients = items.map(item => `${item.name} (${item.quantity})`).join(', ');
-      
-      // TODO: 这里将调用 OpenAI API 来生成食谱
-      // 暂时使用模拟数据
-      const mockRecipes = [
-        {
-          id: '1',
-          name: '番茄炒蛋',
-          ingredients: [
-            { name: '番茄', quantity: '2个' },
-            { name: '鸡蛋', quantity: '3个' }
-          ],
-          instructions: '1. 将番茄切块\n2. 打散鸡蛋\n3. 热油锅先炒蛋\n4. 加入番茄翻炒\n5. 加盐调味即可',
-          imageUrl: 'https://example.com/tomato-egg.jpg',
-          difficulty: '简单',
-          cookingTime: '10分钟',
-          nutrition: {
-            calories: 280,
-            protein: '13g',
-            carbs: '8g',
-            fat: '22g',
-            fiber: '2g'
-          }
-        },
-        {
-          id: '2',
-          name: '青椒炒肉',
-          ingredients: [
-            { name: '青椒', quantity: '2个' },
-            { name: '猪肉', quantity: '200g' }
-          ],
-          instructions: '1. 青椒切块\n2. 猪肉切片\n3. 热锅爆炒\n4. 加盐调味',
-          imageUrl: 'https://example.com/pepper-pork.jpg',
-          difficulty: '简单',
-          cookingTime: '15分钟',
-          nutrition: {
-            calories: 320,
-            protein: '25g',
-            carbs: '10g',
-            fat: '18g',
-            fiber: '3g'
-          }
-        },
-        {
-          id: '3',
-          name: '蔬菜沙拉',
-          ingredients: [
-            { name: '生菜', quantity: '100g' },
-            { name: '黄瓜', quantity: '1个' },
-            { name: '西红柿', quantity: '1个' }
-          ],
-          instructions: '1. 洗净蔬菜\n2. 切块\n3. 混合并加沙拉酱',
-          imageUrl: 'https://example.com/salad.jpg',
-          difficulty: '简单',
-          cookingTime: '5分钟',
-          nutrition: {
-            calories: 120,
-            protein: '3g',
-            carbs: '15g',
-            fat: '5g',
-            fiber: '5g'
-          }
-        }
-      ];
+      setLoading(true);
+      if (!user?.familyId) {
+        Alert.alert('错误', '请先加入或创建一个家庭');
+        return;
+      }
 
-      setRecipes(mockRecipes);
+      const response = await getFamilyItems(user.familyId);
+      if (response && response.items && Array.isArray(response.items)) {
+        const items = response.items;
+        setRefrigeratorItems(items);
+        
+        // 提取食材名称用于生成食谱
+        const ingredients = items.map(item => item.name);
+        const generatedRecipes = await generateRecipes(ingredients);
+        setRecipes(generatedRecipes);
+      }
     } catch (error) {
-      console.error('生成食谱失败:', error);
-      Alert.alert('错误', '生成食谱失败，请重试');
+      console.error('获取冰箱物品失败:', error);
+      if (error.message.includes('生成食谱失败')) {
+        if (error.message.includes('JSON 解析错误')) {
+          Alert.alert('错误', '生成食谱时出现格式错误，请稍后重试');
+        } else {
+          Alert.alert('错误', error.message);
+        }
+      } else {
+        Alert.alert('错误', '获取冰箱物品失败，请重试');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    generateRecipes();
     loadRefrigeratorItems();
-  }, [items]);
-
-  const loadRefrigeratorItems = async () => {
-    try {
-      setLoading(true);
-      const response = await getItems(); // 获取所有冰箱物品
-      if (response && response.items && Array.isArray(response.items)) {
-        // 提取物品名称，用于菜谱匹配
-        const itemNames = response.items.map(item => item.name.toLowerCase());
-        setRefrigeratorItems(itemNames);
-      }
-    } catch (error) {
-      console.error('获取冰箱物品失败:', error);
-      Alert.alert('错误', '获取冰箱物品失败，请重试');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user?.familyId]);
 
   const handleRecipePress = (recipe) => {
     const quantities = {};
     recipe.ingredients.forEach(ing => {
-      const fridgeItem = items.find(item => item.name === ing.name);
+      const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
       if (fridgeItem) {
         const requiredAmount = parseInt(ing.quantity) || 1;
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
@@ -150,7 +89,7 @@ export default function RecipeScreen({ navigation }) {
     
     try {
       for (const [name, quantity] of Object.entries(selectedQuantities)) {
-        const item = items.find(i => i.name === name);
+        const item = refrigeratorItems.find(i => i.name === name);
         if (item) {
           const newQuantity = item.quantity - quantity;
           await updateItemQuantity(item.id, newQuantity);
@@ -169,7 +108,7 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const renderQuantityPicker = (ingredient) => {
-    const fridgeItem = items.find(item => item.name === ingredient.name);
+    const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
     if (!fridgeItem) {
       return (
         <Text style={styles.errorText}>
