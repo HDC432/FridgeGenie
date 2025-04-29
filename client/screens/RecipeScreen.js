@@ -433,7 +433,18 @@ export default function RecipeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      default: {
+        flex: 1,
+      },
+    }),
   },
   header: {
     padding: 16,
@@ -491,6 +502,7 @@ const styles = StyleSheet.create({
   },
   recipeList: {
     padding: 16,
+    flexGrow: 1,
   },
   recipeCard: {
     backgroundColor: '#FFFFFF',

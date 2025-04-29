@@ -160,8 +160,18 @@ const AddItemScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      default: {
+        flex: 1,
+      },
+    }),
   },
   header: {
     marginBottom: 24,
@@ -177,7 +187,11 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   formGroup: {
-    marginBottom: 20,
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    flexGrow: 1,
   },
   label: {
     fontSize: 16,

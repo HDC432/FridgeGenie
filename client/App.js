@@ -14,6 +14,7 @@ import AddItemScreen from './screens/AddItemScreen';
 import RecipeScreen from './screens/RecipeScreen';
 import UserAvatar from './components/UserAvatar';
 import UserMenu from './components/UserMenu';
+import HealthProfileScreen from './screens/HealthProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -84,6 +85,11 @@ const Navigation = () => {
               component={FamilyScreen}
               options={{ title: '我的家庭' }}
             />
+            <Stack.Screen
+              name="HealthProfile"
+              component={HealthProfileScreen}
+              options={{ title: '健康信息' }}
+            />
           </>
         ) : (
           // 未登录状态
@@ -133,7 +139,12 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: {
         height: '100vh',
-        overflow: 'visible',
+        overflow: 'auto',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       },
     }),
   },

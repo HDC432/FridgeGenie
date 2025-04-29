@@ -3,14 +3,14 @@ import { API_URL } from '../config/constants';
 
 class AuthService {
   // 用户注册
-  async register(username, email, password, inviteCode = '') {
+  async register(username, email, password) {
     try {
       const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password, inviteCode }),
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
@@ -109,12 +109,9 @@ class AuthService {
   // 获取 token
   async getToken() {
     try {
-      console.log('AuthService - 开始获取token');
-      const token = await AsyncStorage.getItem('token');
-      console.log('AuthService - 获取到的token:', token);
-      return token;
+      return await AsyncStorage.getItem('token');
     } catch (error) {
-      console.error('AuthService - 获取token失败:', error);
+      console.error('获取 token 失败:', error);
       return null;
     }
   }

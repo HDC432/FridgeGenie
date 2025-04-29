@@ -282,7 +282,18 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      default: {
+        flex: 1,
+      },
+    }),
   },
   header: {
     flexDirection: 'row',
@@ -320,6 +331,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 16,
+    flexGrow: 1,
   },
   itemWrapper: {
     flexDirection: 'row',

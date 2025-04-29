@@ -23,7 +23,11 @@ const UserMenu = ({ visible, onClose }) => {
   const handleNavigation = (screen) => {
     console.log(`Navigating to ${screen}`);
     onClose();
-    navigation.navigate(screen);
+    if (screen === 'HealthProfile') {
+      navigation.navigate('HealthProfile');
+    } else {
+      navigation.navigate(screen);
+    }
   };
 
   const handleLogout = async () => {
@@ -81,11 +85,14 @@ const UserMenu = ({ visible, onClose }) => {
                   <Text style={styles.menuItemText}>通知设置</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity 
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('HealthProfile')}
+                >
                   <View style={styles.menuItemIcon}>
-                    <Ionicons name="settings-outline" size={20} color="#1F2B40" />
+                    <Ionicons name="medkit-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>应用设置</Text>
+                  <Text style={styles.menuItemText}>健康信息</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity

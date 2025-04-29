@@ -363,7 +363,18 @@ const FamilyScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
+    ...Platform.select({
+      web: {
+        height: '100%',
+        overflow: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+      },
+      default: {
+        flex: 1,
+      },
+    }),
   },
   loadingContainer: {
     flex: 1,
@@ -371,7 +382,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   section: {
-    padding: 20,
+    padding: 16,
+    flexGrow: 1,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },

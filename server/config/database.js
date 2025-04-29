@@ -1,10 +1,9 @@
 const { CosmosClient } = require('@azure/cosmos');
-require('dotenv').config();
 
 // Cosmos DB 配置
 const cosmosClient = new CosmosClient({
-    endpoint: process.env.COSMOS_ENDPOINT,
-    key: process.env.COSMOS_KEY
+    endpoint: 'https://fridgegenie-db.documents.azure.com:443/',
+    key: 'WOKhsjYMsn4pDid4n9tqZwKV2foZdqbZRPSaKIX68vsI5TtbEy70OqPZgvDn1fh85PL8gVgOjzW8ACDbQO8xHQ=='
 });
 
 const database = cosmosClient.database('fridgegenie-db');
@@ -13,8 +12,6 @@ const familiesContainer = database.container('families');
 const itemsContainer = database.container('items');
 
 module.exports = {
-    client: cosmosClient,
-    database,
     usersContainer,
     familiesContainer,
     itemsContainer
