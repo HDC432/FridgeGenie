@@ -1,5 +1,6 @@
 const { usersContainer } = require('../config/database');
 const bcrypt = require('bcryptjs');
+const HealthProfile = require('./healthModel');
 
 class User {
     constructor(username, email, password, familyId = null) {
@@ -9,6 +10,62 @@ class User {
         this.familyId = familyId;
         this.createdAt = new Date();
         this.lastLogin = null;
+    }
+
+    static async create(data) {
+        try {
+            console.log('创建用户 - 开始:', data);
+            const hashedPassword = await bcrypt.hash(data.password, 10);
+            const user = new User(data.username, data.email, hashedPassword, data.familyId);
+            const { resource } = await usersContainer.items.create(user);
+            console.log('创建用户 - 成功:', resource);
+
+            // 自动创建健康档案
+            try {
+                console.log('开始创建默认健康档案');
+                const defaultHealthProfile = {
+                    userId: resource.id,
+                    basicInfo: {
+                        height: null,
+                        weight: null,
+                        age: null,
+                        gender: null,
+                        bloodType: null
+                    },
+                    healthConditions: {
+                        hasDiabetes: false,
+                        hasHypertension: false,
+                        hasHeartDisease: false,
+                        hasKidneyDisease: false,
+                        hasAllergies: []
+                    },
+                    lifestyle: {
+                        isVegetarian: false,
+                        isVegan: false,
+                        isGlutenFree: false,
+                        isLactoseFree: false,
+                        activityLevel: 'moderate'
+                    },
+                    dietaryGoals: {
+                        weightGoal: 'maintain',
+                        calorieGoal: null,
+                        proteinGoal: null,
+                        carbGoal: null,
+                        fatGoal: null
+                    }
+                };
+                await HealthProfile.create(defaultHealthProfile);
+                console.log('默认健康档案创建成功');
+            } catch (error) {
+                console.error('创建默认健康档案失败:', error);
+                // 即使健康档案创建失败，也不影响用户创建
+            }
+
+            return resource;
+        } catch (error) {
+            console.error('创建用户失败:', error);
+            throw error;
+        }
     }
 
     // 保存用户
