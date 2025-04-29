@@ -1,9 +1,9 @@
 import axios from 'axios';
 // Temporarily comment out the env import to make UI work
-// import { OPENAI_API_KEY } from '@env';
+import { OPENAI_API_KEY } from '@env';
 
-// Placeholder for development - replace with proper env setup later
-const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
+// 使用环境变量中的API密钥
+// const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
 
 // 添加重试配置
 const MAX_RETRIES = 3;
@@ -148,15 +148,21 @@ export const generateRecipes = async (ingredients) => {
           retries++;
           continue;
         }
-        
-        throw new Error(`生成食谱失败: ${status} - ${JSON.stringify(data)}`);
-      } else if (error.request) {
-        console.error('未收到响应:', error.request);
-        throw new Error('生成食谱失败: 服务器未响应');
-      } else {
-        console.error('请求错误:', error.message);
-        throw new Error(`生成食谱失败: ${error.message}`);
       }
+      
+      // 错误处理后增加重试次数
+      retries++;
+      
+      // 如果还有重试机会，则等待后重试
+      if (retries < MAX_RETRIES) {
+        const waitTime = RETRY_DELAY * Math.pow(2, retries);
+        console.log(`第 ${retries} 次重试失败，等待 ${waitTime}ms 后再试...`);
+        await delay(waitTime);
+        continue;
+      }
+      
+      // 重试次数用完，抛出错误
+      throw new Error('生成食谱失败: 已达到最大重试次数');
     }
   }
   

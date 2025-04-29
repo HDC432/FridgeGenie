@@ -21,68 +21,7 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-const DEFAULT_RECIPES = [
-  {
-    id: 'recipe-1',
-    name: '番茄蛋花汤',
-    difficulty: '简单',
-    cookingTime: '15分钟',
-    ingredients: [
-      { name: '番茄', quantity: '2个' },
-      { name: '鸡蛋', quantity: '2个' },
-      { name: '葱', quantity: '少许' },
-      { name: '盐', quantity: '适量' },
-      { name: '鸡精', quantity: '适量' }
-    ],
-    nutrition: {
-      calories: 120,
-      protein: '8g',
-      carbs: '12g',
-      fat: '6g',
-      fiber: '3g'
-    }
-  },
-  {
-    id: 'recipe-2',
-    name: '青椒炒肉丝',
-    difficulty: '中等',
-    cookingTime: '20分钟',
-    ingredients: [
-      { name: '青椒', quantity: '2个' },
-      { name: '猪肉', quantity: '200g' },
-      { name: '姜', quantity: '少许' },
-      { name: '蒜', quantity: '2瓣' },
-      { name: '酱油', quantity: '1勺' }
-    ],
-    nutrition: {
-      calories: 320,
-      protein: '25g',
-      carbs: '15g',
-      fat: '18g',
-      fiber: '4g'
-    }
-  },
-  {
-    id: 'recipe-3',
-    name: '蒸鱼',
-    difficulty: '中等',
-    cookingTime: '25分钟',
-    ingredients: [
-      { name: '鱼', quantity: '1条' },
-      { name: '姜', quantity: '适量' },
-      { name: '葱', quantity: '适量' },
-      { name: '盐', quantity: '适量' },
-      { name: '料酒', quantity: '适量' }
-    ],
-    nutrition: {
-      calories: 220,
-      protein: '30g',
-      carbs: '2g',
-      fat: '10g',
-      fiber: '0g'
-    }
-  }
-];
+const DEFAULT_RECIPES = [];
 
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
@@ -102,9 +41,9 @@ export default function RecipeScreen({ navigation }) {
       setError(null);
       
       if (!user?.familyId) {
-        // 使用默认菜谱
-        console.log('用户未登录或无家庭ID，使用默认菜谱');
-        setRecipes(DEFAULT_RECIPES);
+        // 没有默认菜谱，显示空列表
+        console.log('用户未登录或无家庭ID，无菜谱显示');
+        setRecipes([]);
         setLoading(false);
         return;
       }
@@ -119,8 +58,8 @@ export default function RecipeScreen({ navigation }) {
           const ingredients = items.map(item => item.name);
           
           if (ingredients.length === 0) {
-            console.log('冰箱中没有食材，使用默认菜谱');
-            setRecipes(DEFAULT_RECIPES);
+            console.log('冰箱中没有食材，无菜谱显示');
+            setRecipes([]);
           } else {
             console.log('开始生成食谱，基于食材:', ingredients);
             const generatedRecipes = await generateRecipes(ingredients);
@@ -129,23 +68,23 @@ export default function RecipeScreen({ navigation }) {
               console.log('成功生成食谱', generatedRecipes.length);
               setRecipes(generatedRecipes);
             } else {
-              console.log('生成食谱为空，使用默认菜谱');
-              setRecipes(DEFAULT_RECIPES);
+              console.log('生成食谱为空，无菜谱显示');
+              setRecipes([]);
             }
           }
         } catch (recipeError) {
           console.error('生成食谱错误:', recipeError);
-          setError('无法生成食谱，显示默认菜谱');
-          setRecipes(DEFAULT_RECIPES);
+          setError('无法生成食谱，请检查网络连接或稍后再试');
+          setRecipes([]);
         }
       } else {
-        console.log('没有找到冰箱物品或格式不正确，使用默认菜谱');
-        setRecipes(DEFAULT_RECIPES);
+        console.log('没有找到冰箱物品或格式不正确，无菜谱显示');
+        setRecipes([]);
       }
     } catch (error) {
       console.error('获取冰箱物品失败:', error);
-      setError('获取物品失败，显示默认菜谱');
-      setRecipes(DEFAULT_RECIPES);
+      setError('获取物品失败，请检查网络连接或稍后再试');
+      setRecipes([]);
     } finally {
       setLoading(false);
     }
@@ -373,11 +312,11 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const getFilteredRecipes = () => {
-    let filteredRecipes = recipes || DEFAULT_RECIPES;
+    let filteredRecipes = recipes || [];
 
-    // 如果没有菜谱，使用默认菜谱
+    // 如果没有菜谱，使用空数组
     if (!filteredRecipes || filteredRecipes.length === 0) {
-      filteredRecipes = DEFAULT_RECIPES;
+      return [];
     }
 
     // 根据搜索关键词过滤
@@ -480,7 +419,7 @@ export default function RecipeScreen({ navigation }) {
           <Text style={styles.emptyText}>
             {activeTab === 'matched'
               ? '没有找到可以用冰箱食材制作的菜谱'
-              : '没有找到匹配的菜谱'}
+              : '请添加食材到冰箱来生成菜谱推荐'}
           </Text>
           <TouchableOpacity 
             style={styles.refreshButton}

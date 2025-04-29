@@ -67,7 +67,6 @@ const HealthProfileScreen = ({ navigation }) => {
     setModalVisible(false);
   };
 
-<<<<<<< HEAD
   // 选项切换函数
   const toggleOption = (optionId, category) => {
     let currentOptions = [...profile[category]];
@@ -83,96 +82,6 @@ const HealthProfileScreen = ({ navigation }) => {
       [category]: currentOptions
     });
   };
-=======
-    return (
-        <ScrollView style={styles.container}>
-            {/* 基本信息 */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>基本信息</Text>
-                {editing ? (
-                    <>
-                        <TextInput
-                            style={styles.input}
-                            value={healthProfile.basicInfo.height?.toString() || ''}
-                            onChangeText={(text) => setHealthProfile({
-                                ...healthProfile,
-                                basicInfo: {
-                                    ...healthProfile.basicInfo,
-                                    height: parseFloat(text) || null
-                                }
-                            })}
-                            placeholder="身高(cm)"
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            value={healthProfile.basicInfo.weight?.toString() || ''}
-                            onChangeText={(text) => setHealthProfile({
-                                ...healthProfile,
-                                basicInfo: {
-                                    ...healthProfile.basicInfo,
-                                    weight: parseFloat(text) || null
-                                }
-                            })}
-                            placeholder="体重(kg)"
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            value={healthProfile.basicInfo.age?.toString() || ''}
-                            onChangeText={(text) => setHealthProfile({
-                                ...healthProfile,
-                                basicInfo: {
-                                    ...healthProfile.basicInfo,
-                                    age: parseInt(text) || null
-                                }
-                            })}
-                            placeholder="年龄"
-                            keyboardType="numeric"
-                        />
-                        <Picker
-                            selectedValue={healthProfile.basicInfo.gender || ''}
-                            onValueChange={(value) => setHealthProfile({
-                                ...healthProfile,
-                                basicInfo: {
-                                    ...healthProfile.basicInfo,
-                                    gender: value
-                                }
-                            })}
-                        >
-                            <Picker.Item label="请选择性别" value="" />
-                            <Picker.Item label="男" value="male" />
-                            <Picker.Item label="女" value="female" />
-                            <Picker.Item label="其他" value="other" />
-                        </Picker>
-                        <Picker
-                            selectedValue={healthProfile.basicInfo.bloodType}
-                            onValueChange={(value) => setHealthProfile({
-                                ...healthProfile,
-                                basicInfo: {
-                                    ...healthProfile.basicInfo,
-                                    bloodType: value
-                                }
-                            })}
-                        >
-                            <Picker.Item label="请选择血型" value="" />
-                            <Picker.Item label="A型" value="A" />
-                            <Picker.Item label="B型" value="B" />
-                            <Picker.Item label="AB型" value="AB" />
-                            <Picker.Item label="O型" value="O" />
-                        </Picker>
-                    </>
-                ) : (
-                    <>
-                        <Text style={styles.text}>身高: {healthProfile.basicInfo.height ? `${healthProfile.basicInfo.height}cm` : '未设置'}</Text>
-                        <Text style={styles.text}>体重: {healthProfile.basicInfo.weight ? `${healthProfile.basicInfo.weight}kg` : '未设置'}</Text>
-                        <Text style={styles.text}>年龄: {healthProfile.basicInfo.age || '未设置'}</Text>
-                        <Text style={styles.text}>性别: {healthProfile.basicInfo.gender === 'male' ? '男' : healthProfile.basicInfo.gender === 'female' ? '女' : healthProfile.basicInfo.gender === 'other' ? '其他' : '未设置'}</Text>
-                        <Text style={styles.text}>血型: {healthProfile.basicInfo.bloodType || '未设置'}</Text>
-                    </>
-                )}
-            </View>
->>>>>>> 634e2fa2e4b7083419a512457a9049a568316d97
 
   // 检查选项是否被选中
   const isOptionSelected = (option, category) => {
