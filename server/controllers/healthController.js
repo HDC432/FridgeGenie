@@ -48,7 +48,14 @@ class HealthController {
     // 获取健康档案
     async getHealthProfile(req, res) {
         try {
-            const { userId } = req.user;
+            console.log('开始获取健康档案，用户信息:', req.user);
+            const userId = req.user.id; // 直接从 req.user 中获取 id
+            console.log('用户ID:', userId);
+
+            if (!userId) {
+                console.log('用户ID未定义');
+                return res.status(400).json({ message: '用户ID未定义' });
+            }
 
             // 查询健康档案
             const healthProfile = await HealthProfile.findByUserId(userId);
@@ -62,8 +69,12 @@ class HealthController {
                 data: healthProfile
             });
         } catch (error) {
-            console.error('获取健康档案失败:', error);
-            res.status(500).json({ message: '获取健康档案失败' });
+            console.error('获取健康档案失败，详细错误:', error);
+            console.error('错误堆栈:', error.stack);
+            res.status(500).json({ 
+                message: '获取健康档案失败',
+                error: error.message 
+            });
         }
     }
 }
