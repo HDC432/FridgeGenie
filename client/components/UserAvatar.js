@@ -7,8 +7,8 @@ const UserAvatar = ({ user, onPress, size = 40 }) => {
   }
 
   const getInitials = () => {
-    if (!user.name) return '?';
-    return user.name
+    if (!user.username) return '?';
+    return user.username
       .split(' ')
       .map(n => n[0])
       .join('')
