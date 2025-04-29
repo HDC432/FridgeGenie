@@ -21,6 +21,69 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
+const DEFAULT_RECIPES = [
+  {
+    id: 'recipe-1',
+    name: '番茄蛋花汤',
+    difficulty: '简单',
+    cookingTime: '15分钟',
+    ingredients: [
+      { name: '番茄', quantity: '2个' },
+      { name: '鸡蛋', quantity: '2个' },
+      { name: '葱', quantity: '少许' },
+      { name: '盐', quantity: '适量' },
+      { name: '鸡精', quantity: '适量' }
+    ],
+    nutrition: {
+      calories: 120,
+      protein: '8g',
+      carbs: '12g',
+      fat: '6g',
+      fiber: '3g'
+    }
+  },
+  {
+    id: 'recipe-2',
+    name: '青椒炒肉丝',
+    difficulty: '中等',
+    cookingTime: '20分钟',
+    ingredients: [
+      { name: '青椒', quantity: '2个' },
+      { name: '猪肉', quantity: '200g' },
+      { name: '姜', quantity: '少许' },
+      { name: '蒜', quantity: '2瓣' },
+      { name: '酱油', quantity: '1勺' }
+    ],
+    nutrition: {
+      calories: 320,
+      protein: '25g',
+      carbs: '15g',
+      fat: '18g',
+      fiber: '4g'
+    }
+  },
+  {
+    id: 'recipe-3',
+    name: '蒸鱼',
+    difficulty: '中等',
+    cookingTime: '25分钟',
+    ingredients: [
+      { name: '鱼', quantity: '1条' },
+      { name: '姜', quantity: '适量' },
+      { name: '葱', quantity: '适量' },
+      { name: '盐', quantity: '适量' },
+      { name: '料酒', quantity: '适量' }
+    ],
+    nutrition: {
+      calories: 220,
+      protein: '30g',
+      carbs: '2g',
+      fat: '10g',
+      fiber: '0g'
+    }
+  }
+];
+
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,12 +94,18 @@ export default function RecipeScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('all');
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
   const { user } = useAuth();
+  const [error, setError] = useState(null);
 
   const loadRefrigeratorItems = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       if (!user?.familyId) {
-        Alert.alert('错误', '请先加入或创建一个家庭');
+        // 使用默认菜谱
+        console.log('用户未登录或无家庭ID，使用默认菜谱');
+        setRecipes(DEFAULT_RECIPES);
+        setLoading(false);
         return;
       }
 
@@ -45,22 +114,38 @@ export default function RecipeScreen({ navigation }) {
         const items = response.items;
         setRefrigeratorItems(items);
         
-        // 提取食材名称用于生成食谱
-        const ingredients = items.map(item => item.name);
-        const generatedRecipes = await generateRecipes(ingredients);
-        setRecipes(generatedRecipes);
+        try {
+          // 提取食材名称用于生成食谱
+          const ingredients = items.map(item => item.name);
+          
+          if (ingredients.length === 0) {
+            console.log('冰箱中没有食材，使用默认菜谱');
+            setRecipes(DEFAULT_RECIPES);
+          } else {
+            console.log('开始生成食谱，基于食材:', ingredients);
+            const generatedRecipes = await generateRecipes(ingredients);
+            
+            if (Array.isArray(generatedRecipes) && generatedRecipes.length > 0) {
+              console.log('成功生成食谱', generatedRecipes.length);
+              setRecipes(generatedRecipes);
+            } else {
+              console.log('生成食谱为空，使用默认菜谱');
+              setRecipes(DEFAULT_RECIPES);
+            }
+          }
+        } catch (recipeError) {
+          console.error('生成食谱错误:', recipeError);
+          setError('无法生成食谱，显示默认菜谱');
+          setRecipes(DEFAULT_RECIPES);
+        }
+      } else {
+        console.log('没有找到冰箱物品或格式不正确，使用默认菜谱');
+        setRecipes(DEFAULT_RECIPES);
       }
     } catch (error) {
       console.error('获取冰箱物品失败:', error);
-      if (error.message.includes('生成食谱失败')) {
-        if (error.message.includes('JSON 解析错误')) {
-          Alert.alert('错误', '生成食谱时出现格式错误，请稍后重试');
-        } else {
-          Alert.alert('错误', error.message);
-        }
-      } else {
-        Alert.alert('错误', '获取冰箱物品失败，请重试');
-      }
+      setError('获取物品失败，显示默认菜谱');
+      setRecipes(DEFAULT_RECIPES);
     } finally {
       setLoading(false);
     }
@@ -288,7 +373,12 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const getFilteredRecipes = () => {
-    let filteredRecipes = recipes;
+    let filteredRecipes = recipes || DEFAULT_RECIPES;
+
+    // 如果没有菜谱，使用默认菜谱
+    if (!filteredRecipes || filteredRecipes.length === 0) {
+      filteredRecipes = DEFAULT_RECIPES;
+    }
 
     // 根据搜索关键词过滤
     if (searchQuery) {
@@ -303,11 +393,14 @@ export default function RecipeScreen({ navigation }) {
     // 根据标签过滤
     if (activeTab === 'matched') {
       // 只显示能够使用冰箱中食材的菜谱
-      filteredRecipes = filteredRecipes.filter(recipe =>
-        recipe.ingredients.some(ing =>
-          refrigeratorItems.includes(ing.name.toLowerCase())
-        )
-      );
+      if (refrigeratorItems && refrigeratorItems.length > 0) {
+        const refrigeratorItemNames = refrigeratorItems.map(item => item.name.toLowerCase());
+        filteredRecipes = filteredRecipes.filter(recipe =>
+          recipe.ingredients.some(ing =>
+            refrigeratorItemNames.includes(ing.name.toLowerCase())
+          )
+        );
+      }
     }
 
     return filteredRecipes;
@@ -317,6 +410,11 @@ export default function RecipeScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>菜谱推荐</Text>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={COLORS.TEXT_SECONDARY} />
           <TextInput
@@ -373,7 +471,7 @@ export default function RecipeScreen({ navigation }) {
         <FlatList
           data={getFilteredRecipes()}
           renderItem={renderRecipe}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => item.id || `recipe-${index}`}
           contentContainerStyle={styles.recipeList}
           showsVerticalScrollIndicator={false}
         />
@@ -384,6 +482,12 @@ export default function RecipeScreen({ navigation }) {
               ? '没有找到可以用冰箱食材制作的菜谱'
               : '没有找到匹配的菜谱'}
           </Text>
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={loadRefrigeratorItems}
+          >
+            <Text style={styles.refreshButtonText}>刷新菜谱</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -646,10 +750,16 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.SMALL,
     color: COLORS.TEXT_SECONDARY,
   },
+  errorContainer: {
+    backgroundColor: 'rgba(244, 67, 54, 0.1)',
+    padding: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    marginBottom: SPACING.MEDIUM,
+  },
   errorText: {
     color: COLORS.DANGER,
     fontSize: FONT_SIZE.SMALL,
-    marginBottom: SPACING.SMALL,
+    textAlign: 'center',
   },
   summaryContainer: {
     marginTop: SPACING.MEDIUM,
@@ -710,5 +820,17 @@ const styles = StyleSheet.create({
   recipeImage: {
     width: '100%',
     height: '100%',
+  },
+  refreshButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingVertical: SPACING.MEDIUM,
+    paddingHorizontal: SPACING.LARGE,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    marginTop: SPACING.LARGE,
+  },
+  refreshButtonText: {
+    color: COLORS.SECONDARY,
+    fontWeight: FONT_WEIGHT.BOLD,
+    fontSize: FONT_SIZE.MEDIUM,
   },
 }); 

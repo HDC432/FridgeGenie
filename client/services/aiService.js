@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { OPENAI_API_KEY } from '@env';
+// Temporarily comment out the env import to make UI work
+// import { OPENAI_API_KEY } from '@env';
+
+// Placeholder for development - replace with proper env setup later
+const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
 
 // 添加重试配置
 const MAX_RETRIES = 3;
@@ -163,7 +167,7 @@ export const generateRecipes = async (ingredients) => {
 export const recognizeFoodImage = async (imageUri) => {
   try {
     const response = await axios.post(
-      `${env.AZURE_AI_ENDPOINT}/vision/v3.2/analyze`,
+      `AZURE_AI_ENDPOINT/vision/v3.2/analyze`, // Placeholder - update with actual endpoint
       {
         url: imageUri
       },
@@ -173,7 +177,7 @@ export const recognizeFoodImage = async (imageUri) => {
           details: 'Celebrities,Landmarks'
         },
         headers: {
-          'Ocp-Apim-Subscription-Key': env.AZURE_AI_KEY,
+          'Ocp-Apim-Subscription-Key': 'AZURE_AI_KEY', // Placeholder - update with actual key
           'Content-Type': 'application/json'
         }
       }
@@ -205,7 +209,7 @@ export const getFoodSuggestions = async (ingredients) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -237,7 +241,7 @@ export const categorizeFood = async (foodName) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -269,7 +273,7 @@ export const generateExpiryReminder = async (foodItem) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json'
         }
       }

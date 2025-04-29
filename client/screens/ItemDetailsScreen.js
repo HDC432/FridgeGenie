@@ -2,10 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { updateItem, deleteItem } from '../services/databaseService';
 import { getFoodSuggestions, generateExpiryReminder } from '../services/aiService';
+import axios from 'axios';
+// import { OPENAI_API_KEY } from '@env';
 
 const AZURE_AI_ENDPOINT = 'YOUR_AZURE_AI_ENDPOINT';
 const AZURE_AI_KEY = 'YOUR_AZURE_AI_KEY';
-const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY';
+// const OPENAI_API_KEY = 'your_api_key_here';
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1秒
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default function ItemDetailsScreen({ route, navigation }) {
   const { item } = route.params;
