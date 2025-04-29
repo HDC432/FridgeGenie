@@ -99,6 +99,20 @@ class HealthProfile {
         return this.basicInfo.weight / (heightInMeters * heightInMeters);
     }
 
+    // 获取健康档案
+    static async findByUserId(userId) {
+        try {
+            console.log('开始查询健康档案，用户ID:', userId);
+            const { resource } = await usersContainer.item(userId, userId).read();
+            console.log('查询结果:', resource);
+            return resource?.healthProfile || null;
+        } catch (error) {
+            console.error('获取健康档案失败，详细错误:', error);
+            console.error('错误堆栈:', error.stack);
+            throw error;
+        }
+    }
+
     // 保存健康档案
     async save() {
         try {
@@ -122,20 +136,6 @@ class HealthProfile {
             return resource;
         } catch (error) {
             console.error('保存健康档案失败，详细错误:', error);
-            console.error('错误堆栈:', error.stack);
-            throw error;
-        }
-    }
-
-    // 获取健康档案
-    static async findByUserId(userId) {
-        try {
-            console.log('开始查询健康档案，用户ID:', userId);
-            const { resource } = await usersContainer.items.read(userId, userId);
-            console.log('查询结果:', resource);
-            return resource?.healthProfile || null;
-        } catch (error) {
-            console.error('获取健康档案失败，详细错误:', error);
             console.error('错误堆栈:', error.stack);
             throw error;
         }
