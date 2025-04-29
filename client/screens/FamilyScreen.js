@@ -8,12 +8,45 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { generateAvatarText, generateAvatarColor } from '../utils/avatarUtils';
 import { API_URL } from '../config/constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import authService from '../services/authService';
+
+// 统一的提示方法
+const showAlert = (title, message) => {
+  if (Platform.OS === 'web') {
+    window.alert(message);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
+// 统一的确认方法
+const showConfirm = (title, message, onConfirm) => {
+  if (Platform.OS === 'web') {
+    const confirmed = window.confirm(message);
+    if (confirmed) {
+      onConfirm();
+    }
+  } else {
+    Alert.alert(
+      title,
+      message,
+      [
+        { text: '取消', style: 'cancel' },
+        {
+          text: '确定',
+          style: 'destructive',
+          onPress: onConfirm,
+        },
+      ]
+    );
+  }
+};
 
 const FamilyScreen = () => {
   const { user } = useAuth();
@@ -32,7 +65,7 @@ const FamilyScreen = () => {
   const fetchFamilyInfo = async () => {
     try {
       console.log('FamilyScreen - 开始获取家庭信息');
-      const token = await getToken();
+      const token = await authService.getToken();
       console.log('FamilyScreen - 获取到的token:', token);
 
       const response = await fetch(`${API_URL}/families`, {
@@ -60,27 +93,16 @@ const FamilyScreen = () => {
     }
   };
 
-  const getToken = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      console.log('FamilyScreen - 从AsyncStorage获取token:', token);
-      return token;
-    } catch (error) {
-      console.error('FamilyScreen - 获取token失败:', error);
-      return null;
-    }
-  };
-
   const handleCreateFamily = async () => {
     if (!familyName.trim()) {
-      Alert.alert('错误', '请输入家庭名称');
+      showAlert('错误', '请输入家庭名称');
       return;
     }
 
     try {
       console.log('FamilyScreen - 开始创建家庭');
       setLoading(true);
-      const token = await getToken();
+      const token = await authService.getToken();
       console.log('FamilyScreen - 创建家庭使用的token:', token);
 
       const requestBody = { name: familyName };
@@ -101,17 +123,17 @@ const FamilyScreen = () => {
 
       if (response.ok) {
         setFamily(data.data);
-        Alert.alert('成功', '家庭创建成功！');
+        showAlert('成功', '家庭创建成功！');
       } else {
         if (data.message === '用户已经加入其他家庭') {
-          Alert.alert('错误', '您已经加入了一个家庭，请先退出当前家庭再创建新家庭');
+          showAlert('错误', '您已经加入了一个家庭，请先退出当前家庭再创建新家庭');
         } else {
-          Alert.alert('错误', data.message || '创建家庭失败');
+          showAlert('错误', data.message || '创建家庭失败');
         }
       }
     } catch (error) {
       console.error('FamilyScreen - 创建家庭失败:', error);
-      Alert.alert('错误', '创建家庭失败');
+      showAlert('错误', '创建家庭失败');
     } finally {
       setLoading(false);
     }
@@ -119,14 +141,14 @@ const FamilyScreen = () => {
 
   const handleJoinFamily = async () => {
     if (!inviteCode.trim()) {
-      Alert.alert('错误', '请输入邀请码');
+      showAlert('错误', '请输入邀请码');
       return;
     }
 
     try {
       console.log('FamilyScreen - 开始加入家庭');
       setLoading(true);
-      const token = await getToken();
+      const token = await authService.getToken();
       console.log('FamilyScreen - 加入家庭使用的token:', token);
 
       const requestBody = { inviteCode };
@@ -147,13 +169,13 @@ const FamilyScreen = () => {
 
       if (response.ok) {
         setFamily(data.data);
-        Alert.alert('成功', '成功加入家庭！');
+        showAlert('成功', '成功加入家庭！');
       } else {
-        Alert.alert('错误', data.message || '加入家庭失败');
+        showAlert('错误', data.message || '加入家庭失败');
       }
     } catch (error) {
       console.error('FamilyScreen - 加入家庭失败:', error);
-      Alert.alert('错误', '加入家庭失败');
+      showAlert('错误', '加入家庭失败');
     } finally {
       setLoading(false);
     }
@@ -165,7 +187,7 @@ const FamilyScreen = () => {
     try {
       console.log('FamilyScreen - 开始移除成员:', memberId);
       setLoading(true);
-      const token = await getToken();
+      const token = await authService.getToken();
       console.log('FamilyScreen - 移除成员使用的token:', token);
 
       const response = await fetch(`${API_URL}/families/${family.id}/members/${memberId}`, {
@@ -199,51 +221,48 @@ const FamilyScreen = () => {
     console.log('FamilyScreen - 开始退出家庭流程');
     console.log('FamilyScreen - 当前家庭信息:', family);
 
-    Alert.alert(
-      '确认退出',
-      '确定要退出当前家庭吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '确定',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('FamilyScreen - 用户确认退出家庭');
-              setLoading(true);
-              const token = await getToken();
-              console.log('FamilyScreen - 获取到的token:', token);
-              console.log('FamilyScreen - 准备发送退出请求:', `${API_URL}/families/${family.id}/leave`);
+    showConfirm('确认退出', '确定要退出当前家庭吗？', async () => {
+      try {
+        console.log('FamilyScreen - 用户确认退出家庭');
+        setLoading(true);
+        const token = await authService.getToken();
+        console.log('FamilyScreen - 获取到的token:', token);
+        
+        const requestUrl = `${API_URL}/families/${family.id}/leave`;
+        console.log('FamilyScreen - 准备发送退出请求:', requestUrl);
+        console.log('FamilyScreen - 请求方法: DELETE');
+        console.log('FamilyScreen - 请求头:', {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        });
 
-              const response = await fetch(`${API_URL}/families/${family.id}/leave`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                },
-              });
-
-              console.log('FamilyScreen - 退出家庭响应状态:', response.status);
-              const data = await response.json();
-              console.log('FamilyScreen - 退出家庭响应数据:', data);
-
-              if (response.ok) {
-                console.log('FamilyScreen - 退出家庭成功');
-                setFamily(null);
-                Alert.alert('成功', '已退出家庭');
-              } else {
-                console.log('FamilyScreen - 退出家庭失败:', data.message);
-                Alert.alert('错误', data.message || '退出家庭失败');
-              }
-            } catch (error) {
-              console.error('FamilyScreen - 退出家庭失败:', error);
-              Alert.alert('错误', '退出家庭失败');
-            } finally {
-              setLoading(false);
-            }
+        const response = await fetch(requestUrl, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-        },
-      ]
-    );
+        });
+
+        console.log('FamilyScreen - 退出家庭响应状态:', response.status);
+        const data = await response.json();
+        console.log('FamilyScreen - 退出家庭响应数据:', data);
+
+        if (response.ok) {
+          console.log('FamilyScreen - 退出家庭成功');
+          setFamily(null);
+          showAlert('成功', '已退出家庭');
+        } else {
+          console.log('FamilyScreen - 退出家庭失败:', data.message);
+          showAlert('错误', data.message || '退出家庭失败');
+        }
+      } catch (error) {
+        console.error('FamilyScreen - 退出家庭失败:', error);
+        showAlert('错误', '退出家庭失败');
+      } finally {
+        setLoading(false);
+      }
+    });
   };
 
   if (loading) {
