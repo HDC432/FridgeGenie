@@ -16,6 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { differenceInCalendarDays } from 'date-fns';
 import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 const HomeScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
@@ -148,10 +151,10 @@ const HomeScreen = ({ navigation }) => {
     }
     const daysLeft = differenceInCalendarDays(expiry, new Date());
 
-    let stripeColor = '#4CAF50'; // > 7 天：绿
-    if (daysLeft <= 1)      stripeColor = '#F44336'; // ≤1 天：红
-    else if (daysLeft <= 3) stripeColor = '#FF9800'; // ≤3 天：橙
-    else if (daysLeft <= 7) stripeColor = '#FFEB3B'; // ≤7 天：黄
+    let stripeColor = COLORS.SUCCESS; // > 7 天：绿
+    if (daysLeft <= 1)      stripeColor = COLORS.DANGER; // ≤1 天：红
+    else if (daysLeft <= 3) stripeColor = COLORS.ALERT; // ≤3 天：橙
+    else if (daysLeft <= 7) stripeColor = COLORS.WARNING; // ≤7 天：黄
 
     return (
       <View style={styles.itemWrapper}>
@@ -168,13 +171,13 @@ const HomeScreen = ({ navigation }) => {
               style={styles.actionButton}
               onPress={() => handleEditQuantity(item)}
             >
-              <Ionicons name="pencil-outline" size={24} color="#1F2B40" />
+              <Ionicons name="pencil-outline" size={24} color={COLORS.TEXT_PRIMARY} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => handleDelete(item.id)}
             >
-              <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+              <Ionicons name="trash-outline" size={24} color={COLORS.DANGER} />
             </TouchableOpacity>
           </View>
         </View>
@@ -197,7 +200,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => setIsQuantityModalVisible(false)}
               style={styles.closeButton}
             >
-              <Ionicons name="close" size={24} color="#666" />
+              <Ionicons name="close" size={24} color={COLORS.TEXT_SECONDARY} />
             </TouchableOpacity>
           </View>
 
@@ -242,13 +245,13 @@ const HomeScreen = ({ navigation }) => {
             style={styles.headerButton}
             onPress={() => navigation.navigate('Recipe')}
           >
-            <Ionicons name="restaurant-outline" size={24} color="#fff" />
+            <Ionicons name="restaurant-outline" size={24} color={COLORS.BACKGROUND} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.addButton, { marginLeft: 12 }]}
+            style={styles.addButton}
             onPress={() => navigation.navigate('AddItem')}
           >
-            <Ionicons name="add" size={24} color="#1F2B40" />
+            <Ionicons name="add" size={24} color={COLORS.TEXT_PRIMARY} />
           </TouchableOpacity>
         </View>
       </View>
@@ -269,7 +272,7 @@ const HomeScreen = ({ navigation }) => {
           keyExtractor={item => item.id}
           renderItem={renderItem}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.PRIMARY]} />
           }
           contentContainerStyle={styles.listContainer}
         />
@@ -277,72 +280,56 @@ const HomeScreen = ({ navigation }) => {
       {renderQuantityModal()}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    ...Platform.select({
-      web: {
-        height: '100%',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      default: {
-        flex: 1,
-      },
-    }),
+    ...COMMON_STYLES.CONTAINER,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: SPACING.LARGE,
+    backgroundColor: COLORS.BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
+    borderBottomColor: COLORS.LIGHT_GRAY,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2B40',
+    ...COMMON_STYLES.HEADER_TITLE,
   },
   headerButtons: {
     flexDirection: 'row',
-    gap: 12,
+    gap: SPACING.MEDIUM,
   },
   headerButton: {
-    backgroundColor: '#1F2B40',
+    backgroundColor: COLORS.SECONDARY,
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.CIRCLE,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOW_STYLE.SMALL,
   },
   addButton: {
-    backgroundColor: '#FFC107',
+    backgroundColor: COLORS.PRIMARY,
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.CIRCLE,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOW_STYLE.SMALL,
   },
   listContainer: {
-    padding: 16,
+    padding: SPACING.LARGE,
     flexGrow: 1,
   },
   itemWrapper: {
     flexDirection: 'row',
-    marginBottom: 12,
-    borderRadius: 8,
+    marginBottom: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    ...SHADOW_STYLE.MEDIUM,
   },
   stripe: {
     width: 5,
@@ -351,60 +338,52 @@ const styles = StyleSheet.create({
   itemContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#F5F7FA',
-    padding: 12,
+    backgroundColor: COLORS.LIGHT_GRAY,
+    padding: SPACING.MEDIUM,
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   itemInfo: {
     flex: 1,
-    marginRight: 8,
+    marginRight: SPACING.SMALL,
   },
   itemName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2B40',
-    marginBottom: 4,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.TINY,
   },
   itemDetails: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
   },
   itemActions: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.SMALL,
   },
   actionButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    backgroundColor: COLORS.BACKGROUND,
+    ...SHADOW_STYLE.SMALL,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.LARGE,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 16,
+    fontSize: FONT_SIZE.LARGE,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.LARGE,
   },
   addFirstButton: {
-    backgroundColor: '#FFC107',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    ...COMMON_STYLES.BUTTON,
+    paddingHorizontal: SPACING.XLARGE,
   },
   addFirstButtonText: {
-    color: '#1F2B40',
-    fontSize: 16,
-    fontWeight: '500',
+    ...COMMON_STYLES.BUTTON_TEXT,
   },
   modalOverlay: {
     flex: 1,
@@ -413,75 +392,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: COLORS.BACKGROUND,
+    borderRadius: BORDER_RADIUS.LARGE,
+    padding: SPACING.LARGE,
     width: '80%',
     maxWidth: 400,
+    ...SHADOW_STYLE.LARGE,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.LARGE,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.XLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   closeButton: {
-    padding: 4,
+    padding: SPACING.TINY,
   },
   modalItemName: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#1F2B40',
-    marginBottom: 16,
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.LARGE,
   },
   quantityInputContainer: {
-    marginBottom: 20,
+    marginBottom: SPACING.LARGE,
   },
   quantityLabel: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.SMALL,
   },
   quantityInput: {
-    backgroundColor: '#F5F7FA',
-    height: 48,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#1F2B40',
+    ...COMMON_STYLES.INPUT,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: SPACING.LARGE,
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
     alignItems: 'center',
-    marginHorizontal: 8,
+    marginHorizontal: SPACING.SMALL,
   },
   cancelButton: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
   confirmButton: {
-    backgroundColor: '#FFC107',
+    backgroundColor: COLORS.PRIMARY,
   },
   cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.TEXT_SECONDARY,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
   },
   confirmButtonText: {
-    color: '#1F2B40',
-    fontSize: 16,
-    fontWeight: '600',
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
   },
 });
 

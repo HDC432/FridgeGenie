@@ -7,8 +7,11 @@ import {
   TouchableOpacity,
   Platform,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 const UserProfileScreen = () => {
   const { user } = useAuth();
@@ -20,17 +23,17 @@ const UserProfileScreen = () => {
       value: user?.username,
     },
     {
-      icon: 'email',
+      icon: 'mail',
       label: '邮箱',
       value: user?.email,
     },
     {
-      icon: 'calendar-today',
+      icon: 'calendar',
       label: '注册时间',
       value: new Date(user?.createdAt).toLocaleDateString(),
     },
     {
-      icon: 'access-time',
+      icon: 'time',
       label: '最后登录',
       value: new Date(user?.lastLogin).toLocaleDateString(),
     },
@@ -51,7 +54,7 @@ const UserProfileScreen = () => {
         {menuItems.map((item, index) => (
           <View key={index} style={styles.menuItem}>
             <View style={styles.menuItemLeft}>
-              <MaterialIcons name={item.icon} size={24} color="#666" />
+              <Ionicons name={item.icon} size={24} color={COLORS.PRIMARY} />
               <Text style={styles.menuItemLabel}>{item.label}</Text>
             </View>
             <Text style={styles.menuItemValue}>{item.value}</Text>
@@ -64,68 +67,58 @@ const UserProfileScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    ...Platform.select({
-      web: {
-        height: '100%',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      default: {
-        flex: 1,
-      },
-    }),
+    ...COMMON_STYLES.CONTAINER,
   },
   header: {
     alignItems: 'center',
-    padding: 20,
+    padding: SPACING.XXLARGE,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: COLORS.DIVIDER,
   },
   avatar: {
     width: 100,
     height: 100,
-    borderRadius: 50,
-    backgroundColor: '#f4511e',
+    borderRadius: BORDER_RADIUS.CIRCLE,
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: SPACING.MEDIUM,
+    ...SHADOW_STYLE.MEDIUM,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 40,
-    fontWeight: 'bold',
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: FONT_SIZE.XXXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   username: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: FONT_SIZE.XXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   content: {
-    padding: 16,
+    padding: SPACING.LARGE,
     flexGrow: 1,
   },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: SPACING.LARGE,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: COLORS.DIVIDER,
   },
   menuItemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   menuItemLabel: {
-    fontSize: 16,
-    marginLeft: 15,
-    color: '#333',
+    fontSize: FONT_SIZE.MEDIUM,
+    marginLeft: SPACING.LARGE,
+    color: COLORS.TEXT_PRIMARY,
   },
   menuItemValue: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
   },
 });
 

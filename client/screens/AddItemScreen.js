@@ -8,12 +8,16 @@ import {
   Platform,
   StyleSheet,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { addItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 const AddItemScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -81,68 +85,70 @@ const AddItemScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <ScrollView style={styles.container}>
+      <View style={styles.headerSection}>
         <Text style={styles.title}>添加物品</Text>
         <Text style={styles.subtitle}>
           将新的食品添加到你的冰箱清单中，并设置过期日期
         </Text>
       </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>物品名称</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="例如：牛奶、鸡蛋..."
-          value={name}
-          onChangeText={setName}
-        />
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>数量</Text>
-        <View style={styles.quantityRow}>
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={decreaseQuantity}
-          >
-            <Ionicons name="remove" size={20} color="#1F2B40" />
-          </TouchableOpacity>
+      <View style={styles.formSection}>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>物品名称</Text>
           <TextInput
-            style={styles.quantityInput}
-            value={quantity}
-            onChangeText={setQuantity}
-            keyboardType="number-pad"
+            style={styles.input}
+            placeholder="例如：牛奶、鸡蛋..."
+            value={name}
+            onChangeText={setName}
           />
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={increaseQuantity}
-          >
-            <Ionicons name="add" size={20} color="#1F2B40" />
-          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>过期日期</Text>
-        <TouchableOpacity
-          style={styles.datePickerBtn}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Text style={styles.dateText}>
-            {format(expiryDate, 'yyyy年MM月dd日')}
-          </Text>
-          <Ionicons name="calendar-outline" size={20} color="#1F2B40" />
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={expiryDate}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            minimumDate={new Date()}
-          />
-        )}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>数量</Text>
+          <View style={styles.quantityRow}>
+            <TouchableOpacity
+              style={styles.quantityBtn}
+              onPress={decreaseQuantity}
+            >
+              <Ionicons name="remove" size={20} color={COLORS.TEXT_PRIMARY} />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.quantityInput}
+              value={quantity}
+              onChangeText={setQuantity}
+              keyboardType="number-pad"
+            />
+            <TouchableOpacity
+              style={styles.quantityBtn}
+              onPress={increaseQuantity}
+            >
+              <Ionicons name="add" size={20} color={COLORS.TEXT_PRIMARY} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>过期日期</Text>
+          <TouchableOpacity
+            style={styles.datePickerBtn}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.dateText}>
+              {format(expiryDate, 'yyyy年MM月dd日')}
+            </Text>
+            <Ionicons name="calendar-outline" size={20} color={COLORS.TEXT_PRIMARY} />
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={expiryDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+        </View>
       </View>
 
       <View style={styles.buttonContainer}>
@@ -153,72 +159,52 @@ const AddItemScreen = ({ navigation }) => {
           <Text style={styles.submitButtonText}>添加到冰箱</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    ...Platform.select({
-      web: {
-        height: '100%',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      default: {
-        flex: 1,
-      },
-    }),
+    ...COMMON_STYLES.CONTAINER,
   },
-  header: {
-    marginBottom: 24,
+  headerSection: {
+    padding: SPACING.LARGE,
+    backgroundColor: COLORS.BACKGROUND,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.XXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  formSection: {
+    padding: SPACING.LARGE,
   },
   formGroup: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    flexGrow: 1,
+    marginBottom: SPACING.LARGE,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   input: {
-    backgroundColor: '#F5F7FA',
-    height: 48,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#1F2B40',
+    ...COMMON_STYLES.INPUT,
   },
   datePickerBtn: {
-    backgroundColor: '#F5F7FA',
-    height: 48,
-    borderRadius: 8,
+    ...COMMON_STYLES.INPUT,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
   },
   dateText: {
-    fontSize: 16,
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
   },
   quantityRow: {
     flexDirection: 'row',
@@ -227,38 +213,29 @@ const styles = StyleSheet.create({
   quantityBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F5F7FA',
+    borderRadius: BORDER_RADIUS.CIRCLE,
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOW_STYLE.SMALL,
   },
   quantityInput: {
-    backgroundColor: '#F5F7FA',
+    ...COMMON_STYLES.INPUT,
     height: 48,
-    marginHorizontal: 12,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    color: '#1F2B40',
+    marginHorizontal: SPACING.MEDIUM,
     textAlign: 'center',
     minWidth: 80,
+    flex: 1,
   },
   buttonContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    marginTop: 24,
+    padding: SPACING.LARGE,
+    marginTop: SPACING.MEDIUM,
   },
   submitButton: {
-    backgroundColor: '#FFC107',
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    ...COMMON_STYLES.BUTTON,
   },
   submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2B40',
+    ...COMMON_STYLES.BUTTON_TEXT,
   },
 });
 

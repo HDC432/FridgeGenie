@@ -15,6 +15,7 @@ import RecipeScreen from './screens/RecipeScreen';
 import UserAvatar from './components/UserAvatar';
 import UserMenu from './components/UserMenu';
 import HealthProfileScreen from './screens/HealthProfileScreen';
+import theme from './styles/theme';
 
 const Stack = createStackNavigator();
 
@@ -39,9 +40,17 @@ const Navigation = () => {
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#f4511e',
+            backgroundColor: '#FCD34D',
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            elevation: 5,
           },
-          headerTintColor: '#fff',
+          headerTintColor: '#1F2B40',
           headerTitleStyle: {
             fontWeight: 'bold',
           },

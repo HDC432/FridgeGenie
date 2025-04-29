@@ -15,8 +15,10 @@ import {
 } from 'react-native';
 import useItems from '../hooks/useItems';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import { getItems } from '../services/databaseService';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 export default function RecipeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
@@ -75,6 +77,26 @@ export default function RecipeScreen({ navigation }) {
             fat: '18g',
             fiber: '3g'
           }
+        },
+        {
+          id: '3',
+          name: '蔬菜沙拉',
+          ingredients: [
+            { name: '生菜', quantity: '100g' },
+            { name: '黄瓜', quantity: '1个' },
+            { name: '西红柿', quantity: '1个' }
+          ],
+          instructions: '1. 洗净蔬菜\n2. 切块\n3. 混合并加沙拉酱',
+          imageUrl: 'https://example.com/salad.jpg',
+          difficulty: '简单',
+          cookingTime: '5分钟',
+          nutrition: {
+            calories: 120,
+            protein: '3g',
+            carbs: '15g',
+            fat: '5g',
+            fiber: '5g'
+          }
         }
       ];
 
@@ -110,13 +132,10 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const handleRecipePress = (recipe) => {
-    // 初始化每个食材的选择数量
     const quantities = {};
     recipe.ingredients.forEach(ing => {
-      // 找到冰箱中对应的食材
       const fridgeItem = items.find(item => item.name === ing.name);
       if (fridgeItem) {
-        // 默认选择配方要求的数量，但不超过冰箱现有数量
         const requiredAmount = parseInt(ing.quantity) || 1;
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
       }
@@ -153,14 +172,13 @@ export default function RecipeScreen({ navigation }) {
     const fridgeItem = items.find(item => item.name === ingredient.name);
     if (!fridgeItem) {
       return (
-        <Text style={{ color: 'red', marginBottom: 8 }}>
+        <Text style={styles.errorText}>
           冰箱没有 {ingredient.name}，无法消耗
         </Text>
       );
     }
 
     const maxQuantity = fridgeItem.quantity;
-    const quantities = Array.from({ length: maxQuantity + 1 }, (_, i) => i);
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
 
     return (
@@ -221,7 +239,7 @@ export default function RecipeScreen({ navigation }) {
               onPress={() => setIsModalVisible(false)}
               style={styles.closeButton}
             >
-              <Ionicons name="close" size={24} color="#666" />
+              <Ionicons name="close" size={24} color={COLORS.TEXT_PRIMARY} />
             </TouchableOpacity>
           </View>
 
@@ -268,57 +286,67 @@ export default function RecipeScreen({ navigation }) {
     </Modal>
   );
 
-  const renderRecipe = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.recipeCard}
-      onPress={() => handleRecipePress(item)}
-    >
-      <View style={styles.recipeHeader}>
-        <View style={styles.recipeTitleRow}>
-          <Text style={styles.recipeName}>{item.name}</Text>
-          <View style={styles.caloriesBadge}>
-            <Ionicons name="flame" size={16} color="#FF6B6B" />
-            <Text style={styles.caloriesText}>{item.nutrition.calories} 千卡</Text>
+  const renderRecipe = ({ item }) => {
+    return (
+      <TouchableOpacity 
+        style={styles.recipeCard}
+        onPress={() => handleRecipePress(item)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.recipeHeader}>
+          <View style={styles.recipeTitleRow}>
+            <Text style={styles.recipeName}>{item.name}</Text>
+            <View style={styles.caloriesBadge}>
+              <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
+              <Text style={styles.caloriesText}>{item.nutrition.calories} 千卡</Text>
+            </View>
+          </View>
+          
+          <View style={styles.recipeInfo}>
+            <View style={styles.recipeDetailItem}>
+              <Ionicons name="speedometer-outline" size={14} color={COLORS.PRIMARY} />
+              <Text style={styles.recipeDetail}>难度: {item.difficulty}</Text>
+            </View>
+            <View style={styles.recipeDetailItem}>
+              <Ionicons name="time-outline" size={14} color={COLORS.PRIMARY} />
+              <Text style={styles.recipeDetail}>时间: {item.cookingTime}</Text>
+            </View>
           </View>
         </View>
-        <View style={styles.recipeInfo}>
-          <Text style={styles.recipeDetail}>难度: {item.difficulty}</Text>
-          <Text style={styles.recipeDetail}>时间: {item.cookingTime}</Text>
-        </View>
-      </View>
 
-      <View style={styles.ingredientsSection}>
-        <Text style={styles.sectionTitle}>所需食材:</Text>
-        {item.ingredients.map((ing, index) => (
-          <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
-            • {ing.name} ({ing.quantity})
-          </Text>
-        ))}
-      </View>
+        <View style={styles.ingredientsSection}>
+          <Text style={styles.sectionTitle}>所需食材:</Text>
+          {item.ingredients.map((ing, index) => (
+            <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
+              • {ing.name} ({ing.quantity})
+            </Text>
+          ))}
+        </View>
 
-      <View style={styles.nutritionSection}>
-        <Text style={styles.sectionTitle}>营养成分:</Text>
-        <View style={styles.nutritionGrid}>
-          <View key={`${item.id}-protein`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>蛋白质</Text>
-            <Text style={styles.nutritionValue}>{item.nutrition.protein}</Text>
-          </View>
-          <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>碳水</Text>
-            <Text style={styles.nutritionValue}>{item.nutrition.carbs}</Text>
-          </View>
-          <View key={`${item.id}-fat`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>脂肪</Text>
-            <Text style={styles.nutritionValue}>{item.nutrition.fat}</Text>
-          </View>
-          <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>膳食纤维</Text>
-            <Text style={styles.nutritionValue}>{item.nutrition.fiber}</Text>
+        <View style={styles.nutritionSection}>
+          <Text style={styles.sectionTitle}>营养成分:</Text>
+          <View style={styles.nutritionGrid}>
+            <View key={`${item.id}-protein`} style={styles.nutritionItem}>
+              <Text style={styles.nutritionLabel}>蛋白质</Text>
+              <Text style={styles.nutritionValue}>{item.nutrition.protein}</Text>
+            </View>
+            <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
+              <Text style={styles.nutritionLabel}>碳水</Text>
+              <Text style={styles.nutritionValue}>{item.nutrition.carbs}</Text>
+            </View>
+            <View key={`${item.id}-fat`} style={styles.nutritionItem}>
+              <Text style={styles.nutritionLabel}>脂肪</Text>
+              <Text style={styles.nutritionValue}>{item.nutrition.fat}</Text>
+            </View>
+            <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
+              <Text style={styles.nutritionLabel}>膳食纤维</Text>
+              <Text style={styles.nutritionValue}>{item.nutrition.fiber}</Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const getFilteredRecipes = () => {
     let filteredRecipes = recipes;
@@ -346,18 +374,12 @@ export default function RecipeScreen({ navigation }) {
     return filteredRecipes;
   };
 
-  const getMatchedIngredients = recipe => {
-    return recipe.ingredients.filter(ing =>
-      refrigeratorItems.includes(ing.name.toLowerCase())
-    );
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>菜谱推荐</Text>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666" />
+          <Ionicons name="search" size={20} color={COLORS.TEXT_SECONDARY} />
           <TextInput
             style={styles.searchInput}
             placeholder="搜索菜谱..."
@@ -405,8 +427,8 @@ export default function RecipeScreen({ navigation }) {
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#FFC107" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
         </View>
       ) : getFilteredRecipes().length > 0 ? (
         <FlatList
@@ -414,6 +436,7 @@ export default function RecipeScreen({ navigation }) {
           renderItem={renderRecipe}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.recipeList}
+          showsVerticalScrollIndicator={false}
         />
       ) : (
         <View style={styles.emptyContainer}>
@@ -432,178 +455,177 @@ export default function RecipeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    ...Platform.select({
-      web: {
-        height: '100%',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      default: {
-        flex: 1,
-      },
-    }),
+    ...COMMON_STYLES.CONTAINER,
   },
   header: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
+    padding: SPACING.LARGE,
+    backgroundColor: COLORS.BACKGROUND,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
+    borderBottomColor: COLORS.DIVIDER,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2B40',
-    marginBottom: 16,
+    fontSize: FONT_SIZE.XXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.MEDIUM,
   },
   searchContainer: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: COLORS.LIGHT_GRAY,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
-    padding: 8,
-    paddingHorizontal: 12,
-    marginBottom: 16,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    padding: SPACING.MEDIUM,
+    marginBottom: SPACING.MEDIUM,
   },
   searchInput: {
     flex: 1,
     height: 40,
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#1F2B40',
+    marginLeft: SPACING.SMALL,
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
   },
   tabsContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: SPACING.MEDIUM,
   },
   tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 8,
-    borderRadius: 20,
+    paddingVertical: SPACING.SMALL,
+    paddingHorizontal: SPACING.LARGE,
+    marginRight: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.ROUNDED,
   },
   activeTab: {
-    backgroundColor: '#FFC107',
+    backgroundColor: COLORS.PRIMARY,
   },
   inactiveTab: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: FONT_WEIGHT.MEDIUM,
   },
   activeTabText: {
-    color: '#1F2B40',
+    color: COLORS.TEXT_PRIMARY,
   },
   inactiveTabText: {
-    color: '#666',
+    color: COLORS.TEXT_SECONDARY,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   recipeList: {
-    padding: 16,
-    flexGrow: 1,
+    padding: SPACING.LARGE,
   },
   recipeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.BACKGROUND,
+    borderRadius: BORDER_RADIUS.LARGE,
+    padding: SPACING.LARGE,
+    marginBottom: SPACING.LARGE,
+    ...SHADOW_STYLE.MEDIUM,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.1)',
   },
   recipeHeader: {
-    marginBottom: 12,
+    marginBottom: SPACING.MEDIUM,
   },
   recipeTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: SPACING.SMALL,
   },
   recipeName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   caloriesBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFAE0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    paddingVertical: SPACING.TINY,
+    paddingHorizontal: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.ROUNDED,
   },
   caloriesText: {
-    color: '#FFC107',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.TINY,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
     marginLeft: 4,
   },
   recipeInfo: {
     flexDirection: 'row',
-    marginTop: 4,
+  },
+  recipeDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SPACING.MEDIUM,
   },
   recipeDetail: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 12,
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
+    marginLeft: SPACING.TINY,
   },
   ingredientsSection: {
-    marginBottom: 12,
-    paddingTop: 8,
+    marginBottom: SPACING.MEDIUM,
+    paddingTop: SPACING.MEDIUM,
     borderTopWidth: 1,
-    borderTopColor: '#F5F7FA',
+    borderTopColor: COLORS.DIVIDER,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   ingredientText: {
-    fontSize: 14,
-    color: '#1F2B40',
-    marginBottom: 4,
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
+    paddingLeft: SPACING.SMALL,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(255, 193, 7, 0.3)',
   },
   nutritionSection: {
-    paddingTop: 8,
+    paddingTop: SPACING.MEDIUM,
     borderTopWidth: 1,
-    borderTopColor: '#F5F7FA',
+    borderTopColor: COLORS.DIVIDER,
   },
   nutritionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: SPACING.SMALL,
+    backgroundColor: 'rgba(245, 247, 250, 0.5)',
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    padding: SPACING.MEDIUM,
   },
   nutritionItem: {
-    width: '25%',
-    marginBottom: 8,
+    width: '50%',
+    marginBottom: SPACING.MEDIUM,
+    paddingHorizontal: SPACING.SMALL,
   },
   nutritionLabel: {
-    fontSize: 12,
-    color: '#666',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
     marginBottom: 2,
   },
   nutritionValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.PRIMARY,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    padding: SPACING.LARGE,
   },
   emptyText: {
-    fontSize: 18,
-    color: '#666',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
     textAlign: 'center',
-    marginBottom: 16,
   },
   modalOverlay: {
     flex: 1,
@@ -612,134 +634,142 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: COLORS.BACKGROUND,
+    borderRadius: BORDER_RADIUS.LARGE,
+    padding: SPACING.LARGE,
     width: '90%',
-    maxHeight: '80%',
-    padding: 20,
+    maxWidth: 500,
+    ...SHADOW_STYLE.LARGE,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
-    paddingBottom: 12,
+    marginBottom: SPACING.LARGE,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.XLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   closeButton: {
-    padding: 4,
+    padding: SPACING.TINY,
   },
   modalRecipeName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2B40',
-    marginBottom: 16,
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.LARGE,
   },
   ingredientsList: {
     maxHeight: 300,
   },
   pickerContainer: {
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F7FA',
-    paddingBottom: 12,
+    marginBottom: SPACING.MEDIUM,
   },
   pickerLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   quantityControlContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F5F7FA',
-    borderRadius: 8,
-    padding: 8,
-    marginVertical: 8,
+    marginBottom: SPACING.TINY,
   },
   quantityButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#FFC107',
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: BORDER_RADIUS.CIRCLE,
+    backgroundColor: COLORS.PRIMARY,
     justifyContent: 'center',
     alignItems: 'center',
+    ...SHADOW_STYLE.SMALL,
   },
   quantityButtonDisabled: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: COLORS.DISABLED,
   },
   quantityButtonText: {
-    color: '#1F2B40',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   quantityText: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginHorizontal: 16,
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginHorizontal: SPACING.MEDIUM,
     minWidth: 30,
     textAlign: 'center',
-    color: '#1F2B40',
   },
   availableText: {
-    fontSize: 14,
-    color: '#666',
-    fontStyle: 'italic',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  errorText: {
+    color: COLORS.DANGER,
+    fontSize: FONT_SIZE.SMALL,
+    marginBottom: SPACING.SMALL,
   },
   summaryContainer: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#F5F7FA',
-    borderRadius: 8,
+    marginTop: SPACING.MEDIUM,
+    paddingTop: SPACING.MEDIUM,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.DIVIDER,
   },
   summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2B40',
-    marginBottom: 8,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
   },
   summaryText: {
-    fontSize: 14,
-    color: '#1F2B40',
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
     marginBottom: 4,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: SPACING.LARGE,
   },
   modalButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.ROUNDED,
     alignItems: 'center',
-    marginHorizontal: 8,
+    marginHorizontal: SPACING.SMALL,
   },
   cancelButton: {
-    backgroundColor: '#F5F7FA',
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
   confirmButton: {
-    backgroundColor: '#FFC107',
+    backgroundColor: COLORS.PRIMARY,
   },
   disabledButton: {
-    backgroundColor: '#E0E0E0',
+    opacity: 0.5,
   },
   cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
   },
   confirmButtonText: {
-    color: '#1F2B40',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+  },
+  recipeImageContainer: {
+    width: '100%',
+    height: 150,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    overflow: 'hidden',
+    marginBottom: SPACING.MEDIUM,
+    ...SHADOW_STYLE.SMALL,
+  },
+  recipeImage: {
+    width: '100%',
+    height: '100%',
   },
 }); 

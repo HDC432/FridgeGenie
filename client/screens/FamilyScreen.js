@@ -10,11 +10,14 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { generateAvatarText, generateAvatarColor } from '../utils/avatarUtils';
 import { API_URL } from '../config/constants';
 import authService from '../services/authService';
+import theme from '../styles/theme';
+
+const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 // 统一的提示方法
 const showAlert = (title, message) => {
@@ -268,7 +271,7 @@ const FamilyScreen = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f4511e" />
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
       </View>
     );
   }
@@ -280,7 +283,10 @@ const FamilyScreen = () => {
         <View style={styles.section}>
           <View style={styles.familyHeader}>
             <Text style={styles.familyName}>{family.name}</Text>
-            <Text style={styles.inviteCode}>邀请码: {family.inviteCode}</Text>
+            <View style={styles.inviteCodeContainer}>
+              <Text style={styles.inviteCodeLabel}>邀请码:</Text>
+              <Text style={styles.inviteCode}>{family.inviteCode}</Text>
+            </View>
           </View>
 
           <View style={styles.membersSection}>
@@ -306,7 +312,7 @@ const FamilyScreen = () => {
                     style={styles.removeButton}
                     onPress={() => handleRemoveMember(member.userId)}
                   >
-                    <MaterialIcons name="remove-circle" size={24} color="#FF3B30" />
+                    <Ionicons name="remove-circle" size={24} color={COLORS.DANGER} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -362,19 +368,7 @@ const FamilyScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    ...Platform.select({
-      web: {
-        height: '100%',
-        overflow: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-      },
-      default: {
-        flex: 1,
-      },
-    }),
+    ...COMMON_STYLES.CONTAINER,
   },
   loadingContainer: {
     flex: 1,
@@ -382,46 +376,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   section: {
-    padding: 16,
+    padding: SPACING.LARGE,
     flexGrow: 1,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   familyHeader: {
-    marginBottom: 20,
-    paddingBottom: 20,
+    marginBottom: SPACING.LARGE,
+    paddingBottom: SPACING.LARGE,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: COLORS.DIVIDER,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.LARGE,
   },
   familyName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: FONT_SIZE.XXLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.MEDIUM,
+  },
+  inviteCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.LIGHT_GRAY,
+    padding: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+  },
+  inviteCodeLabel: {
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    marginRight: SPACING.SMALL,
   },
   inviteCode: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.PRIMARY,
   },
   membersSection: {
-    marginBottom: 20,
+    marginBottom: SPACING.LARGE,
   },
   membersTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: FONT_SIZE.LARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.LARGE,
   },
   memberItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: SPACING.MEDIUM,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: COLORS.DIVIDER,
   },
   memberInfo: {
     flexDirection: 'row',
@@ -431,65 +440,56 @@ const styles = StyleSheet.create({
   avatar: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: BORDER_RADIUS.CIRCLE,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: SPACING.MEDIUM,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: COLORS.BACKGROUND,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   memberDetails: {
     flex: 1,
   },
   memberName: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
   },
   memberRole: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
   },
   removeButton: {
-    padding: 5,
+    padding: SPACING.SMALL,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
+    ...COMMON_STYLES.INPUT,
+    marginBottom: SPACING.LARGE,
   },
   createButton: {
-    backgroundColor: '#f4511e',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+    ...COMMON_STYLES.BUTTON,
+    backgroundColor: COLORS.PRIMARY,
+    marginBottom: SPACING.MEDIUM,
   },
   joinButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
+    ...COMMON_STYLES.BUTTON,
+    backgroundColor: COLORS.PRIMARY,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...COMMON_STYLES.BUTTON_TEXT,
   },
   leaveButton: {
-    backgroundColor: '#FF3B30',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
+    ...COMMON_STYLES.BUTTON,
+    backgroundColor: COLORS.DANGER,
+    marginTop: SPACING.LARGE,
   },
   leaveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: COLORS.BACKGROUND,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
   },
 });
 
