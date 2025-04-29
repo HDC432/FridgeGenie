@@ -70,7 +70,29 @@ class UserService {
       const { email, password } = credentials;
       console.log('登录服务 - 查找用户:', email);
       
-      // 查找用户
+      // 添加虚拟测试用户功能 - 如果是测试账户，直接返回登录成功
+      if (email === 'test@example.com' && password === 'password123') {
+        console.log('登录服务 - 使用测试账户登录');
+        const testUser = {
+          id: 'test-user-id-12345',
+          username: '测试用户',
+          email: 'test@example.com',
+          familyId: 'test-family-id-12345',
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+        
+        // 生成 JWT token
+        const token = this.generateToken(testUser);
+        console.log('登录服务 - 生成测试用户 token 成功');
+        
+        return {
+          user: testUser,
+          token
+        };
+      }
+      
+      // 正常用户登录流程 - 原有代码保持不变
       const user = await User.findByEmail(email);
       console.log('登录服务 - 用户查询结果:', user);
       
@@ -126,7 +148,19 @@ class UserService {
   // 验证 token
   verifyToken(token) {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET);
+      // 检查是否为测试用户的 token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // 如果是测试用户，确保返回完整信息
+      if (decoded.id === 'test-user-id-12345' && decoded.email === 'test@example.com') {
+        console.log('验证令牌 - 识别为测试用户');
+        return {
+          id: 'test-user-id-12345',
+          email: 'test@example.com'
+        };
+      }
+      
+      return decoded;
     } catch (error) {
       throw new Error('无效的 token');
     }
@@ -134,6 +168,19 @@ class UserService {
 
   async getUserById(id) {
     try {
+      // 如果是测试用户ID，返回测试用户信息
+      if (id === 'test-user-id-12345') {
+        console.log('获取用户信息 - 返回测试用户信息');
+        return {
+          id: 'test-user-id-12345',
+          username: '测试用户',
+          email: 'test@example.com',
+          familyId: 'test-family-id-12345',
+          createdAt: new Date(),
+          lastLogin: new Date()
+        };
+      }
+      
       return await User.findById(id);
     } catch (error) {
       console.error('获取用户信息失败:', error);
