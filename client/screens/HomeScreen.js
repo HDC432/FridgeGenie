@@ -43,10 +43,11 @@ const HomeScreen = ({ navigation }) => {
       
       if (resp && Array.isArray(resp.items)) {
         const rawItems = resp.items;
-        // 按过期时间升序排序
-        rawItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-        console.log('排序后的物品列表:', rawItems);
-        setItems(rawItems);
+        // 过滤掉数量为0的物品，并按过期时间升序排序
+        const filteredItems = rawItems.filter(item => item.quantity > 0);
+        filteredItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+        console.log('排序后的物品列表:', filteredItems);
+        setItems(filteredItems);
       } else {
         console.error('返回的数据格式不正确:', resp);
         Alert.alert('错误', '获取数据失败，请重试');
