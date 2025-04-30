@@ -27,6 +27,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   const [selectedQuantities, setSelectedQuantities] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
+  const [localQuantities, setLocalQuantities] = useState({});
   const { user } = useAuth();
 
   const loadFavorites = async () => {
@@ -155,47 +156,98 @@ const FavoriteRecipesScreen = ({ navigation }) => {
 
     const quantities = {};
     recipe.recipeData.ingredients.forEach(ing => {
-      const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
+      // 改进食材名称匹配逻辑
+      const normalizedIngredientName = ing.name.toLowerCase().trim();
+      const fridgeItem = refrigeratorItems.find(item => 
+        item.name.toLowerCase().trim() === normalizedIngredientName ||
+        // 处理英文名称的情况
+        (ing.name.toLowerCase().includes('walnut') && item.name.toLowerCase().includes('核桃')) ||
+        (ing.name.toLowerCase().includes('apple') && item.name.toLowerCase().includes('苹果'))
+      );
+      
       console.log('查找食材:', {
         name: ing.name,
+        normalizedName: normalizedIngredientName,
         required: ing.quantity,
         found: fridgeItem ? true : false,
         available: fridgeItem ? fridgeItem.quantity : 0
       });
       
       if (fridgeItem) {
-        // 确保数量是数字类型
+        // 统一处理食材数量
         let requiredAmount = 1;
         if (typeof ing.quantity === 'number') {
           requiredAmount = ing.quantity;
         } else if (typeof ing.quantity === 'string') {
-          // 尝试从字符串中提取数字
-          const match = ing.quantity.match(/\d+/);
-          requiredAmount = match ? parseInt(match[0]) : 1;
+          // 尝试从字符串中提取数字，支持更多格式
+          const match = ing.quantity.match(/\d+(\.\d+)?/);
+          requiredAmount = match ? parseFloat(match[0]) : 1;
         }
+        
+        // 确保数量是有效的正数
+        requiredAmount = Math.max(1, Math.floor(requiredAmount));
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
       }
     });
     
     console.log('计算后的数量:', quantities);
     setSelectedQuantities(quantities);
-    setSelectedRecipe(recipe.recipeData);
+    setSelectedRecipe(recipe);
     setIsModalVisible(true);
   };
 
+  const updateLocalQuantity = (itemId, newQuantity) => {
+    setLocalQuantities(prev => ({
+      ...prev,
+      [itemId]: newQuantity
+    }));
+  };
+
   const handleConfirmConsumption = async () => {
-    if (!selectedRecipe) return;
+    if (!selectedRecipe) {
+      console.log('没有选中的菜谱');
+      return;
+    }
     
     try {
+      console.log('开始确认使用食材:', {
+        selectedQuantities,
+        refrigeratorItems
+      });
+
       for (const [name, quantity] of Object.entries(selectedQuantities)) {
-        const item = refrigeratorItems.find(i => i.name === name);
+        const normalizedName = name.toLowerCase().trim();
+        const item = refrigeratorItems.find(i => 
+          i.name.toLowerCase().trim() === normalizedName ||
+          (name.toLowerCase().includes('walnut') && i.name.toLowerCase().includes('核桃')) ||
+          (name.toLowerCase().includes('apple') && i.name.toLowerCase().includes('苹果'))
+        );
+
         if (item) {
-          const newQuantity = item.quantity - quantity;
+          const newQuantity = Math.max(0, item.quantity - quantity);
+          console.log('更新食材数量:', {
+            itemId: item.id,
+            oldQuantity: item.quantity,
+            newQuantity,
+            deducted: quantity
+          });
+
+          updateLocalQuantity(item.id, newQuantity);
+          
           const updatedItem = await updateItemQuantity(item.id, newQuantity);
+          console.log('更新结果:', updatedItem);
+
           if (updatedItem === null) {
-            // 物品已被删除，从本地状态中移除
+            console.log('物品已被删除，从本地状态中移除:', item.id);
             setRefrigeratorItems(prevItems => 
               prevItems.filter(i => i.id !== item.id)
+            );
+          } else {
+            // 更新本地状态
+            setRefrigeratorItems(prevItems =>
+              prevItems.map(i =>
+                i.id === item.id ? { ...i, quantity: newQuantity } : i
+              )
             );
           }
         }
@@ -205,21 +257,20 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       setIsModalVisible(false);
       setSelectedRecipe(null);
       setSelectedQuantities({});
-      loadRefrigeratorItems();
+      setLocalQuantities({});
     } catch (error) {
       console.error('确认使用食材时出错:', error);
-      showMessage('错误', '确认使用食材失败');
+      showMessage('错误', '确认使用食材失败: ' + error.message);
     }
   };
 
   const renderQuantityPicker = (ingredient) => {
-    console.log('渲染食材选择器:', {
-      ingredient,
-      refrigeratorItems
-    });
-    
-    const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
-    console.log('找到的冰箱物品:', fridgeItem);
+    const normalizedIngredientName = ingredient.name.toLowerCase().trim();
+    const fridgeItem = refrigeratorItems.find(item => 
+      item.name.toLowerCase().trim() === normalizedIngredientName ||
+      (ingredient.name.toLowerCase().includes('walnut') && item.name.toLowerCase().includes('核桃')) ||
+      (ingredient.name.toLowerCase().includes('apple') && item.name.toLowerCase().includes('苹果'))
+    );
     
     if (!fridgeItem) {
       return (
@@ -229,14 +280,10 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       );
     }
 
-    const maxQuantity = fridgeItem.quantity;
+    const maxQuantity = localQuantities[fridgeItem.id] !== undefined 
+      ? localQuantities[fridgeItem.id] 
+      : fridgeItem.quantity;
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
-    
-    console.log('食材数量:', {
-      name: ingredient.name,
-      max: maxQuantity,
-      current: currentQuantity
-    });
 
     return (
       <View style={styles.pickerContainer} key={ingredient.name}>
@@ -275,7 +322,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <Text style={styles.availableText}>
-          (冰箱现有: {fridgeItem.quantity})
+          (冰箱现有: {maxQuantity})
         </Text>
       </View>
     );
@@ -300,11 +347,11 @@ const FavoriteRecipesScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.modalRecipeName}>{selectedRecipe?.name}</Text>
+          <Text style={styles.modalRecipeName}>{selectedRecipe?.recipeData.name}</Text>
           
           <ScrollView style={styles.ingredientsList}>
-            {selectedRecipe?.ingredients.map((ing, index) => (
-              <View key={`${selectedRecipe.id}-ingredient-${index}`}>
+            {selectedRecipe?.recipeData.ingredients.map((ing, index) => (
+              <View key={`${selectedRecipe.recipeData.id}-ingredient-${index}`}>
                 {renderQuantityPicker(ing)}
               </View>
             ))}
@@ -313,7 +360,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>使用食材汇总：</Text>
             {Object.entries(selectedQuantities).map(([name, quantity]) => (
-              <Text key={`${selectedRecipe.id}-summary-${name}`} style={styles.summaryText}>
+              <Text key={`${selectedRecipe.recipeData.id}-summary-${name}`} style={styles.summaryText}>
                 • {name}: {quantity}个
               </Text>
             ))}

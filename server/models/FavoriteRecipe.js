@@ -69,14 +69,25 @@ class FavoriteRecipe {
                 throw new Error('已经收藏过该菜谱');
             }
 
-            // 确保食材数量是数字类型
+            // 确保食材数量是有效的数字
             const processedRecipeData = {
                 ...recipeData,
                 id: recipeId,
-                ingredients: recipeData.ingredients.map(ing => ({
-                    ...ing,
-                    quantity: parseInt(ing.quantity) || 1
-                }))
+                ingredients: recipeData.ingredients.map(ing => {
+                    let quantity = 1;
+                    if (typeof ing.quantity === 'number') {
+                        quantity = ing.quantity;
+                    } else if (typeof ing.quantity === 'string') {
+                        const match = ing.quantity.match(/\d+(\.\d+)?/);
+                        quantity = match ? parseFloat(match[0]) : 1;
+                    }
+                    // 确保数量是有效的正数
+                    quantity = Math.max(1, Math.floor(quantity));
+                    return {
+                        ...ing,
+                        quantity: quantity
+                    };
+                })
             };
 
             const favorite = new FavoriteRecipe({
