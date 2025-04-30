@@ -14,15 +14,168 @@ const RETRY_DELAY = 1000; // 1 second
 // 延迟函数
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// export const generateRecipes = async (ingredients, familyId) => {
+//   let retries = 0;
+  
+//   while (retries < MAX_RETRIES) {
+//     try {
+//       // 获取家庭成员的健康标签
+//       const familyHealthTags = await getFamilyHealthTags(familyId);
+      
+//       // 生成健康提示词
+//       const healthPrompt = generateHealthPrompt(familyHealthTags);
+      
+//       const prompt = `基于以下食材和健康考虑生成5个健康食谱 每个食谱需要包含
+// 1. 食谱名称
+// 2. 所需食材及用量
+// 3. 详细步骤
+// 4. 烹饪时间
+// 5. 难度级别
+// 6. 营养成分分析（包括卡路里、蛋白质、碳水化合物、脂肪、膳食纤维）
+
+// 可用食材：${ingredients.join(', ')}
+
+// 家庭成员健康标签：${healthPrompt}
+
+// 请确保食谱：
+// - 使用提供的食材
+// - 优先考虑家庭成员的健康标签需求
+// - 如果无法完全满足所有健康标签，至少满足最重要的标签
+// - 营养均衡
+// - 适合家庭制作
+// - 步骤清晰易懂
+
+// 请以JSON格式返回格式如下:
+// {
+//   "recipes": [
+//     {
+//       "name": "食谱名称",
+//       "ingredients": [
+//         { "name": "食材名称", "quantity": "用量" }
+//       ],
+//       "instructions": "详细步骤",
+//       "cookingTime": "烹饪时间",
+//       "difficulty": "难度级别",
+//       "nutrition": {
+//         "calories": 数字,
+//         "protein": "蛋白质含量",
+//         "carbs": "碳水化合物含量",
+//         "fat": "脂肪含量",
+//         "fiber": "膳食纤维含量"
+//       }
+//     }
+//   ]
+// }`;
+
+//       console.log('健康提示词:', healthPrompt); // 添加日志以便调试
+
+//       const response = await axios.post(
+//         'https://api.openai.com/v1/chat/completions',
+//         {
+//           model: "gpt-3.5-turbo",
+//           messages: [
+//             {
+//               role: "system",
+//               content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的家常菜食谱，并考虑家庭成员的健康需求"
+//             },
+//             {
+//               role: "user",
+//               content: prompt
+//             }
+//           ],
+//           temperature: 0.7,
+//           max_tokens: 2000,
+//         },
+//         {
+//           headers: {
+//             'Authorization': `Bearer ${OPENAI_API_KEY}`,
+//             'Content-Type': 'application/json'
+//           }
+//         }
+//       );
+
+//       // 添加响应数据验证和清理
+//       console.log('API Response:', response.data);
+      
+//       if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
+//         throw new Error('API 响应格式不正确');
+//       }
+
+//       const content = response.data.choices[0].message.content;
+//       console.log('API Response Content:', content);
+
+//       // 尝试清理和解析 JSON
+//       let cleanedContent = content;
+//       try {
+//         // 如果内容被包裹在 ```json 和 ``` 中，移除它们
+//         if (content.includes('```json')) {
+//           cleanedContent = content.split('```json')[1].split('```')[0].trim();
+//         } else if (content.includes('```')) {
+//           cleanedContent = content.split('```')[1].split('```')[0].trim();
+//         }
+        
+//         const recipes = JSON.parse(cleanedContent);
+        
+//         // 验证返回的数据结构
+//         if (!recipes.recipes || !Array.isArray(recipes.recipes)) {
+//           throw new Error('返回的数据格式不正确');
+//         }
+        
+//         return recipes.recipes;
+//       } catch (parseError) {
+//         console.error('JSON 解析错误:', parseError);
+//         console.error('原始内容:', content);
+//         console.error('清理后的内容:', cleanedContent);
+//         throw new Error(`JSON 解析错误: ${parseError.message}`);
+//       }
+//     } catch (error) {
+//       console.error('生成食谱失败:', error);
+      
+//       if (error.response) {
+//         const status = error.response.status;
+//         const data = error.response.data;
+        
+//         console.error('错误状态码:', status);
+//         console.error('错误信息:', data);
+        
+//         // 如果是配额错误，等待更长时间
+//         if (status === 429 || (data.error && data.error.code === 'insufficient_quota')) {
+//           const waitTime = RETRY_DELAY * Math.pow(2, retries); // 指数退避
+//           console.log(`配额限制，等待 ${waitTime}ms 后重试...`);
+//           await delay(waitTime);
+//           retries++;
+//           continue;
+//         }
+//       }
+      
+//       // 错误处理后增加重试次数
+//       retries++;
+      
+//       // 如果还有重试机会，则等待后重试
+//       if (retries < MAX_RETRIES) {
+//         const waitTime = RETRY_DELAY * Math.pow(2, retries);
+//         console.log(`第 ${retries} 次重试失败，等待 ${waitTime}ms 后再试...`);
+//         await delay(waitTime);
+//         continue;
+//       }
+      
+//       // 重试次数用完，抛出错误
+//       throw new Error('生成食谱失败: 已达到最大重试次数');
+//     }
+//   }
+  
+//   throw new Error('生成食谱失败: 已达到最大重试次数');
+// };
+
 export const generateRecipes = async (ingredients, familyId) => {
   let retries = 0;
   
   while (retries < MAX_RETRIES) {
     try {
-      // 获取家庭成员的健康标签
+      // Get family members' health tags
       const familyHealthTags = await getFamilyHealthTags(familyId);
       
-      // 生成健康提示词
+      // Generate health prompt
       const healthPrompt = generateHealthPrompt(familyHealthTags);
       
       const prompt = `Based on the following ingredients and health considerations, generate 5 healthy recipes each including:
@@ -45,7 +198,7 @@ Please ensure the recipes:
 - Suitable for family preparation
 - Clear and easy steps
 
-Please return the response in JSON format as follows:
+Please return in JSON format as follows:
 {
   "recipes": [
     {
@@ -57,7 +210,7 @@ Please return the response in JSON format as follows:
       "cookingTime": "Cooking Time",
       "difficulty": "Difficulty Level",
       "nutrition": {
-        "calories": Number,
+        "calories": number,
         "protein": "Protein Content",
         "carbs": "Carbohydrate Content",
         "fat": "Fat Content",
@@ -94,7 +247,7 @@ Please return the response in JSON format as follows:
         }
       );
 
-      // 添加响应数据验证和清理
+      // Add response data validation and cleanup
       console.log('API Response:', response.data);
       
       if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
@@ -122,49 +275,49 @@ Please return the response in JSON format as follows:
         }
         
         return recipes.recipes;
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
+      } catch (error) {
+        console.error('JSON parsing error:', error);
         console.error('Original content:', content);
         console.error('Cleaned content:', cleanedContent);
-        throw new Error(`JSON parsing error: ${parseError.message}`);
+        throw new Error(`JSON parsing error: ${error.message}`);
       }
     } catch (error) {
-      console.error('Recipe generation failed:', error);
+      console.error('Failed to generate recipes:', error);
       
       if (error.response) {
         const status = error.response.status;
         const data = error.response.data;
         
         console.error('Error status code:', status);
-        console.error('Error information:', data);
+        console.error('Error message:', data);
         
         // If it's a quota error, wait longer
         if (status === 429 || (data.error && data.error.code === 'insufficient_quota')) {
           const waitTime = RETRY_DELAY * Math.pow(2, retries); // Exponential backoff
-          console.log(`Quota limit, waiting ${waitTime}ms before retrying...`);
+          console.log(`Quota limit reached, waiting ${waitTime}ms before retry...`);
           await delay(waitTime);
           retries++;
           continue;
         }
       }
       
-      // Increase retry count after error
+      // Increment retry count after error handling
       retries++;
       
       // If there are more retries left, wait and retry
       if (retries < MAX_RETRIES) {
         const waitTime = RETRY_DELAY * Math.pow(2, retries);
-        console.log(`Retry ${retries} failed, waiting ${waitTime}ms before retrying...`);
+        console.log(`Retry ${retries} failed, waiting ${waitTime}ms before next attempt...`);
         await delay(waitTime);
         continue;
       }
       
-      // Retry count exhausted, throw error
-      throw new Error('Recipe generation failed: Maximum retry attempts reached');
+      // Max retries reached, throw error
+      throw new Error('Failed to generate recipes: Maximum retries reached');
     }
   }
   
-  throw new Error('Recipe generation failed: Maximum retry attempts reached');
+  throw new Error('Failed to generate recipes: Maximum retries reached');
 };
 
 // 使用微软 AI 进行图像识别

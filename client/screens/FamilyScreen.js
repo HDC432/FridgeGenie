@@ -17,7 +17,7 @@ import { API_URL } from '../config/constants';
 import authService from '../services/authService';
 import theme from '../styles/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 

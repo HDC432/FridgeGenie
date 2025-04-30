@@ -37,99 +37,99 @@ class HealthProfile {
         this.updatedAt = new Date().toISOString();
     }
 
-    // 生成健康标签
+    // Generate health tags
     generateHealthTags() {
         const tags = [];
         
-        // 根据基本健康信息生成标签
+        // Generate tags based on basic health information
         if (this.basicInfo.height && this.basicInfo.weight) {
             const bmi = this.calculateBMI();
             if (bmi >= 30) {
-                tags.push('减脂需求');
+                tags.push('weight loss');
             } else if (bmi >= 25) {
-                tags.push('减脂需求');
+                tags.push('weight loss');
             } else if (bmi >= 18.5) {
-                tags.push('维持体重');
+                tags.push('weight maintenance');
             } else {
-                tags.push('增肌需求');
+                tags.push('muscle gain');
             }
         }
 
-        // 根据健康状况生成标签
+        // Generate tags based on health conditions
         if (this.healthConditions.hasDiabetes) {
-            tags.push('控制血糖');
+            tags.push('blood sugar control');
         }
         if (this.healthConditions.hasHypertension) {
-            tags.push('控制血压');
+            tags.push('blood pressure control');
         }
         if (this.healthConditions.hasHeartDisease) {
-            tags.push('注意心脏健康');
+            tags.push('heart health');
         }
         if (this.healthConditions.hasKidneyDisease) {
-            tags.push('注意肾脏健康');
+            tags.push('kidney health');
         }
         if (this.healthConditions.hasAllergies.length > 0) {
-            tags.push(`过敏: ${this.healthConditions.hasAllergies.join(', ')}`);
+            tags.push('allergies');
         }
 
-        // 根据生活方式生成标签
+        // Generate tags based on lifestyle
         if (this.lifestyle.isVegetarian) {
-            tags.push('素食');
+            tags.push('vegetarian');
         }
         if (this.lifestyle.isVegan) {
-            tags.push('纯素');
+            tags.push('vegan');
         }
         if (this.lifestyle.isGlutenFree) {
-            tags.push('无麸质');
+            tags.push('gluten-free');
         }
         if (this.lifestyle.isLactoseFree) {
-            tags.push('无乳糖');
+            tags.push('lactose-free');
         }
 
-        // 根据活动水平生成标签
+        // Generate tags based on activity level
         switch (this.lifestyle.activityLevel) {
             case 'sedentary':
-                tags.push('久坐');
+                tags.push('sedentary');
                 break;
             case 'light':
-                tags.push('轻度活动');
+                tags.push('lightly active');
                 break;
             case 'moderate':
-                tags.push('中度活动');
+                tags.push('moderately active');
                 break;
             case 'active':
-                tags.push('活跃');
+                tags.push('active');
                 break;
             case 'very_active':
-                tags.push('非常活跃');
+                tags.push('very active');
                 break;
         }
 
-        // 根据饮食目标生成标签
+        // Generate tags based on dietary goals
         switch (this.dietaryGoals.weightGoal) {
             case 'lose':
-                tags.push('减脂需求');
+                tags.push('weight loss');
                 break;
             case 'gain':
-                tags.push('增肌需求');
+                tags.push('muscle gain');
                 break;
             case 'maintain':
-                tags.push('维持体重');
+                tags.push('weight maintenance');
                 break;
         }
 
-        // 如果有具体的营养目标，添加相应标签
+        // Add specific nutrition goal tags if they exist
         if (this.dietaryGoals.calorieGoal) {
-            tags.push(`目标卡路里: ${this.dietaryGoals.calorieGoal}kcal`);
+            tags.push(`calorie goal: ${this.dietaryGoals.calorieGoal}kcal`);
         }
         if (this.dietaryGoals.proteinGoal) {
-            tags.push(`目标蛋白质: ${this.dietaryGoals.proteinGoal}g`);
+            tags.push(`protein goal: ${this.dietaryGoals.proteinGoal}g`);
         }
         if (this.dietaryGoals.carbGoal) {
-            tags.push(`目标碳水: ${this.dietaryGoals.carbGoal}g`);
+            tags.push(`carb goal: ${this.dietaryGoals.carbGoal}g`);
         }
         if (this.dietaryGoals.fatGoal) {
-            tags.push(`目标脂肪: ${this.dietaryGoals.fatGoal}g`);
+            tags.push(`fat goal: ${this.dietaryGoals.fatGoal}g`);
         }
 
         return tags;
@@ -180,31 +180,47 @@ class HealthProfile {
 
     static async update(userId, data) {
         try {
-            console.log('更新健康档案 - 开始:', { userId, data });
+            console.log('Updating health profile - Starting:', { userId, data });
             let profile = await this.findByUserId(userId);
             
             if (!profile) {
-                // 如果找不到健康档案，则创建新的
-                console.log('未找到现有健康档案，创建新的健康档案');
+                // If no existing profile, create new one
+                console.log('No existing health profile found, creating new one');
                 return await this.create({ ...data, userId });
             }
 
-            // 更新现有健康档案
-            const updatedProfile = {
+            // Merge existing data with new data
+            const updatedData = {
                 ...profile,
-                ...data,
+                basicInfo: {
+                    ...profile.basicInfo,
+                    ...data.basicInfo
+                },
+                healthConditions: {
+                    ...profile.healthConditions,
+                    ...data.healthConditions
+                },
+                lifestyle: {
+                    ...profile.lifestyle,
+                    ...data.lifestyle
+                },
+                dietaryGoals: {
+                    ...profile.dietaryGoals,
+                    ...data.dietaryGoals
+                },
                 updatedAt: new Date().toISOString()
             };
             
-            // 重新生成健康标签
-            const newProfile = new HealthProfile(updatedProfile);
-            newProfile.healthTags = newProfile.generateHealthTags();
-
+            // Create new profile instance with merged data
+            const newProfile = new HealthProfile(updatedData);
+            
+            // Update in database
             const { resource } = await healthProfilesContainer.items.upsert(newProfile);
-            console.log('更新健康档案 - 成功:', resource);
+            console.log('Health profile update successful:', resource);
+            
             return new HealthProfile(resource);
         } catch (error) {
-            console.error('更新健康档案失败:', error);
+            console.error('Health profile update failed:', error);
             throw error;
         }
     }
