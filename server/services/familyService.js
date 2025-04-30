@@ -50,7 +50,7 @@ class FamilyService {
             const updatedFamily = await Family.addMember(family.id, userId);
             
             // 更新用户的 familyId
-            await User.update(userId, { familyId: family.id });
+            await User.updateFamilyId(userId, family.id);
             
             return updatedFamily;
         } catch (error) {
@@ -130,7 +130,7 @@ class FamilyService {
                 console.log('FamilyService - removeMember - 删除最后一个成员，家庭将被删除');
                 await Family.delete(familyId);
                 // 更新用户的 familyId 为 null
-                await User.update(userId, { familyId: null });
+                await User.updateFamilyId(userId, null);
                 return { success: true, message: '家庭已删除' };
             }
 
@@ -151,7 +151,7 @@ class FamilyService {
             await Family.update(familyId, family);
             
             // 更新用户的 familyId 为 null
-            await User.update(userId, { familyId: null });
+            await User.updateFamilyId(userId, null);
             
             console.log('FamilyService - removeMember - 完成');
             return { success: true, message: '成功移除成员' };
