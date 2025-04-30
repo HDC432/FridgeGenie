@@ -22,6 +22,11 @@ const HealthProfileScreen = ({ navigation }) => {
     allergies: '花粉, 小米',
     dietPreferences: ['素食', '纯素'],
     activityLevel: '轻度活动',
+    weightGoal: '维持体重',
+    calorieGoal: '',
+    proteinGoal: '',
+    carbGoal: '',
+    fatGoal: '',
   });
   
   // 模态框状态
@@ -32,6 +37,7 @@ const HealthProfileScreen = ({ navigation }) => {
   const genderOptions = ['男', '女', '其他'];
   const bloodTypeOptions = ['A型', 'B型', 'AB型', 'O型', '不确定'];
   const activityOptions = ['轻度活动', '中度活动', '重度活动', '久坐不动'];
+  const weightGoalOptions = ['减重', '增重', '维持体重'];
 
   // 健康状况选项
   const healthConditions = [
@@ -63,6 +69,8 @@ const HealthProfileScreen = ({ navigation }) => {
       setProfile({...profile, bloodType: option});
     } else if (modalType === 'activity') {
       setProfile({...profile, activityLevel: option});
+    } else if (modalType === 'weightGoal') {
+      setProfile({...profile, weightGoal: option});
     }
     setModalVisible(false);
   };
@@ -217,9 +225,62 @@ const HealthProfileScreen = ({ navigation }) => {
             <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
           </TouchableOpacity>
         </View>
-        
+
+        {/* 饮食目标部分 - 新增 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>饮食目标</Text>
+          
+          {/* 体重目标 */}
+          <TouchableOpacity 
+            style={styles.selectInput}
+            onPress={() => openModal('weightGoal')}
+          >
+            <Text style={styles.selectText}>{profile.weightGoal}</Text>
+            <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
+          </TouchableOpacity>
+          
+          {/* 卡路里目标 */}
+          <TextInput
+            style={styles.input}
+            value={profile.calorieGoal}
+            onChangeText={(text) => setProfile({...profile, calorieGoal: text})}
+            keyboardType="numeric"
+            placeholder="每日卡路里目标 (kcal)"
+          />
+          
+          {/* 蛋白质目标 */}
+          <TextInput
+            style={styles.input}
+            value={profile.proteinGoal}
+            onChangeText={(text) => setProfile({...profile, proteinGoal: text})}
+            keyboardType="numeric"
+            placeholder="每日蛋白质目标 (g)"
+          />
+          
+          {/* 碳水化合物目标 */}
+          <TextInput
+            style={styles.input}
+            value={profile.carbGoal}
+            onChangeText={(text) => setProfile({...profile, carbGoal: text})}
+            keyboardType="numeric"
+            placeholder="每日碳水化合物目标 (g)"
+          />
+          
+          {/* 脂肪目标 */}
+          <TextInput
+            style={styles.input}
+            value={profile.fatGoal}
+            onChangeText={(text) => setProfile({...profile, fatGoal: text})}
+            keyboardType="numeric"
+            placeholder="每日脂肪目标 (g)"
+          />
+        </View>
+
         {/* 保存按钮 */}
-        <TouchableOpacity style={styles.saveButton} onPress={saveProfile}>
+        <TouchableOpacity 
+          style={styles.saveButton}
+          onPress={saveProfile}
+        >
           <Text style={styles.saveButtonText}>保存健康档案</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -234,13 +295,18 @@ const HealthProfileScreen = ({ navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {modalType === 'gender' ? '选择性别' : 
-               modalType === 'bloodType' ? '选择血型' : '选择活动水平'}
+              {modalType === 'gender' ? '选择性别' :
+               modalType === 'bloodType' ? '选择血型' :
+               modalType === 'activity' ? '选择活动水平' :
+               modalType === 'weightGoal' ? '选择体重目标' : ''}
             </Text>
             
-            {modalType === 'gender' && genderOptions.map((option, index) => (
-              <TouchableOpacity 
-                key={index} 
+            {(modalType === 'gender' ? genderOptions :
+              modalType === 'bloodType' ? bloodTypeOptions :
+              modalType === 'activity' ? activityOptions :
+              modalType === 'weightGoal' ? weightGoalOptions : []).map((option) => (
+              <TouchableOpacity
+                key={option}
                 style={styles.modalOption}
                 onPress={() => selectOption(option)}
               >
@@ -248,31 +314,11 @@ const HealthProfileScreen = ({ navigation }) => {
               </TouchableOpacity>
             ))}
             
-            {modalType === 'bloodType' && bloodTypeOptions.map((option, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.modalOption}
-                onPress={() => selectOption(option)}
-              >
-                <Text style={styles.modalOptionText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-            
-            {modalType === 'activity' && activityOptions.map((option, index) => (
-              <TouchableOpacity 
-                key={index} 
-                style={styles.modalOption}
-                onPress={() => selectOption(option)}
-              >
-                <Text style={styles.modalOptionText}>{option}</Text>
-              </TouchableOpacity>
-            ))}
-            
-            <TouchableOpacity 
-              style={styles.modalCloseButton}
+            <TouchableOpacity
+              style={styles.modalCancel}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.modalCloseButtonText}>取消</Text>
+              <Text style={styles.modalCancelText}>取消</Text>
             </TouchableOpacity>
           </View>
         </View>

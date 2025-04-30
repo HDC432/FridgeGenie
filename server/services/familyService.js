@@ -180,13 +180,39 @@ class FamilyService {
             // 获取所有成员的用户信息
             const membersWithInfo = await Promise.all(
                 family.members.map(async (member) => {
+                    console.log('获取成员健康标签 - 开始处理成员:', member.userId);
+                    
                     const user = await User.findById(member.userId);
+                    console.log('获取成员健康标签 - 用户信息:', user);
+                    
                     const healthProfile = await HealthProfile.findByUserId(member.userId);
+                    console.log('获取成员健康标签 - 健康档案:', healthProfile);
+                    
+                    // 如果没有健康档案，创建一个空的
+                    if (!healthProfile) {
+                        console.log('获取成员健康标签 - 成员没有健康档案，创建新档案');
+                        const newHealthProfile = await HealthProfile.create({
+                            userId: member.userId,
+                            basicInfo: {},
+                            healthConditions: {},
+                            lifestyle: {},
+                            dietaryGoals: {}
+                        });
+                        return {
+                            userId: member.userId,
+                            username: user ? user.username : '未知用户',
+                            healthTags: newHealthProfile.healthTags || []
+                        };
+                    }
+
+                    // 确保健康标签存在
+                    const healthTags = healthProfile.healthTags || [];
+                    console.log('获取成员健康标签 - 健康标签:', healthTags);
                     
                     return {
                         userId: member.userId,
                         username: user ? user.username : '未知用户',
-                        healthTags: healthProfile ? healthProfile.healthTags : []
+                        healthTags: healthTags
                     };
                 })
             );
