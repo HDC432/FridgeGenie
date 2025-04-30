@@ -16,6 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
+import { Buffer } from 'buffer';
 import { sendMessageToAI } from '../services/openai';
 import { recognizeSpeech, getAudioFormat } from '../services/speechService';
 import { API_URL, ERROR_MESSAGES } from '../config';
@@ -52,7 +53,9 @@ const AIAssistant = () => {
 
   const onRecordingStatusUpdate = (status) => {
     if (status.isRecording) {
-      setRecordingDuration(status.durationMillis / 1000);
+      const duration = status.durationMillis / 1000;
+      setRecordingDuration(duration);
+      console.log('Recording duration:', duration);
     }
   };
 
@@ -66,47 +69,79 @@ const AIAssistant = () => {
 
   const startRecording = async () => {
     try {
+      // Request permissions
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('权限错误', ERROR_MESSAGES.PERMISSION_DENIED);
+        Alert.alert('Permission Error', ERROR_MESSAGES.PERMISSION_DENIED);
         return;
       }
 
+      // Set audio mode
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false
       });
 
-      const audioFormat = getAudioFormat();
-      const recordingOptions = {
-        ...audioFormat,
-        android: {
-          ...audioFormat,
-          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_PCM_16BIT,
-        },
-        ios: {
-          ...audioFormat,
-          outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_LINEARPCM,
-        },
-      };
+      // Create and prepare recording
+      const newRecording = new Audio.Recording();
+      try {
+        await newRecording.prepareToRecordAsync({
+          android: {
+            extension: '.m4a',
+            outputFormat: 2,
+            audioEncoder: 3,
+            sampleRate: 16000,
+            numberOfChannels: 1,
+            bitRate: 64000,
+          },
+          ios: {
+            extension: '.m4a',
+            outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+            audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_MEDIUM,
+            sampleRate: 16000,
+            numberOfChannels: 1,
+            bitRate: 64000,
+            linearPCM: false,
+          },
+          web: {
+            mimeType: 'audio/webm',
+            bitsPerSecond: 64000,
+          }
+        });
 
-      const { recording } = await Audio.Recording.createAsync(
-        recordingOptions,
-        onRecordingStatusUpdate,
-        100
-      );
-
-      setRecording(recording);
-      setIsRecording(true);
-      setRecordingDuration(0);
-      
-      // 开始计时
-      recordingTimerRef.current = setInterval(() => {
-        setRecordingDuration(prev => prev + 0.1);
-      }, 100);
+        await newRecording.startAsync();
+        console.log('Recording started');
+        
+        setRecording(newRecording);
+        setIsRecording(true);
+        setRecordingDuration(0);
+        
+        // Set up status update listener
+        newRecording.setOnRecordingStatusUpdate(onRecordingStatusUpdate);
+        
+        // Start timer as backup
+        recordingTimerRef.current = setInterval(() => {
+          setRecordingDuration(prev => prev + 0.1);
+        }, 100);
+      } catch (error) {
+        console.error('Recording preparation error:', error);
+        if (newRecording) {
+          try {
+            await newRecording.stopAndUnloadAsync();
+          } catch (cleanupError) {
+            console.error('Error cleaning up recording:', cleanupError);
+          }
+        }
+        throw error;
+      }
     } catch (error) {
-      console.error('录音错误:', error);
-      Alert.alert('录音失败', ERROR_MESSAGES.SPEECH_RECOGNITION_ERROR);
+      console.error('Recording error:', error);
+      Alert.alert('Recording Error', ERROR_MESSAGES.SPEECH_RECOGNITION_ERROR);
     }
   };
 
@@ -125,19 +160,51 @@ const AIAssistant = () => {
       setRecordingDuration(0);
 
       if (!uri) {
-        throw new Error('录音文件未生成');
+        throw new Error('Recording file was not generated');
       }
 
-      // 使用 Azure Speech Services 进行语音识别
+      console.log('Starting speech recognition for recording:', uri);
       const text = await recognizeSpeech(uri);
-      if (text) {
-        setInputText(text);
-      } else {
-        throw new Error('语音识别结果为空');
+      
+      if (!text) {
+        throw new Error('No text was recognized from the recording');
+      }
+
+      console.log('Speech recognition result:', text);
+      setInputText(text);
+      
+      // Automatically send the message if text was recognized
+      const userMessage = {
+        text: text,
+        sender: 'user',
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+
+      try {
+        const aiResponse = await sendMessageToAI(text);
+        await handleAIResponse(aiResponse);
+      } catch (error) {
+        console.error('Error sending message to AI:', error);
+        const errorMessage = {
+          text: ERROR_MESSAGES.SERVER_ERROR,
+          sender: 'assistant',
+          timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        speak(ERROR_MESSAGES.SERVER_ERROR);
+      } finally {
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('停止录音错误:', error);
-      Alert.alert('语音识别失败', error.message || ERROR_MESSAGES.SPEECH_RECOGNITION_ERROR);
+      console.error('Recording stop error:', error);
+      Alert.alert(
+        'Speech Recognition Error',
+        error.message || ERROR_MESSAGES.SPEECH_RECOGNITION_ERROR,
+        [{ text: 'OK' }]
+      );
     }
   };
 

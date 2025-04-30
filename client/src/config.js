@@ -1,13 +1,20 @@
+import env from '../config/env';
+
 // API 配置
 export const API_URL = 'http://localhost:3001';
 
 // Azure Speech Services 配置
 export const AZURE_SPEECH = {
-  SUBSCRIPTION_KEY: 'C25Q6XttT1NqqPnh0oRT5BHi4zV7mP53n2JB9NU1G8WARrN5ROOFJQQJ99BDACYeBjFXJ3w3AAAYACOGUKNd',
+  SUBSCRIPTION_KEY: env.AZURE_SPEECH_KEY,
   REGION: 'eastus', // 例如: 'eastus', 'westeurope' 等
   LANGUAGE: 'zh-CN', // 语音识别语言
   RECOGNITION_MODE: 'conversation', // 识别模式：conversation, dictation, interactive
   OUTPUT_FORMAT: 'simple', // 输出格式：simple, detailed
+  AUDIO_CONFIG: {
+    sampleRateHz: 16000,
+    bitsPerSample: 16,
+    channels: 1,
+  },
 };
 
 // 应用配置

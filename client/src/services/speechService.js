@@ -1,56 +1,83 @@
 import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { AZURE_SPEECH } from '../config';
+import { Buffer } from 'buffer';
 
 export const recognizeSpeech = async (audioUri) => {
   try {
-    // 读取音频文件
+    console.log('Starting speech recognition for audio file:', audioUri);
+
+    // Read the audio file as base64
     const audioData = await FileSystem.readAsStringAsync(audioUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // 调用 Azure Speech Services API
+    if (!audioData) {
+      throw new Error('Failed to read audio file');
+    }
+
+    console.log('Audio file read successfully, length:', audioData.length);
+
+    // Convert base64 to buffer
+    const audioBuffer = Buffer.from(audioData, 'base64');
+
+    // Call Azure Speech Services API
     const response = await fetch(
-      `https://${AZURE_SPEECH.REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1`,
+      `https://${AZURE_SPEECH.REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${AZURE_SPEECH.LANGUAGE}`,
       {
         method: 'POST',
         headers: {
           'Ocp-Apim-Subscription-Key': AZURE_SPEECH.SUBSCRIPTION_KEY,
-          'Content-Type': 'audio/wav;codecs=audio/pcm;rate=16000',
+          'Content-Type': 'audio/m4a',
           'Accept': 'application/json',
         },
-        body: audioData,
+        body: audioBuffer,
       }
     );
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Speech recognition API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Speech recognition failed: ${response.status} ${response.statusText}`);
+    }
+
     const result = await response.json();
+    console.log('Speech recognition result:', result);
     
     if (result.RecognitionStatus === 'Success') {
       return result.DisplayText;
     } else {
-      throw new Error(`语音识别失败: ${result.RecognitionStatus}`);
+      throw new Error(`Speech recognition failed: ${result.RecognitionStatus}`);
     }
   } catch (error) {
-    console.error('语音识别错误:', error);
+    console.error('Speech recognition error:', error);
     throw error;
   }
 };
 
-// 获取音频格式
+// Get audio format configuration
 export const getAudioFormat = () => {
-  if (Platform.OS === 'ios') {
-    return {
-      extension: '.wav',
+  return {
+    android: {
+      extension: '.m4a',
+      outputFormat: 2,  // MPEG_4
+      audioEncoder: 3,  // AAC
       sampleRate: 16000,
       numberOfChannels: 1,
-      bitDepth: 16,
-    };
-  } else {
-    return {
-      extension: '.wav',
+      bitRate: 64000,
+    },
+    ios: {
+      extension: '.m4a',
+      outputFormat: 'aac',
+      audioQuality: 0.5,
       sampleRate: 16000,
       numberOfChannels: 1,
-      bitDepth: 16,
-    };
-  }
+      bitRate: 64000,
+      linearPCM: false,
+    },
+  };
 }; 
