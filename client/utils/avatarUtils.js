@@ -1,4 +1,4 @@
-// 生成用户头像文字
+// Generate user avatar text
 export const generateAvatarText = (username, maxLength = 2) => {
   if (!username) return '?';
   return username

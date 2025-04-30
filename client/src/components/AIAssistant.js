@@ -769,7 +769,7 @@ const AIAssistant = () => {
               style={styles.input}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="Let's talk about your meal! ⭐️"
+              placeholder="Let's talk about food! ⭐️"
               multiline
               editable={!isLoading}
             />

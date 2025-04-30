@@ -1,3 +1,7 @@
+/**
+ * Navigation configuration for the application
+ * Sets up the bottom tab navigation and stack navigation structure
+ */
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -11,6 +15,11 @@ import { useTheme } from '../context/ThemeContext';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+/**
+ * Stack navigator for the Home screen
+ * Currently only contains the Home screen with header hidden
+ * @returns {JSX.Element} Stack navigator component
+ */
 const HomeStack = () => {
     return (
         <Stack.Navigator>
@@ -23,6 +32,11 @@ const HomeStack = () => {
     );
 };
 
+/**
+ * Main application navigator component
+ * Implements a bottom tab navigation with themed styling
+ * @returns {JSX.Element} Tab navigator component
+ */
 const AppNavigator = () => {
     const { theme } = useTheme();
 
@@ -60,24 +74,24 @@ const AppNavigator = () => {
                 name="Home" 
                 component={HomeStack}
                 options={{ 
-                    title: '首页',
+                    title: 'Home',
                     headerShown: false
                 }}
             />
             <Tab.Screen 
                 name="Recipe" 
                 component={RecipeScreen}
-                options={{ title: '菜谱' }}
+                options={{ title: 'Recipes' }}
             />
             <Tab.Screen 
                 name="Family" 
                 component={FamilyScreen}
-                options={{ title: '家庭' }}
+                options={{ title: 'Family' }}
             />
             <Tab.Screen 
                 name="Health" 
                 component={HealthProfileScreen}
-                options={{ title: '健康档案' }}
+                options={{ title: 'Health Profile' }}
             />
         </Tab.Navigator>
     );

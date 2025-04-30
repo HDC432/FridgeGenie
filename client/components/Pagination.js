@@ -1,16 +1,29 @@
+/**
+ * Pagination Component
+ * A reusable pagination component that displays page numbers and navigation controls
+ * @param {Object} props - Component props
+ * @param {number} props.currentPage - Current active page number
+ * @param {number} props.totalPages - Total number of pages
+ * @param {Function} props.onPageChange - Callback function when page changes
+ * @returns {JSX.Element|null} Rendered component or null if only one page
+ */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   if (totalPages <= 1) {
-    return null; // 如果只有一页，不显示分页导航
+    return null; // Don't show pagination if there's only one page
   }
 
+  /**
+   * Renders the page number buttons with ellipsis for large page counts
+   * @returns {Array<JSX.Element>} Array of page number buttons
+   */
   const renderPageNumbers = () => {
     const pages = [];
     
-    // 始终显示第一页
+    // Always show first page
     pages.push(
       <TouchableOpacity
         key={1}
@@ -32,7 +45,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       </TouchableOpacity>
     );
 
-    // 添加省略号和中间页码
+    // Add ellipsis and middle page numbers
     if (totalPages > 5) {
       let startPage, endPage;
       if (currentPage <= 3) {
@@ -85,7 +98,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         );
       }
     } else {
-      // 小于5页时显示所有页码
+      // Show all page numbers when total pages is less than 5
       for (let i = 2; i < totalPages; i++) {
         pages.push(
           <TouchableOpacity
@@ -110,7 +123,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       }
     }
 
-    // 始终显示最后一页
+    // Always show last page
     if (totalPages > 1) {
       pages.push(
         <TouchableOpacity
@@ -140,7 +153,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.pageInfo}>
-        第 {currentPage} 页 / 共 {totalPages} 页
+        Page {currentPage} of {totalPages}
       </Text>
       
       <View style={styles.buttonsContainer}>

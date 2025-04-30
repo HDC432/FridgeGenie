@@ -20,13 +20,23 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-// 改进的日期选择器实现
+/**
+ * Simple date picker component for selecting expiry dates
+ * @param {Object} props - Component props
+ * @param {Date} props.date - Currently selected date
+ * @param {Function} props.onDateChange - Callback when date is changed
+ * @param {Function} props.onClose - Callback when picker is closed
+ * @returns {JSX.Element} Date picker component
+ */
 const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   
-  // 生成年份选项（当前年份前后5年）
+  /**
+   * Generates array of years for year selector
+   * @returns {number[]} Array of years
+   */
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
     const years = [];
@@ -36,12 +46,18 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
     return years;
   };
 
-  // 生成月份选项
+  /**
+   * Generates array of months (0-11) for month selector
+   * @returns {number[]} Array of months
+   */
   const generateMonthOptions = () => {
     return Array.from({ length: 12 }, (_, i) => i);
   };
 
-  // 生成当前月份的日历数据
+  /**
+   * Generates calendar days for the selected month
+   * @returns {Array<{date: Date, isCurrentMonth: boolean, isToday: boolean}>} Calendar days
+   */
   const generateCalendarDays = () => {
     const year = selectedYear;
     const month = selectedMonth;
@@ -49,7 +65,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
     
-    // 添加上个月的最后几天
+    // Add days from previous month
     const firstDayWeekday = firstDay.getDay();
     for (let i = firstDayWeekday - 1; i >= 0; i--) {
       const prevDate = new Date(year, month, -i);
@@ -60,7 +76,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
       });
     }
     
-    // 添加当前月的天数
+    // Add current month days
     for (let i = 1; i <= lastDay.getDate(); i++) {
       const currentDate = new Date(year, month, i);
       days.push({
@@ -70,7 +86,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
       });
     }
     
-    // 添加下个月的前几天
+    // Add days from next month
     const remainingDays = 42 - days.length;
     for (let i = 1; i <= remainingDays; i++) {
       const nextDate = new Date(year, month + 1, i);
@@ -85,7 +101,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   };
 
   const calendarDays = generateCalendarDays();
-  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const yearOptions = generateYearOptions();
   const monthOptions = generateMonthOptions();
 
@@ -100,28 +116,28 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   };
 
   const quickSelectOptions = [
-    { label: '今天', days: 0 },
-    { label: '明天', days: 1 },
-    { label: '一周后', days: 7 },
-    { label: '两周后', days: 14 },
+    { label: 'Today', days: 0 },
+    { label: 'Tomorrow', days: 1 },
+    { label: '1 Week', days: 7 },
+    { label: '2 Weeks', days: 14 },
   ];
 
   return (
     <View style={styles.simpleDatePickerContainer}>
       <View style={styles.simpleDatePickerHeader}>
         <TouchableOpacity onPress={onClose}>
-          <Text style={styles.cancelButton}>取消</Text>
+          <Text style={styles.cancelButton}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.datePickerTitle}>选择过期日期</Text>
+        <Text style={styles.datePickerTitle}>Select Expiry Date</Text>
         <TouchableOpacity onPress={onClose}>
-          <Text style={styles.doneButton}>完成</Text>
+          <Text style={styles.doneButton}>Done</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 年份和月份选择器 */}
+      {/* Year and Month Selector */}
       <View style={styles.yearMonthSelector}>
         <View style={styles.selectContainer}>
-          <Text style={styles.selectLabel}>年份：</Text>
+          <Text style={styles.selectLabel}>Year:</Text>
           <select
             value={selectedYear}
             onChange={(e) => handleYearChange(Number(e.target.value))}
@@ -129,13 +145,13 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
           >
             {yearOptions.map((year) => (
               <option key={year} value={year}>
-                {year}年
+                {year}
               </option>
             ))}
           </select>
         </View>
         <View style={styles.selectContainer}>
-          <Text style={styles.selectLabel}>月份：</Text>
+          <Text style={styles.selectLabel}>Month:</Text>
           <select
             value={selectedMonth}
             onChange={(e) => handleMonthChange(Number(e.target.value))}
@@ -143,14 +159,14 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
           >
             {monthOptions.map((month) => (
               <option key={month} value={month}>
-                {month + 1}月
+                {month + 1}
               </option>
             ))}
           </select>
         </View>
       </View>
 
-      {/* 快速选择选项 */}
+      {/* Quick Select Options */}
       <View style={styles.quickSelectContainer}>
         {quickSelectOptions.map((option, index) => (
           <TouchableOpacity
@@ -166,7 +182,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
         ))}
       </View>
 
-      {/* 星期标题 */}
+      {/* Week Days Header */}
       <View style={styles.weekDaysContainer}>
         {weekDays.map((day, index) => (
           <Text key={index} style={styles.weekDayText}>
@@ -175,7 +191,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
         ))}
       </View>
 
-      {/* 日历网格 */}
+      {/* Calendar Grid */}
       <View style={styles.calendarGrid}>
         {calendarDays.map((day, index) => (
           <TouchableOpacity
@@ -205,6 +221,12 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   );
 };
 
+/**
+ * Screen component for adding new items to the fridge
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object
+ * @returns {JSX.Element} Add item screen component
+ */
 const AddItemScreen = ({ navigation }) => {
   const { user } = useAuth();
   const [name, setName] = useState('');
@@ -213,12 +235,17 @@ const AddItemScreen = ({ navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 增减数量
+  /**
+   * Increases the quantity by 1
+   */
   const increaseQuantity = () => {
     const current = parseInt(quantity, 10) || 0;
     setQuantity((current + 1).toString());
   };
 
+  /**
+   * Decreases the quantity by 1 if greater than 1
+   */
   const decreaseQuantity = () => {
     const current = parseInt(quantity, 10) || 0;
     if (current > 1) {
@@ -226,16 +253,18 @@ const AddItemScreen = ({ navigation }) => {
     }
   };
 
-  // 提交添加物品
+  /**
+   * Handles form submission to add a new item
+   */
   const handleSubmit = async () => {
     try {
       if (!user?.familyId) {
-        Alert.alert('错误', '请先加入或创建一个家庭');
+        Alert.alert('Error', 'Please join or create a family first');
         return;
       }
 
       if (!name || !quantity || !expiryDate) {
-        Alert.alert('错误', '请填写必填字段');
+        Alert.alert('Error', 'Please fill in all required fields');
         return;
       }
 
@@ -251,12 +280,12 @@ const AddItemScreen = ({ navigation }) => {
 
       await addItem(newItem);
       setLoading(false);
-      Alert.alert('成功', '物品已添加到冰箱');
+      Alert.alert('Success', 'Item added to fridge');
       navigation.goBack();
     } catch (error) {
-      console.error('添加物品失败:', error);
+      console.error('Failed to add item:', error);
       setLoading(false);
-      Alert.alert('错误', '添加物品失败，请重试');
+      Alert.alert('Error', 'Failed to add item, please try again');
     }
   };
 
@@ -267,23 +296,23 @@ const AddItemScreen = ({ navigation }) => {
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>添加物品</Text>
+          <Text style={styles.title}>Add Item</Text>
           <Text style={styles.subtitle}>
-            将新的食品添加到你的冰箱清单中，并设置过期日期
+            Add a new item to your fridge and set its expiry date
           </Text>
 
           <View style={styles.formSection}>
-            {/* 物品名称 */}
-            <Text style={styles.label}>物品名称</Text>
+            {/* Item Name */}
+            <Text style={styles.label}>Item Name</Text>
             <TextInput
               style={styles.input}
-              placeholder="例如：牛奶、鸡蛋..."
+              placeholder="e.g., Milk, Eggs..."
               value={name}
               onChangeText={setName}
             />
 
-            {/* 数量 */}
-            <Text style={styles.label}>数量</Text>
+            {/* Quantity */}
+            <Text style={styles.label}>Quantity</Text>
             <View style={styles.quantityRow}>
               <TouchableOpacity
                 style={styles.quantityBtn}
@@ -308,31 +337,31 @@ const AddItemScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* 过期日期 */}
-            <Text style={styles.label}>过期日期</Text>
+            {/* Expiry Date */}
+            <Text style={styles.label}>Expiry Date</Text>
             <TouchableOpacity
               style={styles.datePickerBtn}
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={styles.dateText}>
-                {format(expiryDate, 'yyyy年MM月dd日')}
+                {format(expiryDate, 'yyyy/MM/dd')}
               </Text>
               <Ionicons name="calendar-outline" size={24} color={COLORS.SECONDARY} />
             </TouchableOpacity>
           </View>
 
-          {/* 提交按钮 */}
+          {/* Submit Button */}
           <TouchableOpacity
             style={styles.submitButton}
             onPress={handleSubmit}
             disabled={loading}
           >
-            <Text style={styles.submitButtonText}>添加到冰箱</Text>
+            <Text style={styles.submitButtonText}>Add to Fridge</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* 日期选择器模态框 */}
+      {/* Date Picker Modal */}
       <Modal
         visible={showDatePicker}
         transparent={true}

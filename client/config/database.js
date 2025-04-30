@@ -1,10 +1,9 @@
 const config = {
-    // 使用 localhost
     apiUrl: 'http://localhost:3001',
-    debug: true, // 添加调试模式
-    timeout: 30000, // 请求超时时间（毫秒）
-    retryCount: 3, // 请求失败重试次数
-    retryDelay: 1000 // 重试延迟（毫秒）
+    debug: true,
+    timeout: 30000,
+    retryCount: 3, 
+    retryDelay: 1000 
 };
 
 export const API_URL = config.apiUrl;
