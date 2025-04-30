@@ -63,7 +63,7 @@ const Navigation = () => {
               name="Home"
               component={HomeScreen}
               options={{
-                title: '冰箱物品清单',
+                title: 'My Fridge',
                 headerRight: () => (
                   <View style={styles.headerRight}>
                     <UserAvatar
