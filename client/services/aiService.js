@@ -211,10 +211,10 @@ Please return in JSON format as follows:
       "difficulty": "Difficulty Level",
       "nutrition": {
         "calories": number,
-        "protein": "Protein Content",
-        "carbs": "Carbohydrate Content",
-        "fat": "Fat Content",
-        "fiber": "Fiber Content"
+        "protein": "Protein content",
+        "carbs": "Carbohydrate content",
+        "fat": "Fat content",
+        "fiber": "Dietary fiber content"
       }
     }
   ]

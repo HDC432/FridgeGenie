@@ -112,15 +112,18 @@ export default function RecipeScreen({ navigation }) {
       });
       
       if (fridgeItem) {
-        // 确保数量是数字类型
+        // 统一处理食材数量
         let requiredAmount = 1;
         if (typeof ing.quantity === 'number') {
           requiredAmount = ing.quantity;
         } else if (typeof ing.quantity === 'string') {
-          // 尝试从字符串中提取数字
-          const match = ing.quantity.match(/\d+/);
-          requiredAmount = match ? parseInt(match[0]) : 1;
+          // 尝试从字符串中提取数字，支持更多格式
+          const match = ing.quantity.match(/\d+(\.\d+)?/);
+          requiredAmount = match ? parseFloat(match[0]) : 1;
         }
+        
+        // 确保数量是有效的正数
+        requiredAmount = Math.max(1, Math.floor(requiredAmount));
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
       }
     });
