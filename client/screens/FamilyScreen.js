@@ -16,6 +16,7 @@ import { generateAvatarText, generateAvatarColor } from '../utils/avatarUtils';
 import { API_URL } from '../config/constants';
 import authService from '../services/authService';
 import theme from '../styles/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -52,7 +53,7 @@ const showConfirm = (title, message, onConfirm) => {
 };
 
 const FamilyScreen = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [familyName, setFamilyName] = useState('');
@@ -172,6 +173,9 @@ const FamilyScreen = () => {
 
       if (response.ok) {
         setFamily(data.data);
+        const updatedUser = { ...user, familyId: data.data.id };
+        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
         showAlert('成功', '成功加入家庭！');
       } else {
         showAlert('错误', data.message || '加入家庭失败');
@@ -254,6 +258,9 @@ const FamilyScreen = () => {
         if (response.ok) {
           console.log('FamilyScreen - 退出家庭成功');
           setFamily(null);
+          const updatedUser = { ...user, familyId: null };
+          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
           showAlert('成功', '已退出家庭');
         } else {
           console.log('FamilyScreen - 退出家庭失败:', data.message);
