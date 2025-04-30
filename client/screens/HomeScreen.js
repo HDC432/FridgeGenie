@@ -61,12 +61,12 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [user?.familyId]);
 
   useFocusEffect(
     useCallback(() => {
       loadItems();
-    }, [])
+    }, [user?.familyId])
   );
 
   const onRefresh = async () => {
