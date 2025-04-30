@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
@@ -713,9 +714,9 @@ const AIAssistant = () => {
         ]}
       >
         <View style={styles.chatHeader}>
-          <Text style={styles.headerText}>AI Assistant</Text>
+          <Text style={styles.headerText}>✨ FridgeGenie</Text>
           <TouchableOpacity onPress={toggleChat}>
-            <Ionicons name="close" size={24} color="#333" />
+            <Ionicons name="close" size={24} color="#FFC107" />
           </TouchableOpacity>
         </View>
 
@@ -742,7 +743,7 @@ const AIAssistant = () => {
           ))}
           {isLoading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
+              <ActivityIndicator size="small" color="#FFC107" />
             </View>
           )}
         </ScrollView>
@@ -751,36 +752,38 @@ const AIAssistant = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.inputContainer}
         >
-          <TextInput
-            style={styles.input}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Type your message..."
-            multiline
-            editable={!isLoading}
-          />
-          <TouchableOpacity 
-            style={[styles.voiceButton, isRecording && styles.voiceButtonActive]} 
-            onPress={isRecording ? stopRecording : startRecording}
-          >
-            <Ionicons 
-              name={isRecording ? "mic" : "mic-outline"} 
-              size={24} 
-              color={isRecording ? "#fff" : "#007AFF"} 
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="和我聊聊你的冰箱吧~ ⭐️"
+              multiline
+              editable={!isLoading}
             />
-            {isRecording && (
-              <Text style={styles.recordingDuration}>
-                {recordingDuration.toFixed(1)}s
-              </Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.sendButton, isLoading && styles.sendButtonDisabled]} 
-            onPress={sendMessage}
-            disabled={isLoading}
-          >
-            <Ionicons name="send" size={24} color="#fff" />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.voiceButton, isRecording && styles.voiceButtonActive]} 
+              onPress={isRecording ? stopRecording : startRecording}
+            >
+              <Ionicons 
+                name={isRecording ? "mic" : "mic-outline"} 
+                size={24} 
+                color={isRecording ? "#fff" : "#FFC107"} 
+              />
+              {isRecording && (
+                <Text style={styles.recordingDuration}>
+                  {recordingDuration.toFixed(1)}s
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.sendButton, isLoading && styles.sendButtonDisabled]} 
+              onPress={sendMessage}
+              disabled={isLoading}
+            >
+              <Ionicons name="send" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
       </Animated.View>
 
@@ -788,7 +791,10 @@ const AIAssistant = () => {
         style={styles.floatingButton} 
         onPress={toggleChat}
       >
-        <Ionicons name="chatbubble" size={24} color="#fff" />
+        <Image 
+          source={require('../../assets/images/ai.png')}
+          style={styles.floatingButtonImage}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -810,7 +816,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
@@ -822,6 +828,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     zIndex: 10000,
+    borderWidth: 2,
+    borderColor: '#FFC107',
+  },
+  floatingButtonImage: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
   },
   chatContainer: {
     position: 'absolute',
@@ -830,65 +843,89 @@ const styles = StyleSheet.create({
     width: 300,
     height: 400,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 20,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     zIndex: 9999,
+    borderWidth: 1,
+    borderColor: '#FFC107',
+    overflow: 'hidden',
   },
   chatHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#FFC107',
+    backgroundColor: '#FFF8E1',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#FFC107',
   },
   messagesContainer: {
     flex: 1,
     padding: 10,
+    backgroundColor: '#FFFFFF',
+    paddingBottom: 15,
   },
   messageBubble: {
     maxWidth: '80%',
-    padding: 10,
-    borderRadius: 10,
+    padding: 12,
+    borderRadius: 16,
     marginBottom: 10,
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFC107',
   },
   assistantMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E5E5EA',
+    backgroundColor: '#FFF8E1',
+    borderWidth: 1,
+    borderColor: '#FFC107',
   },
   messageText: {
     color: '#fff',
+    fontSize: 15,
   },
   assistantMessageText: {
     color: '#333',
+    fontSize: 15,
   },
   inputContainer: {
-    flexDirection: 'row',
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#FFC107',
+    backgroundColor: '#FFF8E1',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    marginTop: -5,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#FFC107',
     borderRadius: 20,
     paddingHorizontal: 15,
-    paddingVertical: 8,
-    marginRight: 10,
+    paddingVertical: 6,
+    backgroundColor: '#FFFFFF',
+    fontSize: 15,
     maxHeight: 100,
+    marginRight: 8,
   },
   voiceButton: {
     width: 40,
@@ -897,18 +934,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 8,
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: '#FFC107',
   },
   voiceButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFC107',
   },
   sendButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFC107',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -923,7 +960,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -20,
     fontSize: 12,
-    color: '#007AFF',
+    color: '#FFC107',
   },
 });
 
