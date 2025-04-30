@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import chrono from 'chrono-node';
 import {
   View,
   Text,
@@ -17,13 +18,38 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 import { Buffer } from 'buffer';
-import { sendMessageToAI } from '../services/openai';
+import { sendMessageToAI, estimateExpiryDate } from '../services/openai';
 import { recognizeSpeech, getAudioFormat } from '../services/speechService';
 import { API_URL, ERROR_MESSAGES } from '../config';
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../services/authService';
 import { addItem, getFamilyItems, deleteItem, updateItem } from '../../services/databaseService';
 import { useNavigation } from '@react-navigation/native';
+
+const chineseNumMap = {
+  '一': 1, '二': 2, '三': 3, '四': 4,
+  '五': 5, '六': 6, '七': 7, '八': 8,
+  '九': 9, '十': 10
+};
+
+function chineseToNumber(str) {
+  if (str.length === 1) {
+    return chineseNumMap[str] || 0;
+  }
+  // "十三""十五"等
+  if (str[0] === '十') {
+    return 10 + (chineseNumMap[str[1]] || 0);
+  }
+  // "二十""三十"等
+  if (str[str.length - 1] === '十') {
+    return (chineseNumMap[str[0]] || 0) * 10;
+  }
+  // "二十三""三十一"等
+  if (str.length === 3 && str[1] === '十') {
+    return (chineseNumMap[str[0]] || 0) * 10 + (chineseNumMap[str[2]] || 0);
+  }
+  return 0;
+}
 
 const AIAssistant = () => {
   const { user } = useAuth();
@@ -39,6 +65,33 @@ const AIAssistant = () => {
   const recordingTimerRef = useRef(null);
   const windowHeight = Dimensions.get('window').height;
   const navigation = useNavigation();
+
+  // 添加日期工具函数
+  const getLocalDateString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // 添加相对日期处理函数
+  const getRelativeDateString = (daysToAdd) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 重置时间为当天开始
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + daysToAdd);
+    return getLocalDateString(targetDate);
+  };
+
+  // 添加默认日期处理函数
+  const getDefaultDateString = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 重置时间为当天开始
+    // 默认设置为7天后
+    const targetDate = new Date(today);
+    targetDate.setDate(today.getDate() + 7);
+    return getLocalDateString(targetDate);
+  };
 
   useEffect(() => {
     return () => {
@@ -295,13 +348,27 @@ const AIAssistant = () => {
         throw new Error('User or family information not found');
       }
 
+      console.log('Executing action:', action);
+
       switch (action.type) {
-        case 'ADD_ITEM':
+        case 'ADD_ITEM': {
+          let expiryDate;
+          if (action.expiryDate) {
+            // 如果有指定日期，直接使用
+            expiryDate = action.expiryDate;
+            console.log('Using specified expiry date:', expiryDate);
+          } else {
+            // 如果没有指定日期，使用AI估算
+            const daysToExpiry = await estimateExpiryDate(action.item);
+            expiryDate = getRelativeDateString(daysToExpiry);
+            console.log('Estimated expiry date:', expiryDate, 'based on days:', daysToExpiry);
+          }
+
           const newItem = {
             name: action.item,
             quantity: action.quantity,
             familyId: user.familyId,
-            expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 7 days
+            expiryDate: expiryDate,
             category: 'Other',
             location: 'Default',
             notes: '',
@@ -317,7 +384,7 @@ const AIAssistant = () => {
             throw new Error('Failed to add item');
           }
           break;
-
+        }
         case 'DELETE_ITEM':
           // First find the item by name in the family's items
           const { items } = await getFamilyItems(user.familyId);
@@ -389,44 +456,211 @@ const AIAssistant = () => {
   };
 
   const parseAIResponse = (response) => {
-    // Match "ADD X Y" pattern
-    const addItemMatch = response.match(/ADD (\d+) (.+)/i);
+    console.log('Original AI Response:', response);
+
+    // Helper function to validate and format date
+    const validateAndFormatDate = (dateInput) => {
+      try {
+        if (!dateInput) return null;
+
+        let date;
+
+        if (typeof dateInput === 'string') {
+          // 解析日期字符串为本地时间
+          const [year, month, day] = dateInput.split('-').map(Number);
+          date = new Date(year, month - 1, day); // 使用本地时区
+        } else if (dateInput instanceof Date) {
+          date = new Date(dateInput.getFullYear(), dateInput.getMonth(), dateInput.getDate());
+        } else {
+          return null;
+        }
+
+        // 确保是有效日期
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date:', dateInput);
+          return null;
+        }
+
+        // 返回格式化后的 YYYY-MM-DD（避免时区偏移）
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        console.log('Formatted date:', formattedDate);
+        return formattedDate;
+      } catch (e) {
+        console.warn('Date formatting error:', e);
+        return null;
+      }
+    };
+
+    // Helper function to parse natural language date
+    const parseNaturalLanguageDate = (dateText) => {
+      if (!dateText) return null;
+      console.log('Original date text:', dateText);
+
+      // —— 1. 先把中文数字批量转换成阿拉伯数字 ——  
+      //    "五月十五号" → "5月15号"
+      const normalized = dateText.replace(
+        /[一二三四五六七八九十]{1,3}/g,
+        (m) => chineseToNumber(m)
+      );
+
+      try {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const nextYear = now.getFullYear() + 1;  // 明年
+
+        // 检查日期是否应该用明年
+        const shouldUseNextYear = (month, day) => {
+          const thisYear = now.getFullYear();
+          const dateThisYear = new Date(thisYear, month - 1, day);
+          dateThisYear.setHours(0, 0, 0, 0);
+          return dateThisYear < now;
+        };
+
+        // —— 2. 检查是否包含明确的年份 ——
+        const hasExplicitYear = normalized.includes('明年') || /\d{4}年/.test(normalized);
+        
+        // —— 3. 中文"X月Y号/日"格式 ——  
+        const chineseMatch = normalized.match(/(\d{1,2})月\s*(\d{1,2})[号日]?/);
+        if (chineseMatch) {
+          const month = parseInt(chineseMatch[1], 10);
+          const day = parseInt(chineseMatch[2], 10);
+          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          const year = hasExplicitYear ? now.getFullYear() : 
+                      shouldUseNextYear(month, day) ? nextYear : now.getFullYear();
+          console.log('Parsed Chinese date:', { year, month, day, shouldUseNextYear: shouldUseNextYear(month, day) });
+          return getLocalDateString(new Date(year, month - 1, day));
+        }
+
+        // —— 4. 英文"Month Day"格式 ——  
+        const engMatch = normalized.match(
+          /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{1,2})(?:st|nd|rd|th)?\b/i
+        );
+        if (engMatch) {
+          const monthNames = {
+            jan: 0, january: 0, feb: 1, february: 1,
+            mar: 2, march: 2, apr: 3, april: 3,
+            may: 4, jun: 5, june: 5, jul: 6, july: 6,
+            aug: 7, august: 7, sep: 8, sept: 8, september: 8,
+            oct: 9, october: 9, nov: 10, november: 10,
+            dec: 11, december: 11
+          };
+          const month = monthNames[engMatch[1].toLowerCase()] + 1;
+          const day = parseInt(engMatch[2], 10);
+          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          const year = hasExplicitYear ? now.getFullYear() : 
+                      shouldUseNextYear(month, day) ? nextYear : now.getFullYear();
+          console.log('Parsed English date:', { year, month, day, shouldUseNextYear: shouldUseNextYear(month, day) });
+          return getLocalDateString(new Date(year, month - 1, day));
+        }
+
+        // —— 5. 相对日期（X天后，下周等）——
+        const relativeDayMatch = normalized.match(/(\d+)(?:天|日)后/);
+        if (relativeDayMatch) {
+          const days = parseInt(relativeDayMatch[1], 10);
+          const targetDate = new Date(now);
+          targetDate.setDate(now.getDate() + days);
+          console.log('Parsed relative date:', { days, targetDate });
+          return getLocalDateString(targetDate);
+        }
+
+        if (normalized.includes('下周') || normalized.includes('下个星期')) {
+          const targetDate = new Date(now);
+          targetDate.setDate(now.getDate() + 7);
+          console.log('Parsed next week:', { targetDate });
+          return getLocalDateString(targetDate);
+        }
+
+        // —— 6. 其它自然语言，使用 chrono-node ——
+        const chronoParsed = chrono.parseDate(normalized, now, { forwardDate: true });
+        if (chronoParsed) {
+          chronoParsed.setHours(0, 0, 0, 0);
+          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          if (!hasExplicitYear && chronoParsed < now) {
+            chronoParsed.setFullYear(nextYear);
+          }
+          console.log('Parsed with chrono:', { date: chronoParsed, shouldUseNextYear: chronoParsed < now });
+          return getLocalDateString(chronoParsed);
+        }
+
+        console.warn('No matching date pattern found:', normalized);
+        return null;
+      } catch (e) {
+        console.warn('Date parsing error:', e);
+        return null;
+      }
+    };
+
+    // Step 1: Try strict ADD pattern with EXPIRES
+    const addItemMatch = response.match(/ADD (\d+) (.+?)(?:\s+EXPIRES\s+(\d{4}-\d{2}-\d{2}))?\s*$/i);
     if (addItemMatch) {
+      console.log('Matched strict ADD pattern:', addItemMatch);
+      const [_, quantity, item, expiryDate] = addItemMatch;
+      // 直接使用匹配到的日期，不进行转换
       return {
         type: 'ADD_ITEM',
-        quantity: parseInt(addItemMatch[1]),
-        item: addItemMatch[2].trim(),
+        quantity: parseInt(quantity),
+        item: item.trim(),
+        expiryDate: expiryDate || null,
       };
     }
 
-    // Match "DELETE X" pattern
-    const deleteItemMatch = response.match(/DELETE (.+)/i);
-    if (deleteItemMatch) {
+    // Step 2: Try relaxed ADD pattern with natural language expiry date
+    const softAddMatch = response.match(/add\s+(\d+)\s+(.+?)(?:,?\s*(?:expires?|expiring|to expire)?\s*(?:in|on|by)?\s*(.+))?$/i);
+    if (softAddMatch) {
+      console.log('Matched relaxed ADD pattern:', softAddMatch);
+      const [_, quantity, item, expiryText] = softAddMatch;
+      let parsedExpiry = null;
+      
+      if (expiryText) {
+        // 检查是否包含完整的日期格式（YYYY-MM-DD）
+        const dateMatch = expiryText.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch) {
+          parsedExpiry = dateMatch[1];
+          console.log('Found formatted date in expiry text:', parsedExpiry);
+        } else {
+          // 如果不是完整格式，使用自然语言解析
+          parsedExpiry = parseNaturalLanguageDate(expiryText);
+          console.log('Parsed natural language date:', parsedExpiry);
+        }
+      }
+
       return {
-        type: 'DELETE_ITEM',
-        item: deleteItemMatch[1].trim(),
+        type: 'ADD_ITEM',
+        quantity: parseInt(quantity),
+        item: item.trim(),
+        expiryDate: parsedExpiry,
       };
     }
 
-    // Match "UPDATE X TO Y" pattern
-    const updateItemMatch = response.match(/UPDATE (.+) TO (\d+)/i);
-    if (updateItemMatch) {
+    // DELETE X
+    const deleteMatch = response.match(/DELETE\s+(.+)/i);
+    if (deleteMatch) {
+      console.log('Matched DELETE pattern:', deleteMatch);
+      return { type: 'DELETE_ITEM', item: deleteMatch[1].trim() };
+    }
+
+    // UPDATE X TO Y
+    const updateMatch = response.match(/UPDATE\s+(.+?)\s+TO\s+(\d+)/i);
+    if (updateMatch) {
+      console.log('Matched UPDATE pattern:', updateMatch);
       return {
         type: 'UPDATE_ITEM',
-        item: updateItemMatch[1].trim(),
-        quantity: parseInt(updateItemMatch[2]),
+        item: updateMatch[1].trim(),
+        quantity: parseInt(updateMatch[2]),
       };
     }
 
-    // Match "QUERY X" pattern
-    const queryItemMatch = response.match(/QUERY (.+)/i);
-    if (queryItemMatch) {
-      return {
-        type: 'QUERY_ITEM',
-        item: queryItemMatch[1].trim(),
-      };
+    // QUERY X
+    const queryMatch = response.match(/QUERY\s+(.+)/i);
+    if (queryMatch) {
+      console.log('Matched QUERY pattern:', queryMatch);
+      return { type: 'QUERY_ITEM', item: queryMatch[1].trim() };
     }
 
+    console.log('No pattern matched.');
     return null;
   };
 

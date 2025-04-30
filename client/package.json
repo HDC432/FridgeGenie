@@ -25,6 +25,7 @@
     "@react-navigation/native-stack": "^6.9.17",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.9.0",
+    "chrono-node": "^2.8.0",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "expo": "^52.0.46",

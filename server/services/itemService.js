@@ -62,6 +62,14 @@ class ItemService {
         }
     }
 
+    // 添加日期工具函数
+    static getLocalDateString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     static async createItem(itemData) {
         try {
             // Validate required fields
@@ -69,12 +77,21 @@ class ItemService {
                 throw new Error('Name, quantity, and familyId are required');
             }
 
+            // 如果没有提供过期日期，设置为7天后
+            let defaultExpiryDate;
+            if (!itemData.expiryDate) {
+                const date = new Date();
+                date.setDate(date.getDate() + 7);
+                defaultExpiryDate = this.getLocalDateString(date);
+            }
+
             const newItem = {
                 ...itemData,
                 id: Date.now().toString(), // Add unique ID
                 quantity: parseInt(itemData.quantity),
-                expiryDate: itemData.expiryDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 7 days from now
-                createdAt: new Date().toISOString()
+                expiryDate: itemData.expiryDate || defaultExpiryDate,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
 
             const result = await ItemModel.create(newItem);
