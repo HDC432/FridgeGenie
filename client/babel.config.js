@@ -20,7 +20,6 @@ module.exports = function(api) {
             '@': './',
             '@/components': './components',
             '@/constants': './constants',
-            '@/hooks': './hooks',
             '@/ui': './components/ui',
           },
           extensions: ['.js', '.jsx', '.ts', '.tsx'],

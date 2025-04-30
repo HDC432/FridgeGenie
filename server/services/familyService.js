@@ -241,6 +241,61 @@ class FamilyService {
             throw error;
         }
     }
+
+    // 离开家庭
+    async leaveFamily(familyId, userId) {
+        try {
+            console.log('FamilyService - leaveFamily - 开始:', { familyId, userId });
+            
+            // 查找家庭
+            const family = await Family.findById(familyId);
+            if (!family) {
+                console.log('FamilyService - leaveFamily - 家庭不存在');
+                return { success: false, message: '家庭不存在' };
+            }
+
+            // 检查用户是否是家庭成员
+            const memberIndex = family.members.findIndex(m => m.userId === userId);
+            if (memberIndex === -1) {
+                console.log('FamilyService - leaveFamily - 用户不是家庭成员');
+                return { success: false, message: '用户不是家庭成员' };
+            }
+
+            // 如果是最后一个成员，删除家庭
+            if (family.members.length === 1) {
+                console.log('FamilyService - leaveFamily - 删除最后一个成员，家庭将被删除');
+                await Family.delete(familyId);
+                // 更新用户的 familyId 为 null
+                await User.updateFamilyId(userId, null);
+                return { success: true, message: '家庭已删除' };
+            }
+
+            // 如果是管理员，需要转移管理员权限
+            if (family.members[memberIndex].role === 'admin') {
+                console.log('FamilyService - leaveFamily - 管理员退出，需要转移权限');
+                // 找到第一个非管理员成员
+                const newAdminIndex = family.members.findIndex(m => m.role !== 'admin' && m.userId !== userId);
+                if (newAdminIndex !== -1) {
+                    family.members[newAdminIndex].role = 'admin';
+                }
+            }
+
+            // 直接从 members 数组中删除用户
+            family.members = family.members.filter(m => m.userId !== userId);
+
+            // 更新家庭信息
+            await Family.update(familyId, family);
+            
+            // 更新用户的 familyId 为 null
+            await User.updateFamilyId(userId, null);
+            
+            console.log('FamilyService - leaveFamily - 完成');
+            return { success: true, message: '成功离开家庭' };
+        } catch (error) {
+            console.error('FamilyService - leaveFamily - 错误:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new FamilyService(); 

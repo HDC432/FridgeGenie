@@ -33,29 +33,17 @@ const FavoriteRecipesScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const token = await authService.getToken();
-      console.log('开始加载收藏菜谱');
       const response = await fetch(`${API_URL}/favorites`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       const data = await response.json();
-      console.log('收藏菜谱数据:', data);
       if (data.success) {
-        console.log('收藏菜谱列表:', data.data);
-        // 检查每个收藏记录的数据结构
-        data.data.forEach(fav => {
-          console.log('收藏记录详情:', {
-            id: fav.id,
-            recipeId: fav.recipeData.id,
-            name: fav.recipeData.name
-          });
-        });
         setFavorites(data.data);
       }
     } catch (error) {
-      console.error('获取收藏菜谱失败:', error);
-      showMessage('错误', '获取收藏菜谱失败');
+      showMessage('Error', 'Failed to get favorite recipes');
     } finally {
       setLoading(false);
     }
@@ -64,20 +52,14 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   const loadRefrigeratorItems = async () => {
     try {
       if (!user?.familyId) {
-        console.log('用户未登录或无家庭ID');
         return;
       }
-      console.log('开始加载冰箱物品，家庭ID:', user.familyId);
       const response = await getFamilyItems(user.familyId);
-      console.log('冰箱物品响应:', response);
       if (response && response.items) {
-        console.log('成功加载冰箱物品:', response.items);
         setRefrigeratorItems(response.items);
-      } else {
-        console.log('未找到冰箱物品');
       }
     } catch (error) {
-      console.error('获取冰箱物品失败:', error);
+      logger.error('Failed to load refrigerator items:', error);
     }
   };
 
@@ -88,7 +70,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
 
   const toggleFavorite = async (recipe) => {
     if (!user) {
-      showMessage('提示', '请先登录');
+      showMessage('Notice', 'Please login first');
       return;
     }
 
@@ -96,20 +78,11 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       setLoading(true);
       const token = await authService.getToken();
       
-      console.log('准备取消收藏:', {
-        userId: user.id,
-        favoriteId: recipe.id,
-        recipeId: recipe.recipeData.id,
-        recipeName: recipe.recipeData.name
-      });
-      
       if (!recipe || !recipe.id) {
-        console.error('收藏记录不完整:', recipe);
-        showMessage('错误', '收藏记录不完整');
+        showMessage('Error', 'Incomplete favorite record');
         return;
       }
 
-      // 使用收藏记录的id
       const response = await fetch(`${API_URL}/favorites/${recipe.id}`, {
         method: 'DELETE',
         headers: {
@@ -117,23 +90,15 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         }
       });
       const data = await response.json();
-      console.log('取消收藏响应:', data);
 
       if (response.ok) {
-        // 从列表中移除该菜谱
-        setFavorites(prevFavorites => {
-          console.log('当前收藏列表:', prevFavorites);
-          const newFavorites = prevFavorites.filter(fav => fav.id !== recipe.id);
-          console.log('更新后的收藏列表:', newFavorites);
-          return newFavorites;
-        });
-        showMessage('成功', '已取消收藏');
+        setFavorites(prevFavorites => prevFavorites.filter(fav => fav.id !== recipe.id));
+        showMessage('Success', 'Recipe removed from favorites');
       } else {
-        showMessage('错误', data.message || '取消收藏失败');
+        showMessage('Error', data.message || 'Failed to remove from favorites');
       }
     } catch (error) {
-      console.error('取消收藏失败:', error);
-      showMessage('错误', error.message || '操作失败');
+      showMessage('Error', error.message || 'Operation failed');
     } finally {
       setLoading(false);
     }
@@ -148,28 +113,15 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   };
 
   const handleRecipePress = (recipe) => {
-    console.log('点击菜谱:', recipe);
-    console.log('菜谱数据:', recipe.recipeData);
-    console.log('食材列表:', recipe.recipeData.ingredients);
-    console.log('冰箱物品:', refrigeratorItems);
-
     const quantities = {};
     recipe.recipeData.ingredients.forEach(ing => {
       const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
-      console.log('查找食材:', {
-        name: ing.name,
-        required: ing.quantity,
-        found: fridgeItem ? true : false,
-        available: fridgeItem ? fridgeItem.quantity : 0
-      });
       
       if (fridgeItem) {
-        // 确保数量是数字类型
         let requiredAmount = 1;
         if (typeof ing.quantity === 'number') {
           requiredAmount = ing.quantity;
         } else if (typeof ing.quantity === 'string') {
-          // 尝试从字符串中提取数字
           const match = ing.quantity.match(/\d+/);
           requiredAmount = match ? parseInt(match[0]) : 1;
         }
@@ -177,7 +129,6 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       }
     });
     
-    console.log('计算后的数量:', quantities);
     setSelectedQuantities(quantities);
     setSelectedRecipe(recipe.recipeData);
     setIsModalVisible(true);
@@ -193,7 +144,6 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           const newQuantity = item.quantity - quantity;
           const updatedItem = await updateItemQuantity(item.id, newQuantity);
           if (updatedItem === null) {
-            // 物品已被删除，从本地状态中移除
             setRefrigeratorItems(prevItems => 
               prevItems.filter(i => i.id !== item.id)
             );
@@ -201,42 +151,29 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         }
       }
 
-      showMessage('成功', '食材使用已确认');
+      showMessage('Success', 'Ingredient usage confirmed');
       setIsModalVisible(false);
       setSelectedRecipe(null);
       setSelectedQuantities({});
       loadRefrigeratorItems();
     } catch (error) {
-      console.error('确认使用食材时出错:', error);
-      showMessage('错误', '确认使用食材失败');
+      showMessage('Error', 'Failed to confirm ingredient usage');
     }
   };
 
   const renderQuantityPicker = (ingredient) => {
-    console.log('渲染食材选择器:', {
-      ingredient,
-      refrigeratorItems
-    });
-    
     const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
-    console.log('找到的冰箱物品:', fridgeItem);
     
     if (!fridgeItem) {
       return (
         <Text style={styles.errorText}>
-          冰箱没有 {ingredient.name}，无法消耗
+          {ingredient.name} not found in fridge, cannot consume
         </Text>
       );
     }
 
     const maxQuantity = fridgeItem.quantity;
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
-    
-    console.log('食材数量:', {
-      name: ingredient.name,
-      max: maxQuantity,
-      current: currentQuantity
-    });
 
     return (
       <View style={styles.pickerContainer} key={ingredient.name}>
@@ -275,7 +212,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <Text style={styles.availableText}>
-          (冰箱现有: {fridgeItem.quantity})
+          (Available in fridge: {fridgeItem.quantity})
         </Text>
       </View>
     );
@@ -291,7 +228,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>确认使用食材</Text>
+            <Text style={styles.modalTitle}>Confirm Ingredient Usage</Text>
             <TouchableOpacity
               onPress={() => setIsModalVisible(false)}
               style={styles.closeButton}
@@ -311,10 +248,10 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           </ScrollView>
 
           <View style={styles.summaryContainer}>
-            <Text style={styles.summaryTitle}>使用食材汇总：</Text>
+            <Text style={styles.summaryTitle}>Ingredient Usage Summary:</Text>
             {Object.entries(selectedQuantities).map(([name, quantity]) => (
               <Text key={`${selectedRecipe.id}-summary-${name}`} style={styles.summaryText}>
-                • {name}: {quantity}个
+                • {name}: {quantity} units
               </Text>
             ))}
           </View>
@@ -324,7 +261,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setIsModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>取消</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -335,7 +272,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
               onPress={handleConfirmConsumption}
               disabled={Object.keys(selectedQuantities).length === 0}
             >
-              <Text style={styles.confirmButtonText}>确认使用</Text>
+              <Text style={styles.confirmButtonText}>Confirm Usage</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -355,7 +292,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           <View style={styles.recipeActions}>
             <View style={styles.caloriesBadge}>
               <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
-              <Text style={styles.caloriesText}>{item.recipeData.nutrition.calories} 千卡</Text>
+              <Text style={styles.caloriesText}>{item.recipeData.nutrition.calories} kcal</Text>
             </View>
             <TouchableOpacity 
               style={styles.favoriteButton}
@@ -376,17 +313,17 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         <View style={styles.recipeInfo}>
           <View style={styles.recipeDetailItem}>
             <Ionicons name="speedometer-outline" size={14} color={COLORS.PRIMARY} />
-            <Text style={styles.recipeDetail}>难度: {item.recipeData.difficulty}</Text>
+            <Text style={styles.recipeDetail}>Difficulty: {item.recipeData.difficulty}</Text>
           </View>
           <View style={styles.recipeDetailItem}>
             <Ionicons name="time-outline" size={14} color={COLORS.PRIMARY} />
-            <Text style={styles.recipeDetail}>时间: {item.recipeData.cookingTime}</Text>
+            <Text style={styles.recipeDetail}>Time: {item.recipeData.cookingTime}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.ingredientsSection}>
-        <Text style={styles.sectionTitle}>所需食材:</Text>
+        <Text style={styles.sectionTitle}>Required Ingredients:</Text>
         {item.recipeData.ingredients.map((ing, index) => (
           <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
             • {ing.name} ({ing.quantity})
@@ -395,22 +332,22 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.nutritionSection}>
-        <Text style={styles.sectionTitle}>营养成分:</Text>
+        <Text style={styles.sectionTitle}>Nutrition Information:</Text>
         <View style={styles.nutritionGrid}>
           <View key={`${item.id}-protein`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>蛋白质</Text>
+            <Text style={styles.nutritionLabel}>Protein</Text>
             <Text style={styles.nutritionValue}>{item.recipeData.nutrition.protein}</Text>
           </View>
           <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>碳水</Text>
+            <Text style={styles.nutritionLabel}>Carbs</Text>
             <Text style={styles.nutritionValue}>{item.recipeData.nutrition.carbs}</Text>
           </View>
           <View key={`${item.id}-fat`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>脂肪</Text>
+            <Text style={styles.nutritionLabel}>Fat</Text>
             <Text style={styles.nutritionValue}>{item.recipeData.nutrition.fat}</Text>
           </View>
           <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
-            <Text style={styles.nutritionLabel}>膳食纤维</Text>
+            <Text style={styles.nutritionLabel}>Fiber</Text>
             <Text style={styles.nutritionValue}>{item.recipeData.nutrition.fiber}</Text>
           </View>
         </View>
@@ -429,7 +366,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>收藏的菜谱</Text>
+        <Text style={styles.title}>Favorite Recipes</Text>
       </View>
 
       {favorites.length > 0 ? (
@@ -442,7 +379,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>暂无收藏的菜谱</Text>
+          <Text style={styles.emptyText}>No favorite recipes yet</Text>
         </View>
       )}
 

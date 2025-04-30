@@ -21,7 +21,7 @@ import axios from 'axios';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-// 统一的提示方法
+// Unified alert method
 const showAlert = (title, message) => {
   if (Platform.OS === 'web') {
     window.alert(message);
@@ -30,7 +30,7 @@ const showAlert = (title, message) => {
   }
 };
 
-// 统一的确认方法
+// Unified confirmation method
 const showConfirm = (title, message, onConfirm) => {
   if (Platform.OS === 'web') {
     const confirmed = window.confirm(message);
@@ -42,9 +42,9 @@ const showConfirm = (title, message, onConfirm) => {
       title,
       message,
       [
-        { text: '取消', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: '确定',
+          text: 'Confirm',
           style: 'destructive',
           onPress: onConfirm,
         },
@@ -61,7 +61,6 @@ const FamilyScreen = () => {
   const [inviteCode, setInviteCode] = useState('');
 
   useEffect(() => {
-    console.log('FamilyScreen - 组件挂载');
     if (user) {
       fetchFamilyInfo();
     }
@@ -69,29 +68,21 @@ const FamilyScreen = () => {
 
   const fetchFamilyInfo = async () => {
     try {
-      console.log('FamilyScreen - 开始获取家庭信息');
       const token = await authService.getToken();
-      console.log('FamilyScreen - 获取到的token:', token);
-
       const response = await fetch(`${API_URL}/families`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      console.log('FamilyScreen - 家庭信息响应状态:', response.status);
       const data = await response.json();
-      console.log('FamilyScreen - 家庭信息响应数据:', data);
 
       if (response.ok && data.data) {
-        console.log('FamilyScreen - 设置家庭信息:', data.data);
         setFamily(data.data);
       } else {
-        console.log('FamilyScreen - 获取家庭信息失败:', data.message);
         setFamily(null);
       }
     } catch (error) {
-      console.error('FamilyScreen - 获取家庭信息失败:', error);
       setFamily(null);
     } finally {
       setLoading(false);
@@ -100,18 +91,14 @@ const FamilyScreen = () => {
 
   const handleCreateFamily = async () => {
     if (!familyName.trim()) {
-      showAlert('错误', '请输入家庭名称');
+      showAlert('Error', 'Please enter family name');
       return;
     }
 
     try {
-      console.log('FamilyScreen - 开始创建家庭');
       setLoading(true);
       const token = await authService.getToken();
-      console.log('FamilyScreen - 创建家庭使用的token:', token);
-
       const requestBody = { name: familyName };
-      console.log('FamilyScreen - 创建家庭请求体:', requestBody);
 
       const response = await fetch(`${API_URL}/families`, {
         method: 'POST',
@@ -122,23 +109,20 @@ const FamilyScreen = () => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log('FamilyScreen - 创建家庭响应状态:', response.status);
       const data = await response.json();
-      console.log('FamilyScreen - 创建家庭响应数据:', data);
 
       if (response.ok) {
         setFamily(data.data);
-        showAlert('成功', '家庭创建成功！');
+        showAlert('Success', 'Family created successfully!');
       } else {
-        if (data.message === '用户已经加入其他家庭') {
-          showAlert('错误', '您已经加入了一个家庭，请先退出当前家庭再创建新家庭');
+        if (data.message === 'User already joined another family') {
+          showAlert('Error', 'You have already joined a family, please exit the current family before creating a new one');
         } else {
-          showAlert('错误', data.message || '创建家庭失败');
+          showAlert('Error', data.message || 'Family creation failed');
         }
       }
     } catch (error) {
-      console.error('FamilyScreen - 创建家庭失败:', error);
-      showAlert('错误', '创建家庭失败');
+      showAlert('Error', 'Family creation failed');
     } finally {
       setLoading(false);
     }
@@ -146,18 +130,14 @@ const FamilyScreen = () => {
 
   const handleJoinFamily = async () => {
     if (!inviteCode.trim()) {
-      showAlert('错误', '请输入邀请码');
+      showAlert('Error', 'Please enter invite code');
       return;
     }
 
     try {
-      console.log('FamilyScreen - 开始加入家庭');
       setLoading(true);
       const token = await authService.getToken();
-      console.log('FamilyScreen - 加入家庭使用的token:', token);
-
       const requestBody = { inviteCode };
-      console.log('FamilyScreen - 加入家庭请求体:', requestBody);
 
       const response = await fetch(`${API_URL}/families/join`, {
         method: 'POST',
@@ -168,22 +148,19 @@ const FamilyScreen = () => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log('FamilyScreen - 加入家庭响应状态:', response.status);
       const data = await response.json();
-      console.log('FamilyScreen - 加入家庭响应数据:', data);
 
       if (response.ok) {
         setFamily(data.data);
         const updatedUser = { ...user, familyId: data.data.id };
         await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
-        showAlert('成功', '成功加入家庭！');
+        showAlert('Success', 'Successfully joined family!');
       } else {
-        showAlert('错误', data.message || '加入家庭失败');
+        showAlert('Error', data.message || 'Family joining failed');
       }
     } catch (error) {
-      console.error('FamilyScreen - 加入家庭失败:', error);
-      showAlert('错误', '加入家庭失败');
+      showAlert('Error', 'Family joining failed');
     } finally {
       setLoading(false);
     }
@@ -192,16 +169,13 @@ const FamilyScreen = () => {
   const handleRemoveMember = async (memberId) => {
     if (!family) return;
 
-    // 找到要移除的成员
     const memberToRemove = family.members.find(m => m.userId === memberId);
     if (!memberToRemove) return;
 
-    showConfirm('确认移除', `确定要移除成员 ${memberToRemove.username} 吗？`, async () => {
+    showConfirm('Confirm Remove', `Are you sure you want to remove member ${memberToRemove.username}?`, async () => {
       try {
-        console.log('FamilyScreen - 开始移除成员:', memberId);
         setLoading(true);
         const token = await authService.getToken();
-        console.log('FamilyScreen - 移除成员使用的token:', token);
 
         const response = await fetch(`${API_URL}/families/${family.id}/members/${memberId}`, {
           method: 'DELETE',
@@ -210,12 +184,9 @@ const FamilyScreen = () => {
           },
         });
 
-        console.log('FamilyScreen - 移除成员响应状态:', response.status);
         const data = await response.json();
-        console.log('FamilyScreen - 移除成员响应数据:', data);
 
         if (response.ok) {
-          // 重新获取家庭信息
           const familyResponse = await fetch(`${API_URL}/families`, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -223,25 +194,22 @@ const FamilyScreen = () => {
           });
           
           const familyData = await familyResponse.json();
-          console.log('FamilyScreen - 重新获取家庭信息:', familyData);
 
           if (familyResponse.ok && familyData.data) {
             setFamily(familyData.data);
-            showAlert('成功', '成员已移除');
+            showAlert('Success', 'Member removed');
           } else {
-            // 如果没有获取到家庭信息，说明家庭已被删除
             setFamily(null);
             const updatedUser = { ...user, familyId: null };
             await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
             setUser(updatedUser);
-            showAlert('成功', '家庭已删除');
+            showAlert('Success', 'Family deleted');
           }
         } else {
-          showAlert('错误', data.message || '移除成员失败');
+          showAlert('Error', data.message || 'Member removal failed');
         }
       } catch (error) {
-        console.error('FamilyScreen - 移除成员失败:', error);
-        showAlert('错误', '移除成员失败');
+        showAlert('Error', 'Member removal failed');
       } finally {
         setLoading(false);
       }
@@ -251,9 +219,8 @@ const FamilyScreen = () => {
   const handleLeaveFamily = async () => {
     try {
       const token = await authService.getToken();
-      const response = await axios.post(
+      const response = await axios.delete(
         `${API_URL}/families/${user.familyId}/leave`,
-        {},
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -262,23 +229,19 @@ const FamilyScreen = () => {
       );
 
       if (response.data.success) {
-        // 更新用户状态
         await authService.updateUser({ familyId: null });
-        // 显示成功消息
         if (Platform.OS === 'web') {
-          window.alert('已成功退出家庭');
+          window.alert('Successfully left family');
         } else {
-          Alert.alert('成功', '已成功退出家庭');
+          Alert.alert('Success', 'Successfully left family');
         }
-        // 刷新页面
         loadFamilyInfo();
       }
     } catch (error) {
-      console.error('退出家庭失败:', error);
       if (Platform.OS === 'web') {
-        window.alert('退出家庭失败，请重试');
+        window.alert('Failed to leave family, please try again');
       } else {
-        Alert.alert('错误', '退出家庭失败，请重试');
+        Alert.alert('Error', 'Family leaving failed, please try again');
       }
     }
   };
@@ -288,7 +251,7 @@ const FamilyScreen = () => {
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{item.username}</Text>
         <Text style={styles.memberRole}>
-          {item.role === 'admin' ? '管理员' : '成员'}
+          {item.role === 'admin' ? 'Admin' : 'Member'}
         </Text>
       </View>
       {user.id === item.id ? (
@@ -296,44 +259,44 @@ const FamilyScreen = () => {
           style={styles.leaveButton}
           onPress={() => {
             if (Platform.OS === 'web') {
-              if (window.confirm('确定要退出家庭吗？')) {
+              if (window.confirm('Are you sure you want to leave the family?')) {
                 handleLeaveFamily();
               }
             } else {
               Alert.alert(
-                '确认退出',
-                '确定要退出家庭吗？',
+                'Confirm Leave',
+                'Are you sure you want to leave the family?',
                 [
-                  { text: '取消', style: 'cancel' },
-                  { text: '退出', style: 'destructive', onPress: handleLeaveFamily }
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Leave', style: 'destructive', onPress: handleLeaveFamily }
                 ]
               );
             }
           }}
         >
-          <Text style={styles.leaveButtonText}>退出家庭</Text>
+          <Text style={styles.leaveButtonText}>Leave Family</Text>
         </TouchableOpacity>
       ) : user.role === 'admin' && (
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => {
             if (Platform.OS === 'web') {
-              if (window.confirm(`确定要移除成员 ${item.username} 吗？`)) {
+              if (window.confirm(`Are you sure you want to remove member ${item.username}?`)) {
                 handleRemoveMember(item.id);
               }
             } else {
               Alert.alert(
-                '确认移除',
-                `确定要移除成员 ${item.username} 吗？`,
+                'Confirm Remove',
+                `Are you sure you want to remove member ${item.username}?`,
                 [
-                  { text: '取消', style: 'cancel' },
-                  { text: '移除', style: 'destructive', onPress: () => handleRemoveMember(item.id) }
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Remove', style: 'destructive', onPress: () => handleRemoveMember(item.id) }
                 ]
               );
             }
           }}
         >
-          <Text style={styles.removeButtonText}>移除</Text>
+          <Text style={styles.removeButtonText}>Remove</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -350,18 +313,18 @@ const FamilyScreen = () => {
   return (
     <ScrollView style={styles.container}>
       {family ? (
-        // 已加入家庭
+        // Joined family
         <View style={styles.section}>
           <View style={styles.familyHeader}>
             <Text style={styles.familyName}>{family.name}</Text>
             <View style={styles.inviteCodeContainer}>
-              <Text style={styles.inviteCodeLabel}>邀请码:</Text>
+              <Text style={styles.inviteCodeLabel}>Invite Code:</Text>
               <Text style={styles.inviteCode}>{family.inviteCode}</Text>
             </View>
           </View>
 
           <View style={styles.membersSection}>
-            <Text style={styles.membersTitle}>家庭成员</Text>
+            <Text style={styles.membersTitle}>Family Members</Text>
             {family?.members?.map((member) => (
               <View key={member.userId} style={styles.memberItem}>
                 <View style={styles.memberInfo}>
@@ -373,8 +336,8 @@ const FamilyScreen = () => {
                   <View style={styles.memberDetails}>
                     <Text style={styles.memberName}>{member.username}</Text>
                     <Text style={styles.memberRole}>
-                      {member.role === 'admin' ? '管理员' : '成员'}
-                      {member.userId === user.id && ' (我)'}
+                      {member.role === 'admin' ? 'Admin' : 'Member'}
+                      {member.userId === user.id && ' (Me)'}
                     </Text>
                   </View>
                 </View>
@@ -394,17 +357,17 @@ const FamilyScreen = () => {
             style={styles.leaveButton}
             onPress={handleLeaveFamily}
           >
-            <Text style={styles.leaveButtonText}>退出家庭</Text>
+            <Text style={styles.leaveButtonText}>Leave Family</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        // 未加入家庭
+        // Not joined family
         <>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>创建家庭</Text>
+            <Text style={styles.sectionTitle}>Create Family</Text>
             <TextInput
               style={styles.input}
-              placeholder="输入家庭名称"
+              placeholder="Enter family name"
               value={familyName}
               onChangeText={setFamilyName}
             />
@@ -412,15 +375,15 @@ const FamilyScreen = () => {
               style={styles.createButton}
               onPress={handleCreateFamily}
             >
-              <Text style={styles.buttonText}>创建新家庭</Text>
+              <Text style={styles.buttonText}>Create New Family</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>加入家庭</Text>
+            <Text style={styles.sectionTitle}>Join Family</Text>
             <TextInput
               style={styles.input}
-              placeholder="输入邀请码"
+              placeholder="Enter invite code"
               value={inviteCode}
               onChangeText={setInviteCode}
             />
@@ -428,7 +391,7 @@ const FamilyScreen = () => {
               style={styles.joinButton}
               onPress={handleJoinFamily}
             >
-              <Text style={styles.buttonText}>加入家庭</Text>
+              <Text style={styles.buttonText}>Join Family</Text>
             </TouchableOpacity>
           </View>
         </>

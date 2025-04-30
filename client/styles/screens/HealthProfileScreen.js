@@ -34,6 +34,66 @@ export default StyleSheet.create({
     marginBottom: SPACING.LARGE,
   },
   
+  // 部分描述文本样式
+  sectionDescription: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.MEDIUM,
+    lineHeight: FONT_SIZE.MEDIUM,
+  },
+  
+  // 查看模式下的信息行样式
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: SPACING.SMALL,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.DIVIDER,
+  },
+  infoLabel: {
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_PRIMARY,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+  },
+  infoValue: {
+    fontSize: FONT_SIZE.MEDIUM,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  
+  // 标签容器样式
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.SMALL,
+  },
+  tag: {
+    backgroundColor: COLORS.PRIMARY_LIGHT,
+    paddingHorizontal: SPACING.MEDIUM,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.SMALL,
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.PRIMARY,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+  },
+  
+  // 编辑按钮样式
+  editButton: {
+    backgroundColor: COLORS.PRIMARY,
+    height: 50,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: SPACING.LARGE,
+    marginBottom: SPACING.XLARGE,
+    ...SHADOW_STYLE.MEDIUM,
+  },
+  editButtonText: {
+    color: COLORS.WHITE,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
+  },
+  
   // 输入框样式
   input: {
     backgroundColor: COLORS.BACKGROUND,
@@ -126,21 +186,42 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   
-  // 保存按钮样式
-  saveButton: {
-    backgroundColor: COLORS.PRIMARY,
+  // 按钮容器样式
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.MEDIUM,
+    paddingBottom: SPACING.LARGE,
+  },
+  
+  // 按钮基础样式
+  button: {
+    flex: 1,
     height: 50,
     borderRadius: BORDER_RADIUS.MEDIUM,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.LARGE,
-    marginBottom: SPACING.XLARGE,
+    marginHorizontal: SPACING.SMALL,
     ...SHADOW_STYLE.MEDIUM,
   },
-  saveButtonText: {
-    color: COLORS.SECONDARY,
+  
+  // 取消按钮样式
+  cancelButton: {
+    backgroundColor: COLORS.LIGHT_GRAY,
+    borderWidth: 1,
+    borderColor: COLORS.DIVIDER,
+  },
+  
+  // 保存按钮样式
+  saveButton: {
+    backgroundColor: COLORS.PRIMARY,
+  },
+  
+  // 按钮文本样式
+  buttonText: {
     fontSize: FONT_SIZE.MEDIUM,
     fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.WHITE,
   },
   
   // 模态框样式
@@ -174,25 +255,23 @@ export default StyleSheet.create({
     color: COLORS.SECONDARY,
     textAlign: 'center',
   },
-  modalCloseButton: {
+  modalCancel: {
     marginTop: SPACING.LARGE,
     padding: SPACING.MEDIUM,
     backgroundColor: COLORS.LIGHT_GRAY,
     borderRadius: BORDER_RADIUS.SMALL,
     alignItems: 'center',
   },
-  modalCloseButtonText: {
+  modalCancelText: {
     color: COLORS.SECONDARY,
     fontWeight: FONT_WEIGHT.MEDIUM,
   },
   
-  // 其他辅助样式
-  rowLastItem: {
-    marginRight: 0,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.LARGE,
+  // 加载状态样式
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
 }); 

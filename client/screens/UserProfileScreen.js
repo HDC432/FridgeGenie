@@ -20,22 +20,22 @@ const UserProfileScreen = () => {
   const menuItems = [
     {
       icon: 'person',
-      label: '个人信息',
+      label: 'Personal Info',
       value: user?.username,
     },
     {
       icon: 'mail',
-      label: '邮箱',
+      label: 'Email',
       value: user?.email,
     },
     {
       icon: 'calendar',
-      label: '注册时间',
+      label: 'Registration Date',
       value: new Date(user?.createdAt).toLocaleDateString(),
     },
     {
       icon: 'time',
-      label: '最后登录',
+      label: 'Last Login',
       value: new Date(user?.lastLogin).toLocaleDateString(),
     },
   ];

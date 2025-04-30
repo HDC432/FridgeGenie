@@ -45,11 +45,11 @@ export const APP_CONFIG = {
 
 // 错误消息配置
 export const ERROR_MESSAGES = {
-  NETWORK_ERROR: '网络连接失败，请检查网络设置',
-  SPEECH_RECOGNITION_ERROR: '语音识别失败，请重试',
-  PERMISSION_DENIED: '需要麦克风权限才能使用语音功能',
-  INVALID_INPUT: '输入内容无效，请重新输入',
-  SERVER_ERROR: '服务器错误，请稍后重试',
+  NETWORK_ERROR: 'Network connection failed, please check your network settings',
+  SPEECH_RECOGNITION_ERROR: 'Speech recognition failed, please try again',
+  PERMISSION_DENIED: 'Microphone permission is required to use voice features',
+  INVALID_INPUT: 'Invalid input, please try again',
+  SERVER_ERROR: 'Server error, please try again later',
 };
 
 // 功能开关配置

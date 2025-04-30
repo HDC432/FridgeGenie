@@ -55,7 +55,7 @@ function BottomNav() {
           color={routeName === 'RecommendedItemsScreen' ? COLORS.PRIMARY : '#999'} 
         />
         <Text style={[styles.label, routeName === 'RecommendedItemsScreen' ? { color: COLORS.PRIMARY } : {}]}>
-          推荐
+          Recommended
         </Text>
       </TouchableOpacity>
 

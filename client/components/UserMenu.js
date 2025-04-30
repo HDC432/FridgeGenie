@@ -65,7 +65,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="person-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>个人信息</Text>
+                  <Text style={styles.menuItemText}>Profile</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -75,7 +75,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="people-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>我的家庭</Text>
+                  <Text style={styles.menuItemText}>My Family</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -85,7 +85,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="heart-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>菜谱收藏</Text>
+                  <Text style={styles.menuItemText}>Favorite Recipes</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -95,7 +95,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="cart-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>推荐购买</Text>
+                  <Text style={styles.menuItemText}>Recommended Items</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -105,7 +105,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="medkit-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>健康信息</Text>
+                  <Text style={styles.menuItemText}>Health Profile</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -115,7 +115,7 @@ const UserMenu = ({ visible, onClose }) => {
                   <View style={styles.menuItemIcon}>
                     <Ionicons name="log-out-outline" size={20} color="#F44336" />
                   </View>
-                  <Text style={[styles.menuItemText, styles.logoutText]}>退出登录</Text>
+                  <Text style={[styles.menuItemText, styles.logoutText]}>Logout</Text>
                 </TouchableOpacity>
               </View>
             </View>
