@@ -17,6 +17,7 @@ import { differenceInCalendarDays } from 'date-fns';
 import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -240,7 +241,7 @@ const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>我的冰箱</Text>
+        <Text style={styles.title}>Hi, {user?.username}</Text>
         <View style={styles.headerButtons}>
           <TouchableOpacity
             style={styles.headerButton}
