@@ -275,32 +275,6 @@ export default function RecipeScreen({ navigation }) {
               <Text style={styles.recipeDetail}>时间: {item.cookingTime}</Text>
             </View>
           </View>
-
-          {item.suitableFor && item.suitableFor.length > 0 && (
-            <View style={styles.suitableForContainer}>
-              <Text style={styles.suitableForTitle}>适合人群：</Text>
-              <View style={styles.suitableForTags}>
-                {item.suitableFor.map((tag, index) => (
-                  <View key={`${item.id}-tag-${index}`} style={styles.suitableForTag}>
-                    <Text style={styles.suitableForTagText}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {item.healthConsiderations && item.healthConsiderations.length > 0 && (
-            <View style={styles.healthConsiderationsContainer}>
-              <Text style={styles.healthConsiderationsTitle}>健康考虑：</Text>
-              <View style={styles.healthConsiderationsTags}>
-                {item.healthConsiderations.map((consideration, index) => (
-                  <View key={`${item.id}-consideration-${index}`} style={styles.healthConsiderationTag}>
-                    <Text style={styles.healthConsiderationTagText}>{consideration}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
         </View>
 
         <View style={styles.ingredientsSection}>

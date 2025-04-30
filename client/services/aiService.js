@@ -25,22 +25,13 @@ export const generateRecipes = async (ingredients, familyId) => {
       // 生成健康提示词
       const healthPrompt = generateHealthPrompt(familyHealthTags);
       
-      const prompt = `基于以下食材和健康考虑生成5个健康食谱，每个食谱需要包含：
+      const prompt = `基于以下食材和健康考虑生成5个健康食谱 每个食谱需要包含
 1. 食谱名称
 2. 所需食材及用量
 3. 详细步骤
 4. 烹饪时间
 5. 难度级别
 6. 营养成分分析（包括卡路里、蛋白质、碳水化合物、脂肪、膳食纤维）
-7. 适合人群（根据以下健康标签判断）：
-   - 减脂人群：低热量、高蛋白、低脂肪
-   - 增肌人群：高蛋白、适量碳水
-   - 控制血糖人群：低GI、高纤维
-   - 控制血压人群：低钠、高钾
-   - 素食人群：不含肉类
-   - 纯素人群：不含任何动物制品
-   - 无麸质人群：不含小麦制品
-   - 无乳糖人群：不含乳制品
 
 可用食材：${ingredients.join(', ')}
 
@@ -53,9 +44,8 @@ export const generateRecipes = async (ingredients, familyId) => {
 - 营养均衡
 - 适合家庭制作
 - 步骤清晰易懂
-- 明确标注适合的人群
 
-请以JSON格式返回，格式如下：
+请以JSON格式返回格式如下:
 {
   "recipes": [
     {
@@ -72,9 +62,7 @@ export const generateRecipes = async (ingredients, familyId) => {
         "carbs": "碳水化合物含量",
         "fat": "脂肪含量",
         "fiber": "膳食纤维含量"
-      },
-      "suitableFor": ["适合人群1", "适合人群2"],
-      "healthConsiderations": ["考虑的健康因素1", "考虑的健康因素2"]
+      }
     }
   ]
 }`;
