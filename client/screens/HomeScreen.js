@@ -249,20 +249,6 @@ const HomeScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Hi, {user?.username}</Text>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Recipe')}
-          >
-            <Ionicons name="restaurant-outline" size={24} color={COLORS.BACKGROUND} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AddItem')}
-          >
-            <Ionicons name="add" size={24} color={COLORS.TEXT_PRIMARY} />
-          </TouchableOpacity>
-        </View>
       </View>
 
       {items.length === 0 ? (
@@ -306,28 +292,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...COMMON_STYLES.HEADER_TITLE,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: SPACING.MEDIUM,
-  },
-  headerButton: {
-    backgroundColor: COLORS.SECONDARY,
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.CIRCLE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOW_STYLE.SMALL,
-  },
-  addButton: {
-    backgroundColor: COLORS.PRIMARY,
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.CIRCLE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOW_STYLE.SMALL,
   },
   listContainer: {
     padding: SPACING.LARGE,

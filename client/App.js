@@ -2,8 +2,10 @@ import 'react-native-gesture-handler';
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -21,71 +23,122 @@ import RecommendedItemsScreen from './screens/RecommendedItemsScreen';
 import theme from './styles/theme';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const TabNavigator = () => {
+  const { user } = useAuth();
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Recipe') {
+            iconName = focused ? 'restaurant' : 'restaurant-outline';
+          } else if (route.name === 'AddItem') {
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Recommended') {
+            iconName = focused ? 'star' : 'star-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: theme.COLORS.PRIMARY,
+        tabBarInactiveTintColor: theme.COLORS.TEXT_SECONDARY,
+        tabBarStyle: {
+          backgroundColor: theme.COLORS.BACKGROUND,
+          borderTopColor: theme.COLORS.LIGHT_GRAY,
+        },
+        headerStyle: {
+          backgroundColor: theme.COLORS.BACKGROUND,
+        },
+        headerTintColor: theme.COLORS.TEXT_PRIMARY,
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{ 
+          title: '首页',
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <UserAvatar
+                user={user}
+                onPress={() => {}}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Recipe" 
+        component={RecipeScreen}
+        options={{ title: '菜谱' }}
+      />
+      <Tab.Screen 
+        name="AddItem" 
+        component={AddItemScreen}
+        options={{ title: '添加物品' }}
+      />
+      <Tab.Screen 
+        name="Recommended" 
+        component={RecommendedItemsScreen}
+        options={{ title: '推荐' }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={UserProfileScreen}
+        options={{ title: '我的' }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const Navigation = () => {
   const { user, loading } = useAuth();
-  const [menuVisible, setMenuVisible] = useState(false);
-
-  console.log('Navigation rendered, user:', user);
-  console.log('Menu visible:', menuVisible);
-
-  if (loading) {
-    return null; // 或者显示加载指示器
-  }
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const handleMenuPress = () => {
-    console.log('Menu button pressed');
-    setMenuVisible(true);
+    setIsMenuVisible(true);
   };
 
+  const handleMenuClose = () => {
+    setIsMenuVisible(false);
+  };
+
+  if (loading) {
+    return null;
+  }
+
   return (
-    <>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: '#FCD34D',
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 3.84,
-            elevation: 5,
-          },
-          headerTintColor: '#1F2B40',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
-        }}
-      >
-        {user ? (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {!user ? (
+          // 未登录状态
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ headerShown: false }}
+            />
+          </>
+        ) : (
           // 已登录状态
           <>
             <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                title: 'My Fridge',
-                headerRight: () => (
-                  <View style={styles.headerRight}>
-                    <UserAvatar
-                      user={user}
-                      onPress={handleMenuPress}
-                    />
-                  </View>
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="AddItem"
-              component={AddItemScreen}
-              options={{ title: '添加物品' }}
-            />
-            <Stack.Screen
-              name="Recipe"
-              component={RecipeScreen}
-              options={{ title: '菜谱' }}
+              name="MainTabs"
+              component={TabNavigator}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="UserProfile"
@@ -107,73 +160,31 @@ const Navigation = () => {
               component={FavoriteRecipesScreen}
               options={{ title: '收藏的菜谱' }}
             />
-            <Stack.Screen
-              name="RecommendedItems"
-              component={RecommendedItemsScreen}
-              options={{ title: '推荐购买' }}
-            />
-          </>
-        ) : (
-          // 未登录状态
-          <>
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-              options={{ headerShown: false }}
-            />
           </>
         )}
       </Stack.Navigator>
-
       <UserMenu
-        visible={menuVisible}
-        onClose={() => {
-          console.log('Menu closing');
-          setMenuVisible(false);
-        }}
+        visible={isMenuVisible}
+        onClose={handleMenuClose}
       />
-    </>
+      <AIAssistant />
+    </NavigationContainer>
   );
 };
+
+const styles = StyleSheet.create({
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+});
 
 export default function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <View style={styles.container}>
-          <StatusBar style="auto" />
-          <Navigation />
-          <AIAssistant />
-        </View>
-      </NavigationContainer>
+      <Navigation />
+      <StatusBar style="auto" />
     </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    ...Platform.select({
-      web: {
-        height: '100vh',
-        overflow: 'auto',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-      },
-    }),
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-});
