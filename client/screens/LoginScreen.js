@@ -22,7 +22,7 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('请输入邮箱和密码');
+      setError('Please enter your email and password');
       return;
     }
 
@@ -37,11 +37,11 @@ const LoginScreen = ({ navigation }) => {
           routes: [{ name: 'Home' }],
         });
       } else {
-        setError('登录失败，请检查您的邮箱和密码');
+        setError('Login failed, please check your email and password');
       }
     } catch (err) {
-      console.error('登录错误:', err);
-      setError(err.message || '登录失败，请稍后重试');
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed, please try again later');
     } finally {
       setLoading(false);
     }
@@ -54,14 +54,14 @@ const LoginScreen = ({ navigation }) => {
           <Ionicons name="snow-outline" size={64} color={COLORS.SECONDARY} />
         </View>
         <Text style={styles.appName}>FridgeGenie</Text>
-        <Text style={styles.tagline}>智能管理你的冰箱，减少食物浪费</Text>
+        <Text style={styles.tagline}>Smartly manage your fridge, reduce food waste</Text>
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>邮箱</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入邮箱"
+          placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -70,10 +70,10 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>密码</Text>
+        <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入密码"
+          placeholder="Enter your password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -81,10 +81,6 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <TouchableOpacity style={styles.forgotPassword}>
-        <Text style={styles.forgotPasswordText}>忘记密码？</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.loginButton}
@@ -94,13 +90,13 @@ const LoginScreen = ({ navigation }) => {
         {loading ? (
           <ActivityIndicator size="small" color={COLORS.SECONDARY} />
         ) : (
-          <Text style={styles.loginButtonText}>登录</Text>
+          <Text style={styles.loginButtonText}>Login</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.orContainer}>
         <View style={styles.orLine} />
-        <Text style={styles.orText}>或</Text>
+        <Text style={styles.orText}>or</Text>
         <View style={styles.orLine} />
       </View>
 
@@ -117,9 +113,9 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>还没有账号？</Text>
+        <Text style={styles.registerText}>Don't have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}>立即注册</Text>
+          <Text style={styles.registerLink}>Register Now</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -167,14 +163,6 @@ const styles = StyleSheet.create({
   },
   input: {
     ...COMMON_STYLES.INPUT,
-  },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: SPACING.XXLARGE,
-  },
-  forgotPasswordText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.TEXT_PRIMARY,
   },
   loginButton: {
     ...COMMON_STYLES.BUTTON,

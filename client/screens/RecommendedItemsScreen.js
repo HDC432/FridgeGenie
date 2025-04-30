@@ -28,11 +28,9 @@ const RecommendedItemsScreen = ({ navigation }) => {
 
   const showMessage = (message) => {
     if (Platform.OS === 'web') {
-      // 在 Web 端使用 alert
       window.alert(message);
     } else {
-      // 在移动端使用 Alert
-      Alert.alert('提示', message);
+      Alert.alert('Notice', message);
     }
   };
 
@@ -42,21 +40,20 @@ const RecommendedItemsScreen = ({ navigation }) => {
       setError(null);
       
       if (!user?.familyId) {
-        showMessage('请先加入或创建一个家庭');
+        showMessage('Please join or create a family first');
         return;
       }
 
-      
-      // 获取推荐食材
+      // Get recommended items
       const items = await getRecommendedItems({
         familyId: user.familyId,
       });
       
       setRecommendedItems(items);
     } catch (error) {
-      console.error('获取推荐食材失败:', error);
-      setError('获取推荐食材失败，请重试');
-      showMessage('获取推荐食材失败，请重试');
+      console.error('Failed to get recommended items:', error);
+      setError('Failed to get recommended items, please try again');
+      showMessage('Failed to get recommended items, please try again');
     } finally {
       setLoading(false);
     }
@@ -79,8 +76,8 @@ const RecommendedItemsScreen = ({ navigation }) => {
         <Text style={styles.reasonText}>{item.reason}</Text>
       </View>
       <View style={styles.itemDetails}>
-        <Text style={styles.detailText}>推荐数量: {item.recommendedQuantity}</Text>
-        <Text style={styles.detailText}>优先级: {item.priority}</Text>
+        <Text style={styles.detailText}>Recommended Quantity: {item.recommendedQuantity}</Text>
+        <Text style={styles.detailText}>Priority: {item.priority}</Text>
       </View>
     </View>
   );
@@ -89,7 +86,7 @@ const RecommendedItemsScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        <Text style={styles.loadingText}>正在分析推荐食材...</Text>
+        <Text style={styles.loadingText}>Analyzing recommended items...</Text>
       </View>
     );
   }
@@ -104,7 +101,7 @@ const RecommendedItemsScreen = ({ navigation }) => {
           >
             <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
           </TouchableOpacity>
-          <Text style={styles.title}>推荐购买食材</Text>
+          <Text style={styles.title}>Recommended Items</Text>
         </View>
 
         {error && (
@@ -127,7 +124,7 @@ const RecommendedItemsScreen = ({ navigation }) => {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>暂无推荐食材</Text>
+              <Text style={styles.emptyText}>No recommended items</Text>
             </View>
           }
         />

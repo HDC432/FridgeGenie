@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInCalendarDays } from 'date-fns';
 import { getItems, deleteItem } from '../services/databaseService';
@@ -25,33 +25,35 @@ const ItemList = ({ navigation, refresh }) => {
         setLastUpdate(new Date());
       }
     } catch (err) {
-      console.error('加载物品失败:', err);
-      Alert.alert('错误', '加载物品失败，请重试');
+      console.error('Failed to load items:', err);
+      if (Platform.OS === 'web') {
+        window.alert('Failed to load items, please try again');
+      } else {
+        Alert.alert('Error', 'Failed to load items, please try again');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = (id) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这个物品吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteItem(id);
-              loadItems(); // 重新加载列表
-            } catch (err) {
-              Alert.alert('错误', '删除失败，请重试');
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = async (id) => {
+    console.log('handleDelete called with id:', id);
+    try {
+      console.log('Attempting to delete item:', id);
+      const result = await deleteItem(id);
+      console.log('Delete result:', result);
+      if (result) {
+        console.log('Item deleted successfully, reloading list...');
+        await loadItems(); // Reload list
+      }
+    } catch (err) {
+      console.error('Delete failed:', err);
+      if (Platform.OS === 'web') {
+        window.alert('Failed to delete, please try again');
+      } else {
+        Alert.alert('Error', 'Failed to delete, please try again');
+      }
+    }
   };
 
   const renderItem = ({ item }) => {
@@ -65,6 +67,28 @@ const ItemList = ({ navigation, refresh }) => {
     else if (daysLeft <= 3) stripeColor = '#FF9800'; // 注意
     else if (daysLeft <= 7) stripeColor = '#FFEB3B'; // 警告
 
+    const handleDeleteClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Delete button clicked for item:', item.id);
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('Are you sure you want to delete this item?');
+        console.log('User confirmed:', confirmed);
+        if (confirmed) {
+          handleDelete(item.id);
+        }
+      } else {
+        Alert.alert(
+          'Confirm',
+          'Are you sure you want to delete this item?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Confirm', style: 'destructive', onPress: () => handleDelete(item.id) }
+          ]
+        );
+      }
+    };
+
     return (
       <View style={styles.itemWrapper}>
         <View style={[styles.stripe, { backgroundColor: stripeColor }]} />
@@ -72,16 +96,28 @@ const ItemList = ({ navigation, refresh }) => {
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{item.name}</Text>
             <Text style={styles.itemDetails}>
-              数量: {item.quantity} | 过期: {new Date(item.expiryDate).toLocaleDateString()} ({daysLeft}天)
+              Quantity: {item.quantity} | Expiry: {new Date(item.expiryDate).toLocaleDateString()} ({daysLeft} days)
             </Text>
           </View>
           <View style={styles.itemActions}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => handleDelete(item.id)}
-            >
-              <Ionicons name="trash-outline" size={24} color="#ff4444" />
-            </TouchableOpacity>
+            {Platform.OS === 'web' ? (
+              <button
+                style={styles.actionButton}
+                onClick={handleDeleteClick}
+                type="button"
+                className="delete-button"
+                data-testid="delete-button"
+              >
+                <Ionicons name="trash-outline" size={24} color="#ff4444" />
+              </button>
+            ) : (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleDeleteClick}
+              >
+                <Ionicons name="trash-outline" size={24} color="#ff4444" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -91,12 +127,12 @@ const ItemList = ({ navigation, refresh }) => {
   if (items.length === 0 && !loading) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>没有物品</Text>
+        <Text style={styles.emptyText}>No Items</Text>
         <TouchableOpacity
           style={styles.addFirstButton}
           onPress={() => navigation.navigate('AddItem')}
         >
-          <Text style={styles.addFirstButtonText}>添加物品</Text>
+          <Text style={styles.addFirstButtonText}>Add Item</Text>
         </TouchableOpacity>
       </View>
     );
@@ -106,7 +142,7 @@ const ItemList = ({ navigation, refresh }) => {
     <View style={styles.container}>
       {lastUpdate && (
         <Text style={styles.lastUpdateText}>
-          上次更新: {lastUpdate.toLocaleTimeString()}
+          Last Update: {lastUpdate.toLocaleTimeString()}
         </Text>
       )}
       <FlatList
@@ -170,6 +206,26 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 8,
+    cursor: 'pointer',
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    border: 'none',
+    background: 'none',
+    display: 'flex',
+    ...(Platform.OS === 'web' && {
+      ':hover': {
+        backgroundColor: '#f5f5f5',
+      },
+      ':focus': {
+        outline: 'none',
+        backgroundColor: '#f5f5f5',
+      },
+      ':active': {
+        backgroundColor: '#e0e0e0',
+      },
+    }),
   },
   emptyContainer: {
     flex: 1,

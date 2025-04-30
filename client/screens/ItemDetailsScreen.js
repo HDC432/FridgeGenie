@@ -75,11 +75,11 @@ export default function ItemDetailsScreen({ route, navigation }) {
     const daysUntilExpiry = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
 
     if (daysUntilExpiry < 0) {
-      return { status: '已过期', color: '#d32f2f' };
+      return { status: 'Expired', color: '#d32f2f' };
     } else if (daysUntilExpiry <= 3) {
-      return { status: '即将过期', color: '#ff9800' };
+      return { status: 'Expiring Soon', color: '#ff9800' };
     } else {
-      return { status: '正常', color: '#4caf50' };
+      return { status: 'Normal', color: '#4caf50' };
     }
   };
 
@@ -88,19 +88,19 @@ export default function ItemDetailsScreen({ route, navigation }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.detailsContainer}>
-        <Text style={styles.label}>食材名称</Text>
+        <Text style={styles.label}>Item Name</Text>
         <Text style={styles.value}>{item.name}</Text>
 
-        <Text style={styles.label}>数量</Text>
+        <Text style={styles.label}>Quantity</Text>
         <Text style={styles.value}>{item.quantity}</Text>
 
-        <Text style={styles.label}>保质期</Text>
+        <Text style={styles.label}>Expiry Date</Text>
         <Text style={styles.value}>{new Date(item.expiryDate).toLocaleDateString()}</Text>
 
-        <Text style={styles.label}>分类</Text>
+        <Text style={styles.label}>Category</Text>
         <Text style={styles.value}>{item.category}</Text>
 
-        <Text style={styles.label}>状态</Text>
+        <Text style={styles.label}>Status</Text>
         <Text style={[styles.value, { color: expiryStatus.color }]}>
           {expiryStatus.status}
         </Text>
@@ -108,14 +108,14 @@ export default function ItemDetailsScreen({ route, navigation }) {
 
       {reminder && (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>AI 提醒</Text>
+          <Text style={styles.sectionTitle}>AI Reminder</Text>
           <Text style={styles.sectionContent}>{reminder}</Text>
         </View>
       )}
 
       {suggestions && (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>AI 建议</Text>
+          <Text style={styles.sectionTitle}>AI Suggestions</Text>
           <Text style={styles.sectionContent}>{suggestions}</Text>
         </View>
       )}
@@ -125,13 +125,13 @@ export default function ItemDetailsScreen({ route, navigation }) {
           style={[styles.button, styles.editButton]}
           onPress={() => setIsEditing(true)}
         >
-          <Text style={styles.buttonText}>编辑</Text>
+          <Text style={styles.buttonText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
           onPress={handleDelete}
         >
-          <Text style={styles.buttonText}>删除</Text>
+          <Text style={styles.buttonText}>Delete</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

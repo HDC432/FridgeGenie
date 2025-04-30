@@ -69,7 +69,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   };
 
   const calendarDays = generateCalendarDays();
-  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const changeMonth = (offset) => {
     const newMonth = new Date(currentMonth);
@@ -78,21 +78,21 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   };
 
   const quickSelectOptions = [
-    { label: '今天', days: 0 },
-    { label: '明天', days: 1 },
-    { label: '一周后', days: 7 },
-    { label: '两周后', days: 14 },
+    { label: 'Today', days: 0 },
+    { label: 'Tomorrow', days: 1 },
+    { label: 'Next Week', days: 7 },
+    { label: 'Two Weeks Later', days: 14 },
   ];
 
   return (
     <View style={styles.simpleDatePickerContainer}>
       <View style={styles.simpleDatePickerHeader}>
         <TouchableOpacity onPress={onClose}>
-          <Text style={styles.cancelButton}>取消</Text>
+          <Text style={styles.cancelButton}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.datePickerTitle}>选择过期日期</Text>
+        <Text style={styles.datePickerTitle}>Select Expiry Date</Text>
         <TouchableOpacity onPress={onClose}>
-          <Text style={styles.doneButton}>完成</Text>
+          <Text style={styles.doneButton}>Done</Text>
         </TouchableOpacity>
       </View>
 
@@ -189,12 +189,12 @@ const AddItemScreen = ({ navigation }) => {
   const handleSubmit = async () => {
     try {
       if (!user?.familyId) {
-        Alert.alert('错误', '请先加入或创建一个家庭');
+        Alert.alert('Error', 'Please join or create a family first');
         return;
       }
 
       if (!name || !quantity || !expiryDate) {
-        Alert.alert('错误', '请填写必填字段');
+        Alert.alert('Error', 'Please fill in all required fields');
         return;
       }
 
@@ -210,23 +210,23 @@ const AddItemScreen = ({ navigation }) => {
 
       await addItem(newItem);
       setLoading(false);
-      Alert.alert('成功', '物品已添加到冰箱');
+      Alert.alert('Success', 'Item added to fridge');
       navigation.goBack();
     } catch (error) {
-      console.error('添加物品失败:', error);
+      console.error('Failed to add item:', error);
       setLoading(false);
-      Alert.alert('错误', '添加物品失败，请重试');
+      Alert.alert('Error', 'Failed to add item, please try again');
     }
   };
 
-  // 扫描小票功能
+  // Scan receipt feature
   const handleScanReceipt = () => {
-    Alert.alert('功能提示', '扫描小票功能即将上线');
+    Alert.alert('Feature Notice', 'Scan receipt feature coming soon');
   };
 
-  // 语音添加功能
+  // Voice input feature
   const handleVoiceInput = () => {
-    Alert.alert('功能提示', '语音添加功能即将上线');
+    Alert.alert('Feature Notice', 'Voice input feature coming soon');
   };
 
   return (
@@ -237,23 +237,23 @@ const AddItemScreen = ({ navigation }) => {
       >
         <ScrollView style={styles.scrollView}>
           <View style={styles.contentContainer}>
-            <Text style={styles.title}>添加物品</Text>
+            <Text style={styles.title}>Add Item</Text>
             <Text style={styles.subtitle}>
-              将新的食品添加到你的冰箱清单中，并设置过期日期
+              Add new food items to your fridge list and set expiry dates
             </Text>
 
             <View style={styles.formSection}>
-              {/* 物品名称 */}
-              <Text style={styles.label}>物品名称</Text>
+              {/* Item Name */}
+              <Text style={styles.label}>Item Name</Text>
               <TextInput
                 style={styles.input}
-                placeholder="例如：牛奶、鸡蛋..."
+                placeholder="e.g., Milk, Eggs..."
                 value={name}
                 onChangeText={setName}
               />
 
-              {/* 数量 */}
-              <Text style={styles.label}>数量</Text>
+              {/* Quantity */}
+              <Text style={styles.label}>Quantity</Text>
               <View style={styles.quantityRow}>
                 <TouchableOpacity
                   style={styles.quantityBtn}
@@ -278,44 +278,44 @@ const AddItemScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
 
-              {/* 过期日期 */}
-              <Text style={styles.label}>过期日期</Text>
+              {/* Expiry Date */}
+              <Text style={styles.label}>Expiry Date</Text>
               <TouchableOpacity
                 style={styles.datePickerBtn}
                 onPress={() => setShowDatePicker(true)}
               >
                 <Text style={styles.dateText}>
-                  {format(expiryDate, 'yyyy年MM月dd日')}
+                  {format(expiryDate, 'MM/dd/yyyy')}
                 </Text>
                 <Ionicons name="calendar-outline" size={24} color={COLORS.SECONDARY} />
               </TouchableOpacity>
             </View>
 
-            {/* 提交按钮 */}
+            {/* Submit Button */}
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmit}
               disabled={loading}
             >
-              <Text style={styles.submitButtonText}>添加到冰箱</Text>
+              <Text style={styles.submitButtonText}>Add to Fridge</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
         
-        {/* 底部操作按钮 */}
+        {/* Bottom Action Buttons */}
         <View style={styles.bottomButtonsContainer}>
           <TouchableOpacity style={styles.bottomButton} onPress={handleScanReceipt}>
             <View style={styles.bottomButtonIconContainer}>
               <Ionicons name="scan-outline" size={24} color={COLORS.SECONDARY} />
             </View>
-            <Text style={styles.bottomButtonText}>扫描小票</Text>
+            <Text style={styles.bottomButtonText}>Scan Receipt</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.bottomButton} onPress={handleVoiceInput}>
             <View style={styles.bottomButtonIconContainer}>
               <Ionicons name="mic-outline" size={24} color={COLORS.SECONDARY} />
             </View>
-            <Text style={styles.bottomButtonText}>语音添加</Text>
+            <Text style={styles.bottomButtonText}>Voice Input</Text>
           </TouchableOpacity>
         </View>
 
@@ -487,20 +487,21 @@ const styles = StyleSheet.create({
     borderTopRightRadius: BORDER_RADIUS.LARGE,
     width: '100%',
   },
-  // 简易日期选择器样式
+  // 日期选择器样式
   simpleDatePickerContainer: {
     backgroundColor: COLORS.BACKGROUND,
-    borderTopLeftRadius: BORDER_RADIUS.LARGE,
-    borderTopRightRadius: BORDER_RADIUS.LARGE,
-    width: '100%',
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    padding: SPACING.MEDIUM,
+    width: Platform.OS === 'web' ? 400 : '100%',
+    maxWidth: Platform.OS === 'web' ? 400 : '100%',
+    alignSelf: 'center',
+    ...SHADOW_STYLE.LARGE,
   },
   simpleDatePickerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: SPACING.MEDIUM,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    marginBottom: SPACING.MEDIUM,
   },
   datePickerTitle: {
     fontSize: FONT_SIZE.MEDIUM,
@@ -510,20 +511,17 @@ const styles = StyleSheet.create({
   cancelButton: {
     color: COLORS.TEXT_SECONDARY,
     fontSize: FONT_SIZE.MEDIUM,
-    padding: SPACING.SMALL,
   },
   doneButton: {
     color: COLORS.PRIMARY,
-    fontWeight: FONT_WEIGHT.BOLD,
     fontSize: FONT_SIZE.MEDIUM,
-    padding: SPACING.SMALL,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   monthNavigator: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.LARGE,
-    paddingVertical: SPACING.MEDIUM,
+    marginBottom: SPACING.MEDIUM,
   },
   monthText: {
     fontSize: FONT_SIZE.MEDIUM,
@@ -532,16 +530,14 @@ const styles = StyleSheet.create({
   },
   quickSelectContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: SPACING.MEDIUM,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.MEDIUM,
   },
   quickSelectButton: {
-    paddingHorizontal: SPACING.MEDIUM,
+    backgroundColor: COLORS.LIGHT_GRAY,
+    paddingHorizontal: SPACING.SMALL,
     paddingVertical: SPACING.SMALL,
     borderRadius: BORDER_RADIUS.SMALL,
-    backgroundColor: COLORS.LIGHT_GRAY,
   },
   quickSelectText: {
     fontSize: FONT_SIZE.SMALL,
@@ -549,30 +545,31 @@ const styles = StyleSheet.create({
   },
   weekDaysContainer: {
     flexDirection: 'row',
-    paddingVertical: SPACING.SMALL,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.SMALL,
   },
   weekDayText: {
-    flex: 1,
+    width: Platform.OS === 'web' ? 40 : 35,
     textAlign: 'center',
     fontSize: FONT_SIZE.SMALL,
     color: COLORS.TEXT_SECONDARY,
+    fontWeight: FONT_WEIGHT.MEDIUM,
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: SPACING.SMALL,
+    justifyContent: 'space-between',
   },
   calendarDay: {
-    width: '14.28%',
-    aspectRatio: 1,
+    width: Platform.OS === 'web' ? 40 : 35,
+    height: Platform.OS === 'web' ? 40 : 35,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: SPACING.SMALL,
   },
   calendarDayText: {
-    fontSize: FONT_SIZE.MEDIUM,
-    color: COLORS.SECONDARY,
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_PRIMARY,
   },
   otherMonthDay: {
     opacity: 0.5,
@@ -581,19 +578,19 @@ const styles = StyleSheet.create({
     color: COLORS.TEXT_SECONDARY,
   },
   today: {
-    backgroundColor: COLORS.LIGHT_GRAY,
+    backgroundColor: COLORS.PRIMARY_LIGHT,
     borderRadius: BORDER_RADIUS.CIRCLE,
   },
   todayText: {
-    fontWeight: FONT_WEIGHT.BOLD,
     color: COLORS.PRIMARY,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   selectedDay: {
     backgroundColor: COLORS.PRIMARY,
     borderRadius: BORDER_RADIUS.CIRCLE,
   },
   selectedDayText: {
-    color: COLORS.SECONDARY,
+    color: COLORS.WHITE,
     fontWeight: FONT_WEIGHT.BOLD,
   },
 });

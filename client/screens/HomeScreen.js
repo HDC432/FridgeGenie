@@ -204,7 +204,7 @@ const HomeScreen = ({ navigation, route }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>编辑数量</Text>
+            <Text style={styles.modalTitle}>Edit Quantity</Text>
             <TouchableOpacity
               onPress={() => setIsQuantityModalVisible(false)}
               style={styles.closeButton}
@@ -216,13 +216,13 @@ const HomeScreen = ({ navigation, route }) => {
           <Text style={styles.modalItemName}>{selectedItem?.name}</Text>
           
           <View style={styles.quantityInputContainer}>
-            <Text style={styles.quantityLabel}>数量:</Text>
+            <Text style={styles.quantityLabel}>Quantity:</Text>
             <TextInput
               style={styles.quantityInput}
               value={newQuantity}
               onChangeText={setNewQuantity}
               keyboardType="number-pad"
-              placeholder="请输入数量"
+              placeholder="Enter quantity"
             />
           </View>
 
@@ -231,13 +231,13 @@ const HomeScreen = ({ navigation, route }) => {
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setIsQuantityModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>取消</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton]}
               onPress={handleQuantityUpdate}
             >
-              <Text style={styles.confirmButtonText}>确认</Text>
+              <Text style={styles.confirmButtonText}>Confirm</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -267,12 +267,12 @@ const HomeScreen = ({ navigation, route }) => {
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>冰箱是空的</Text>
+          <Text style={styles.emptyText}>Fridge is empty</Text>
           <TouchableOpacity
             style={styles.addFirstButton}
             onPress={() => navigation.navigate('AddItem')}
           >
-            <Text style={styles.addFirstButtonText}>添加第一个物品</Text>
+            <Text style={styles.addFirstButtonText}>Add First Item</Text>
           </TouchableOpacity>
         </View>
       ) : (

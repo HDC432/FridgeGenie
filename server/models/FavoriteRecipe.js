@@ -9,39 +9,39 @@ class FavoriteRecipe {
         this.createdAt = new Date();
     }
 
-    // 保存收藏的菜谱
+    // Save favorite recipe
     async save() {
         try {
-            console.log('保存收藏菜谱 - 开始:', this);
+            console.log('Saving favorite recipe - Start:', this);
             const { resource } = await favoriteRecipesContainer.items.create(this);
-            console.log('保存收藏菜谱 - 完成:', resource);
+            console.log('Saving favorite recipe - Complete:', resource);
             return resource;
         } catch (error) {
-            console.error('保存收藏菜谱错误:', error);
+            console.error('Error saving favorite recipe:', error);
             throw error;
         }
     }
 
-    // 查找用户收藏的菜谱
+    // Find user's favorite recipes
     static async findByUserId(userId) {
         try {
-            console.log('查找用户收藏菜谱 - 开始:', userId);
+            console.log('Finding user favorite recipes - Start:', userId);
             const { resources } = await favoriteRecipesContainer.items.query({
                 query: "SELECT * FROM c WHERE c.userId = @userId",
                 parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
-            console.log('查找用户收藏菜谱 - 完成:', resources);
+            console.log('Finding user favorite recipes - Complete:', resources);
             return resources;
         } catch (error) {
-            console.error('查找用户收藏菜谱错误:', error);
+            console.error('Error finding user favorite recipes:', error);
             throw error;
         }
     }
 
-    // 检查是否已收藏
+    // Check if recipe is favorited
     static async isFavorite(userId, recipeId) {
         try {
-            console.log('检查是否已收藏 - 开始:', { userId, recipeId });
+            console.log('Checking if recipe is favorited - Start:', { userId, recipeId });
             const { resources } = await favoriteRecipesContainer.items.query({
                 query: "SELECT * FROM c WHERE c.userId = @userId AND c.recipeId = @recipeId",
                 parameters: [
@@ -49,27 +49,27 @@ class FavoriteRecipe {
                     { name: "@recipeId", value: recipeId }
                 ]
             }).fetchAll();
-            console.log('检查是否已收藏 - 完成:', resources.length > 0);
+            console.log('Checking if recipe is favorited - Complete:', resources.length > 0);
             return {
                 isFavorite: resources.length > 0,
                 favoriteId: resources.length > 0 ? resources[0].id : null
             };
         } catch (error) {
-            console.error('检查是否已收藏错误:', error);
+            console.error('Error checking if recipe is favorited:', error);
             throw error;
         }
     }
 
-    // 添加收藏
+    // Add to favorites
     static async addFavorite(userId, recipeId, recipeData) {
         try {
-            console.log('添加收藏 - 开始:', { userId, recipeId });
+            console.log('Adding to favorites - Start:', { userId, recipeId });
             const { isFavorite } = await this.isFavorite(userId, recipeId);
             if (isFavorite) {
-                throw new Error('已经收藏过该菜谱');
+                throw new Error('Recipe already in favorites');
             }
 
-            // 确保食材数量是数字类型
+            // Ensure ingredient quantities are numbers
             const processedRecipeData = {
                 ...recipeData,
                 id: recipeId,
@@ -86,20 +86,20 @@ class FavoriteRecipe {
                 recipeData: processedRecipeData
             });
             const savedFavorite = await favorite.save();
-            console.log('添加收藏 - 完成:', savedFavorite);
+            console.log('Adding to favorites - Complete:', savedFavorite);
             return savedFavorite;
         } catch (error) {
-            console.error('添加收藏错误:', error);
+            console.error('Error adding to favorites:', error);
             throw error;
         }
     }
 
-    // 取消收藏
+    // Remove from favorites
     static async removeFavorite(userId, favoriteId) {
         try {
-            console.log('取消收藏 - 开始:', { userId, favoriteId });
+            console.log('Removing from favorites - Start:', { userId, favoriteId });
             
-            // 先查询记录是否存在
+            // First check if record exists
             const { resources } = await favoriteRecipesContainer.items.query({
                 query: "SELECT * FROM c WHERE c.userId = @userId AND c.id = @favoriteId",
                 parameters: [
@@ -108,22 +108,22 @@ class FavoriteRecipe {
                 ]
             }).fetchAll();
 
-            console.log('查询结果:', resources);
+            console.log('Query results:', resources);
 
             if (resources.length === 0) {
-                throw new Error('未找到收藏记录');
+                throw new Error('Favorite record not found');
             }
 
-            // 如果找到记录，则删除
+            // If record found, delete it
             const record = resources[0];
-            console.log('准备删除记录:', record);
+            console.log('Preparing to delete record:', record);
             
-            // 使用userId作为分区键来删除
+            // Use userId as partition key for deletion
             await favoriteRecipesContainer.item(favoriteId, userId).delete();
-            console.log('取消收藏 - 完成');
+            console.log('Removing from favorites - Complete');
             return true;
         } catch (error) {
-            console.error('取消收藏错误:', error);
+            console.error('Error removing from favorites:', error);
             throw error;
         }
     }

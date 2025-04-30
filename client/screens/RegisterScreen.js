@@ -9,7 +9,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import authService from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
 
 const RegisterScreen = ({ navigation }) => {
@@ -26,17 +25,17 @@ const RegisterScreen = ({ navigation }) => {
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
-      setError('请填写所有字段');
+      setError('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setError('Passwords do not match');
       return;
     }
 
     if (!agreeTerms) {
-      setError('请阅读并同意用户协议');
+      setError('Please read and agree to the terms of service');
       return;
     }
 
@@ -47,11 +46,11 @@ const RegisterScreen = ({ navigation }) => {
       
       if (userData) {
         Alert.alert(
-          '注册成功',
-          '您已成功注册，现在可以登录了',
+          'Registration Successful',
+          'You have successfully registered, you can now log in',
           [
             {
-              text: '确定',
+              text: 'OK',
               onPress: () => {
                 setName('');
                 setEmail('');
@@ -64,11 +63,11 @@ const RegisterScreen = ({ navigation }) => {
           ]
         );
       } else {
-        setError('注册失败，请稍后重试');
+        setError('Registration failed, please try again later');
       }
     } catch (err) {
-      console.error('注册错误:', err);
-      setError(err.message || '注册失败，请稍后重试');
+      console.error('Registration error:', err);
+      setError(err.message || 'Registration failed, please try again later');
     } finally {
       setLoading(false);
     }
@@ -77,15 +76,15 @@ const RegisterScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>创建账号</Text>
-        <Text style={styles.subtitle}>注册一个新账号来使用FridgeGenie</Text>
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Register a new account to use FridgeGenie</Text>
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>姓名</Text>
+        <Text style={styles.label}>Name</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入您的姓名"
+          placeholder="Enter your name"
           value={name}
           onChangeText={setName}
           autoComplete="off"
@@ -96,10 +95,10 @@ const RegisterScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>邮箱</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入您的邮箱"
+          placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -112,11 +111,11 @@ const RegisterScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>密码</Text>
+        <Text style={styles.label}>Password</Text>
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.input}
-            placeholder="请设置密码"
+            placeholder="Set your password"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -140,10 +139,10 @@ const RegisterScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>确认密码</Text>
+        <Text style={styles.label}>Confirm Password</Text>
         <TextInput
           style={styles.input}
-          placeholder="请再次输入密码"
+          placeholder="Enter your password again"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry={!showPassword}
@@ -156,10 +155,10 @@ const RegisterScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>邀请码（可选）</Text>
+        <Text style={styles.label}>Invite Code (Optional)</Text>
         <TextInput
           style={styles.input}
-          placeholder="如果您有邀请码，请在此输入"
+          placeholder="Enter invite code if you have one"
           value={inviteCode}
           onChangeText={setInviteCode}
           autoCapitalize="none"
@@ -178,8 +177,8 @@ const RegisterScreen = ({ navigation }) => {
           )}
         </View>
         <Text style={styles.termsText}>
-          我已阅读并同意 <Text style={styles.termsLink}>用户协议</Text> 和{' '}
-          <Text style={styles.termsLink}>隐私政策</Text>
+          I have read and agree to the <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+          <Text style={styles.termsLink}>Privacy Policy</Text>
         </Text>
       </TouchableOpacity>
 
@@ -191,14 +190,14 @@ const RegisterScreen = ({ navigation }) => {
         {loading ? (
           <ActivityIndicator size="small" color="#1F2B40" />
         ) : (
-          <Text style={styles.registerButtonText}>注册</Text>
+          <Text style={styles.registerButtonText}>Register</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.loginContainer}>
-        <Text style={styles.loginText}>已有账号？</Text>
+        <Text style={styles.loginText}>Already have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginLink}>立即登录</Text>
+          <Text style={styles.loginLink}>Login Now</Text>
         </TouchableOpacity>
       </View>
     </View>

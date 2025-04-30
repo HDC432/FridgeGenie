@@ -143,10 +143,8 @@ class FamilyController {
             
             console.log('FamilyController - leaveFamily - 开始处理请求');
             console.log('FamilyController - leaveFamily - 请求参数:', { familyId, userId });
-            console.log('FamilyController - leaveFamily - 用户信息:', req.user);
             
-            console.log('FamilyController - leaveFamily - 开始调用 familyService.removeMember');
-            const result = await familyService.removeMember(familyId, userId);
+            const result = await familyService.leaveFamily(familyId, userId);
             console.log('FamilyController - leaveFamily - 服务返回结果:', result);
             
             if (!result.success) {

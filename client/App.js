@@ -18,7 +18,7 @@ import HealthProfileScreen from './screens/HealthProfileScreen';
 import AIAssistant from './src/components/AIAssistant';
 import FavoriteRecipesScreen from './screens/FavoriteRecipesScreen';
 import RecommendedItemsScreen from './screens/RecommendedItemsScreen';
-import theme from './styles/theme';
+
 
 const Stack = createStackNavigator();
 
@@ -80,37 +80,37 @@ const Navigation = () => {
             <Stack.Screen
               name="AddItem"
               component={AddItemScreen}
-              options={{ title: '添加物品' }}
+              options={{ title: 'Add Item' }}
             />
             <Stack.Screen
               name="Recipe"
               component={RecipeScreen}
-              options={{ title: '菜谱' }}
+              options={{ title: 'Recipes' }}
             />
             <Stack.Screen
               name="UserProfile"
               component={UserProfileScreen}
-              options={{ title: '用户信息' }}
+              options={{ title: 'User Profile' }}
             />
             <Stack.Screen
               name="Family"
               component={FamilyScreen}
-              options={{ title: '我的家庭' }}
+              options={{ title: 'My Family' }}
             />
             <Stack.Screen
               name="HealthProfile"
               component={HealthProfileScreen}
-              options={{ title: '健康信息' }}
+              options={{ title: 'Health Profile' }}
             />
             <Stack.Screen
               name="FavoriteRecipes"
               component={FavoriteRecipesScreen}
-              options={{ title: '收藏的菜谱' }}
+              options={{ title: 'Favorite Recipes' }}
             />
             <Stack.Screen
               name="RecommendedItems"
               component={RecommendedItemsScreen}
-              options={{ title: '推荐购买' }}
+              options={{ title: 'Recommended Items' }}
             />
           </>
         ) : (
