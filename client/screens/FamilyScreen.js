@@ -17,6 +17,7 @@ import { API_URL } from '../config/constants';
 import authService from '../services/authService';
 import theme from '../styles/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -248,57 +249,95 @@ const FamilyScreen = () => {
   };
 
   const handleLeaveFamily = async () => {
-    if (!family) return;
-
-    console.log('FamilyScreen - 开始退出家庭流程');
-    console.log('FamilyScreen - 当前家庭信息:', family);
-
-    showConfirm('确认退出', '确定要退出当前家庭吗？', async () => {
-      try {
-        console.log('FamilyScreen - 用户确认退出家庭');
-        setLoading(true);
-        const token = await authService.getToken();
-        console.log('FamilyScreen - 获取到的token:', token);
-        
-        const requestUrl = `${API_URL}/families/${family.id}/leave`;
-        console.log('FamilyScreen - 准备发送退出请求:', requestUrl);
-        console.log('FamilyScreen - 请求方法: DELETE');
-        console.log('FamilyScreen - 请求头:', {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        });
-
-        const response = await fetch(requestUrl, {
-          method: 'DELETE',
+    try {
+      const token = await authService.getToken();
+      const response = await axios.post(
+        `${API_URL}/families/${user.familyId}/leave`,
+        {},
+        {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        console.log('FamilyScreen - 退出家庭响应状态:', response.status);
-        const data = await response.json();
-        console.log('FamilyScreen - 退出家庭响应数据:', data);
-
-        if (response.ok) {
-          console.log('FamilyScreen - 退出家庭成功');
-          setFamily(null);
-          const updatedUser = { ...user, familyId: null };
-          await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
-          setUser(updatedUser);
-          showAlert('成功', '已退出家庭');
-        } else {
-          console.log('FamilyScreen - 退出家庭失败:', data.message);
-          showAlert('错误', data.message || '退出家庭失败');
+            'Authorization': `Bearer ${token}`
+          }
         }
-      } catch (error) {
-        console.error('FamilyScreen - 退出家庭失败:', error);
-        showAlert('错误', '退出家庭失败');
-      } finally {
-        setLoading(false);
+      );
+
+      if (response.data.success) {
+        // 更新用户状态
+        await authService.updateUser({ familyId: null });
+        // 显示成功消息
+        if (Platform.OS === 'web') {
+          window.alert('已成功退出家庭');
+        } else {
+          Alert.alert('成功', '已成功退出家庭');
+        }
+        // 刷新页面
+        loadFamilyInfo();
       }
-    });
+    } catch (error) {
+      console.error('退出家庭失败:', error);
+      if (Platform.OS === 'web') {
+        window.alert('退出家庭失败，请重试');
+      } else {
+        Alert.alert('错误', '退出家庭失败，请重试');
+      }
+    }
   };
+
+  const renderMemberItem = ({ item }) => (
+    <View style={styles.memberItem}>
+      <View style={styles.memberInfo}>
+        <Text style={styles.memberName}>{item.username}</Text>
+        <Text style={styles.memberRole}>
+          {item.role === 'admin' ? '管理员' : '成员'}
+        </Text>
+      </View>
+      {user.id === item.id ? (
+        <TouchableOpacity
+          style={styles.leaveButton}
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              if (window.confirm('确定要退出家庭吗？')) {
+                handleLeaveFamily();
+              }
+            } else {
+              Alert.alert(
+                '确认退出',
+                '确定要退出家庭吗？',
+                [
+                  { text: '取消', style: 'cancel' },
+                  { text: '退出', style: 'destructive', onPress: handleLeaveFamily }
+                ]
+              );
+            }
+          }}
+        >
+          <Text style={styles.leaveButtonText}>退出家庭</Text>
+        </TouchableOpacity>
+      ) : user.role === 'admin' && (
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              if (window.confirm(`确定要移除成员 ${item.username} 吗？`)) {
+                handleRemoveMember(item.id);
+              }
+            } else {
+              Alert.alert(
+                '确认移除',
+                `确定要移除成员 ${item.username} 吗？`,
+                [
+                  { text: '取消', style: 'cancel' },
+                  { text: '移除', style: 'destructive', onPress: () => handleRemoveMember(item.id) }
+                ]
+              );
+            }
+          }}
+        >
+          <Text style={styles.removeButtonText}>移除</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   if (loading) {
     return (
@@ -521,6 +560,11 @@ const styles = StyleSheet.create({
   leaveButtonText: {
     color: COLORS.BACKGROUND,
     fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+  },
+  removeButtonText: {
+    color: COLORS.DANGER,
+    fontSize: FONT_SIZE.SMALL,
     fontWeight: FONT_WEIGHT.SEMIBOLD,
   },
 });

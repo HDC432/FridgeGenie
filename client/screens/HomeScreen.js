@@ -245,9 +245,15 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.headerButtons}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => navigation.navigate('Recipe')}
+            onPress={() => navigation.navigate('Recipes')}
           >
             <Ionicons name="restaurant-outline" size={24} color={COLORS.BACKGROUND} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => navigation.navigate('Home', { screen: 'RecommendedItems' })}
+          >
+            <Ionicons name="cart-outline" size={24} color={COLORS.BACKGROUND} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addButton}

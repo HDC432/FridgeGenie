@@ -398,4 +398,112 @@ ${healthPrompt}
         console.error('生成饮食建议失败:', error);
         throw error;
     }
+};
+
+export const getRecommendedItems = async ({ familyId, familyMembers }) => {
+  try {
+    // 获取家庭成员的健康标签
+    const familyHealthTags = await getFamilyHealthTags(familyId);
+    
+    // 获取收藏的菜谱
+    const token = await authService.getToken();
+    const favoritesResponse = await axios.get(`${API_URL}/favorites`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    const favoriteRecipes = favoritesResponse.data.data || [];
+
+    // 生成健康提示词
+    const healthPrompt = generateHealthPrompt(familyHealthTags);
+
+    // 构建提示词
+    const prompt = `你是一个专业的营养师和购物助手。请根据以下信息推荐需要购买的食材：
+
+家庭成员健康标签：
+${healthPrompt}
+
+收藏的菜谱：
+${favoriteRecipes.map(recipe => recipe.recipeData.name).join(', ')}
+
+请推荐需要购买的食材，考虑以下因素：
+1. 家庭成员的健康需求
+2. 收藏菜谱中需要的食材
+3. 营养均衡
+4. 季节性食材
+5. 食材的保质期
+
+请以JSON格式返回，格式如下：
+{
+  "recommendedItems": [
+    {
+      "id": "唯一标识符",
+      "name": "食材名称",
+      "reason": "推荐原因",
+      "recommendedQuantity": "推荐数量",
+      "priority": "优先级（高/中/低）"
+    }
+  ]
+}`;
+
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "你是一个专业的营养师和购物助手，擅长根据家庭成员的健康需求和收藏的菜谱推荐需要购买的食材。"
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (!response.data || !response.data.choices || !response.data.choices[0] || !response.data.choices[0].message) {
+      throw new Error('API 响应格式不正确');
+    }
+
+    const content = response.data.choices[0].message.content;
+    console.log('API Response Content:', content);
+
+    // 尝试清理和解析 JSON
+    let cleanedContent = content;
+    try {
+      // 如果内容被包裹在 ```json 和 ``` 中，移除它们
+      if (content.includes('```json')) {
+        cleanedContent = content.split('```json')[1].split('```')[0].trim();
+      } else if (content.includes('```')) {
+        cleanedContent = content.split('```')[1].split('```')[0].trim();
+      }
+      
+      const data = JSON.parse(cleanedContent);
+      
+      // 验证返回的数据结构
+      if (!data.recommendedItems || !Array.isArray(data.recommendedItems)) {
+        throw new Error('返回的数据格式不正确');
+      }
+      
+      return data.recommendedItems;
+    } catch (parseError) {
+      console.error('JSON 解析错误:', parseError);
+      console.error('原始内容:', content);
+      console.error('清理后的内容:', cleanedContent);
+      throw new Error(`JSON 解析错误: ${parseError.message}`);
+    }
+  } catch (error) {
+    console.error('获取推荐食材失败:', error);
+    throw error;
+  }
 }; 

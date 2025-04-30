@@ -6,6 +6,7 @@ import HomeScreen from '../screens/HomeScreen';
 import RecipeScreen from '../screens/RecipeScreen';
 import FamilyScreen from '../screens/FamilyScreen';
 import HealthProfileScreen from '../screens/HealthProfileScreen';
+import RecommendedItemsScreen from '../screens/RecommendedItemsScreen';
 import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -18,6 +19,14 @@ const HomeStack = () => {
                 name="Home" 
                 component={HomeScreen}
                 options={{ headerShown: false }}
+            />
+            <Stack.Screen 
+                name="RecommendedItems" 
+                component={RecommendedItemsScreen}
+                options={{ 
+                    title: '推荐购买食材',
+                    headerShown: true
+                }}
             />
         </Stack.Navigator>
     );
