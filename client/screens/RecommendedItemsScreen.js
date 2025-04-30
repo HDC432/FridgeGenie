@@ -45,13 +45,10 @@ const RecommendedItemsScreen = ({ navigation }) => {
         return;
       }
 
-      // 获取家庭成员信息
-      const familyMembers = await getFamilyMembers(user.familyId);
       
       // 获取推荐食材
       const items = await getRecommendedItems({
         familyId: user.familyId,
-        familyMembers: familyMembers,
       });
       
       setRecommendedItems(items);

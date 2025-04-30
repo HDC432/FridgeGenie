@@ -2,7 +2,7 @@ import axios from 'axios';
 // Temporarily comment out the env import to make UI work
 import { OPENAI_API_KEY } from '@env';
 import { API_URL } from '../config/constants';
-import authService from '../services/authService';
+import authService from './authService';
 
 // 使用环境变量中的API密钥
 // const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
@@ -400,7 +400,7 @@ ${healthPrompt}
     }
 };
 
-export const getRecommendedItems = async ({ familyId, familyMembers }) => {
+export const getRecommendedItems = async ({ familyId }) => {
   try {
     // 获取家庭成员的健康标签
     const familyHealthTags = await getFamilyHealthTags(familyId);

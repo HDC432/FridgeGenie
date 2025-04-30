@@ -1,4 +1,5 @@
 import { API_URL, DEBUG } from '../config/database';
+import authService from './authService';
 
 // 获取所有物品
 export const getItems = async () => {
@@ -252,6 +253,46 @@ export const updateItemQuantity = async (id, newQuantity) => {
         return await updateResponse.json();
     } catch (error) {
         console.error('更新物品数量失败:', error);
+        throw error;
+    }
+};
+
+// 获取家庭成员
+export const getFamilyMembers = async (familyId) => {
+    try {
+        const url = `${API_URL}/families/${familyId}/members`;
+        if (DEBUG) {
+            console.log('请求URL:', url);
+        }
+        
+        const token = await authService.getToken();
+        console.log('获取到的token:', token);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('服务器响应错误:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('获取到的家庭成员数据:', data);
+
+        return data.data || [];
+    } catch (error) {
+        console.error('获取家庭成员失败:', error);
         throw error;
     }
 }; 
