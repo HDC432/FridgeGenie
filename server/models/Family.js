@@ -2,7 +2,7 @@ const { familiesContainer } = require('../config/database');
 
 class Family {
     constructor(name, creatorId) {
-        console.log('Family 构造函数 - 参数:', { name, creatorId });
+        console.log('Family constructor - Parameters:', { name, creatorId });
         this.name = name;
         this.creatorId = creatorId;
         this.members = [{
@@ -13,115 +13,115 @@ class Family {
         }];
         this.inviteCode = this.generateInviteCode();
         this.createdAt = new Date();
-        console.log('Family 构造函数 - 创建的对象:', this);
+        console.log('Family constructor - Created object:', this);
     }
 
-    // 生成邀请码
+    // Generate invite code
     generateInviteCode() {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    // 保存家庭
+    // Save family
     async save() {
         try {
-            console.log('保存家庭 - 开始:', this);
+            console.log('Saving family - Starting:', this);
             const { resource } = await familiesContainer.items.create(this);
-            console.log('保存家庭 - 完成:', resource);
+            console.log('Saving family - Completed:', resource);
             return resource;
         } catch (error) {
-            console.error('保存家庭错误:', error);
+            console.error('Error saving family:', error);
             throw error;
         }
     }
 
-    // 查找家庭（通过ID）
+    // Find family (by ID)
     static async findById(id) {
         try {
-            console.log('查找家庭 - 通过ID:', id);
+            console.log('Finding family - By ID:', id);
             const { resource } = await familiesContainer.item(id, id).read();
-            console.log('查找家庭 - 查询结果:', resource);
+            console.log('Finding family - Query result:', resource);
             return resource;
         } catch (error) {
-            console.error('查找家庭错误:', error);
+            console.error('Error finding family:', error);
             throw error;
         }
     }
 
-    // 查找家庭（通过用户ID）
+    // Find family (by user ID)
     static async findByUserId(userId) {
         try {
-            console.log('查找家庭 - 通过用户ID:', userId);
+            console.log('Finding family - By user ID:', userId);
             const { resources } = await familiesContainer.items.query({
                 query: "SELECT * FROM c WHERE ARRAY_CONTAINS(c.members, {userId: @userId}, true)",
                 parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
-            console.log('查找家庭 - 查询结果:', resources[0]);
+            console.log('Finding family - Query result:', resources[0]);
             return resources[0];
         } catch (error) {
-            console.error('查找家庭错误:', error);
+            console.error('Error finding family:', error);
             throw error;
         }
     }
 
-    // 查找家庭（通过邀请码）
+    // Find family (by invite code)
     static async findByInviteCode(inviteCode) {
         try {
-            console.log('查找家庭 - 通过邀请码:', inviteCode);
+            console.log('Finding family - By invite code:', inviteCode);
             const { resources } = await familiesContainer.items.query({
                 query: "SELECT * FROM c WHERE c.inviteCode = @inviteCode",
                 parameters: [{ name: "@inviteCode", value: inviteCode }]
             }).fetchAll();
-            console.log('查找家庭 - 查询结果:', resources[0]);
+            console.log('Finding family - Query result:', resources[0]);
             return resources[0];
         } catch (error) {
-            console.error('查找家庭错误:', error);
+            console.error('Error finding family:', error);
             throw error;
         }
     }
 
-    // 删除家庭
+    // Delete family
     static async delete(id) {
         try {
-            console.log('删除家庭 - 开始:', id);
+            console.log('Deleting family - Starting:', id);
             await familiesContainer.item(id, id).delete();
-            console.log('删除家庭 - 完成');
+            console.log('Deleting family - Completed');
             return true;
         } catch (error) {
-            console.error('删除家庭错误:', error);
+            console.error('Error deleting family:', error);
             throw error;
         }
     }
 
-    // 更新家庭信息
+    // Update family information
     static async update(id, data) {
         try {
-            console.log('更新家庭 - 开始:', { id, data });
+            console.log('Updating family - Starting:', { id, data });
             const { resource } = await familiesContainer.item(id, id).replace(data);
-            console.log('更新家庭 - 完成:', resource);
+            console.log('Updating family - Completed:', resource);
             return resource;
         } catch (error) {
-            console.error('更新家庭错误:', error);
+            console.error('Error updating family:', error);
             throw error;
         }
     }
 
-    // 添加成员
+    // Add member
     static async addMember(familyId, userId) {
         try {
-            console.log('添加成员 - 开始:', { familyId, userId });
+            console.log('Adding member - Starting:', { familyId, userId });
             const family = await Family.findById(familyId);
             
             if (!family) {
-                throw new Error('家庭不存在');
+                throw new Error('Family does not exist');
             }
 
-            // 检查用户是否已经是成员
+            // Check if user is already a member
             const isMember = family.members.some(member => member.userId === userId);
             if (isMember) {
-                throw new Error('用户已经是家庭成员');
+                throw new Error('User is already a family member');
             }
 
-            // 添加新成员
+            // Add new member
             family.members.push({
                 userId,
                 role: 'member',
@@ -129,12 +129,12 @@ class Family {
                 joinedAt: new Date()
             });
 
-            // 更新家庭信息
+            // Update family information
             const updatedFamily = await Family.update(familyId, family);
-            console.log('添加成员 - 完成:', updatedFamily);
+            console.log('Adding member - Completed:', updatedFamily);
             return updatedFamily;
         } catch (error) {
-            console.error('添加成员错误:', error);
+            console.error('Error adding member:', error);
             throw error;
         }
     }

@@ -14,15 +14,15 @@ class User {
 
     static async create(data) {
         try {
-            console.log('创建用户 - 开始:', data);
+            console.log('Creating user - Starting:', data);
             const hashedPassword = await bcrypt.hash(data.password, 10);
             const user = new User(data.username, data.email, hashedPassword, data.familyId);
             const { resource } = await usersContainer.items.create(user);
-            console.log('创建用户 - 成功:', resource);
+            console.log('Creating user - Success:', resource);
 
-            // 自动创建健康档案
+            // Automatically create health profile
             try {
-                console.log('开始创建默认健康档案');
+                console.log('Starting to create default health profile');
                 const defaultHealthProfile = {
                     userId: resource.id,
                     basicInfo: {
@@ -55,137 +55,137 @@ class User {
                     }
                 };
                 await HealthProfile.create(defaultHealthProfile);
-                console.log('默认健康档案创建成功');
+                console.log('Default health profile created successfully');
             } catch (error) {
-                console.error('创建默认健康档案失败:', error);
-                // 即使健康档案创建失败，也不影响用户创建
+                console.error('Failed to create default health profile:', error);
+                // Even if health profile creation fails, it doesn't affect user creation
             }
 
             return resource;
         } catch (error) {
-            console.error('创建用户失败:', error);
+            console.error('Failed to create user:', error);
             throw error;
         }
     }
 
-    // 保存用户
+    // Save user
     async save() {
         try {
-            console.log('保存用户 - 开始:', this);
-            // 加密密码
+            console.log('Saving user - Starting:', this);
+            // Encrypt password
             const salt = await bcrypt.genSalt(10);
             this.password = await bcrypt.hash(this.password, salt);
             
             const { resource } = await usersContainer.items.create(this);
-            console.log('保存用户 - 完成:', resource);
+            console.log('Saving user - Completed:', resource);
             return resource;
         } catch (error) {
-            console.error('保存用户错误:', error);
+            console.error('Error saving user:', error);
             throw error;
         }
     }
 
-    // 验证密码
+    // Verify password
     async comparePassword(candidatePassword) {
         return bcrypt.compare(candidatePassword, this.password);
     }
 
-    // 查找用户（通过ID）
+    // Find user (by ID)
     static async findById(userId) {
         try {
-            console.log('查找用户 - 通过用户ID:', userId);
+            console.log('Finding user - By user ID:', userId);
             const { resources } = await usersContainer.items.query({
                 query: "SELECT * FROM c WHERE c.id = @userId",
                 parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
-            console.log('查找用户 - 查询结果:', resources[0]);
+            console.log('Finding user - Query result:', resources[0]);
             return resources[0];
         } catch (error) {
-            console.error('查找用户错误:', error);
+            console.error('Error finding user:', error);
             throw error;
         }
     }
 
-    // 查找用户（通过邮箱）
+    // Find user (by email)
     static async findByEmail(email) {
         try {
-            console.log('查找用户 - 通过邮箱:', email);
+            console.log('Finding user - By email:', email);
             const { resources } = await usersContainer.items.query({
                 query: "SELECT * FROM c WHERE c.email = @email",
                 parameters: [{ name: "@email", value: email }]
             }).fetchAll();
-            console.log('查找用户 - 查询结果:', resources[0]);
+            console.log('Finding user - Query result:', resources[0]);
             return resources[0];
         } catch (error) {
-            console.error('查找用户错误:', error);
+            console.error('Error finding user:', error);
             throw error;
         }
     }
 
-    // 查找用户（通过用户名）
+    // Find user (by username)
     static async findByUsername(username) {
         try {
-            console.log('查找用户 - 通过用户名:', username);
+            console.log('Finding user - By username:', username);
             const { resources } = await usersContainer.items.query({
                 query: "SELECT * FROM c WHERE c.username = @username",
                 parameters: [{ name: "@username", value: username }]
             }).fetchAll();
-            console.log('查找用户 - 查询结果:', resources[0]);
+            console.log('Finding user - Query result:', resources[0]);
             return resources[0];
         } catch (error) {
-            console.error('查找用户错误:', error);
+            console.error('Error finding user:', error);
             throw error;
         }
     }
 
-    // 更新最后登录时间
+    // Update last login time
     static async updateLastLogin(userId) {
         try {
-            console.log('更新最后登录时间 - 用户ID:', userId);
+            console.log('Updating last login time - User ID:', userId);
             
-            // 首先检查用户是否存在
+            // First check if user exists
             const user = await User.findById(userId);
             if (!user) {
-                console.error('更新最后登录时间错误: 用户不存在');
-                throw new Error('用户不存在');
+                console.error('Error updating last login time: User does not exist');
+                throw new Error('User does not exist');
             }
 
-            // 使用 replace 操作而不是 patch
+            // Use replace operation instead of patch
             const { resource } = await usersContainer.item(userId, userId).replace({
                 ...user,
                 lastLogin: new Date()
             });
             
-            console.log('更新最后登录时间 - 完成:', resource);
+            console.log('Updating last login time - Completed:', resource);
             return resource;
         } catch (error) {
-            console.error('更新最后登录时间错误:', error);
+            console.error('Error updating last login time:', error);
             throw error;
         }
     }
 
-    // 更新用户家庭ID
+    // Update user family ID
     static async updateFamilyId(userId, familyId) {
         try {
-            console.log('更新用户家庭ID - 用户ID:', userId, '家庭ID:', familyId);
+            console.log('Updating user family ID - User ID:', userId, 'Family ID:', familyId);
             
-            // 首先检查用户是否存在
+            // First check if user exists
             const user = await User.findById(userId);
             if (!user) {
-                console.error('更新用户家庭ID错误: 用户不存在');
-                throw new Error('用户不存在');
+                console.error('Error updating user family ID: User does not exist');
+                throw new Error('User does not exist');
             }
 
-            // 使用 replace 操作而不是 patch
+            // Use replace operation instead of patch
             const { resource } = await usersContainer.item(userId, userId).replace({
                 ...user,
                 familyId: familyId
             });
             
-            console.log('更新用户家庭ID - 完成:', resource);
+            console.log('Updating user family ID - Completed:', resource);
             return resource;
         } catch (error) {
-            console.error('更新用户家庭ID错误:', error);
+            console.error('Error updating user family ID:', error);
             throw error;
         }
     }

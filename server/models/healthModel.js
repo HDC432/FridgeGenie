@@ -135,7 +135,7 @@ class HealthProfile {
         return tags;
     }
 
-    // 计算BMI
+    // Calculate BMI
     calculateBMI() {
         if (!this.basicInfo.height || !this.basicInfo.weight) return null;
         const heightInMeters = this.basicInfo.height / 100;
@@ -144,36 +144,36 @@ class HealthProfile {
 
     static async findByUserId(userId) {
         try {
-            console.log('查询健康档案 - 开始:', userId);
+            console.log('Querying health profile - Starting:', userId);
             const { resources } = await healthProfilesContainer.items.query({
                 query: "SELECT * FROM c WHERE c.userId = @userId",
                 parameters: [{ name: "@userId", value: userId }]
             }).fetchAll();
             
             if (!resources || resources.length === 0) {
-                console.log('查询健康档案 - 未找到:', userId);
+                console.log('Querying health profile - Not found:', userId);
                 return null;
             }
             
-            console.log('查询健康档案 - 找到:', resources[0]);
+            console.log('Querying health profile - Found:', resources[0]);
             return new HealthProfile(resources[0]);
         } catch (error) {
-            console.error('查询健康档案失败:', error);
+            console.error('Failed to query health profile:', error);
             throw error;
         }
     }
 
     static async create(data) {
         try {
-            console.log('创建健康档案 - 开始:', data);
+            console.log('Creating health profile - Starting:', data);
             const profile = new HealthProfile(data);
-            // 确保生成健康标签
+            // Ensure health tags are generated
             profile.healthTags = profile.generateHealthTags();
             const { resource } = await healthProfilesContainer.items.create(profile);
-            console.log('创建健康档案 - 成功:', resource);
+            console.log('Creating health profile - Success:', resource);
             return new HealthProfile(resource);
         } catch (error) {
-            console.error('创建健康档案失败:', error);
+            console.error('Failed to create health profile:', error);
             throw error;
         }
     }
@@ -227,17 +227,17 @@ class HealthProfile {
 
     static async delete(userId) {
         try {
-            console.log('删除健康档案 - 开始:', userId);
+            console.log('Deleting health profile - Starting:', userId);
             const profile = await this.findByUserId(userId);
             if (!profile) {
-                throw new Error('健康档案不存在');
+                throw new Error('Health profile does not exist');
             }
 
             await healthProfilesContainer.item(profile.id).delete();
-            console.log('删除健康档案 - 成功:', userId);
+            console.log('Deleting health profile - Success:', userId);
             return true;
         } catch (error) {
-            console.error('删除健康档案失败:', error);
+            console.error('Failed to delete health profile:', error);
             throw error;
         }
     }
