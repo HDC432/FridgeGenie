@@ -92,7 +92,7 @@ class UserService {
         };
       }
       
-      // 正常用户登录流程 - 原有代码保持不变
+      // 正常用户登录流程
       const user = await User.findByEmail(email);
       console.log('登录服务 - 用户查询结果:', user);
       
@@ -112,6 +112,19 @@ class UserService {
       // 更新最后登录时间
       await User.updateLastLogin(user.id);
 
+      // 如果用户没有 familyId，尝试查找用户的家庭
+      let familyId = user.familyId;
+      if (!familyId) {
+        console.log('登录服务 - 用户没有 familyId，尝试查找家庭');
+        const family = await Family.findByUserId(user.id);
+        if (family) {
+          console.log('登录服务 - 找到用户的家庭:', family);
+          familyId = family.id;
+          // 更新用户的 familyId
+          await User.updateFamilyId(user.id, familyId);
+        }
+      }
+
       // 生成 JWT token
       const token = this.generateToken(user);
       console.log('登录服务 - 生成 token 成功');
@@ -121,7 +134,7 @@ class UserService {
           id: user.id,
           username: user.username,
           email: user.email,
-          familyId: user.familyId,
+          familyId: familyId,
           createdAt: user.createdAt,
           lastLogin: new Date()
         },

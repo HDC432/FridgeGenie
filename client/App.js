@@ -2,8 +2,10 @@ import 'react-native-gesture-handler';
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet, View, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -21,6 +23,125 @@ import RecommendedItemsScreen from './screens/RecommendedItemsScreen';
 import theme from './styles/theme';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+const ProfileStack = createStackNavigator();
+
+const ProfileStackNavigator = () => {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#FCD34D',
+        },
+        headerTintColor: '#1F2B40',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <ProfileStack.Screen
+        name="ProfileMain"
+        component={UserProfileScreen}
+        options={{ title: '我的' }}
+      />
+      <ProfileStack.Screen
+        name="HealthProfile"
+        component={HealthProfileScreen}
+        options={{ title: '健康信息' }}
+      />
+      <ProfileStack.Screen
+        name="FavoriteRecipes"
+        component={FavoriteRecipesScreen}
+        options={{ title: '收藏的菜谱' }}
+      />
+      <ProfileStack.Screen
+        name="Family"
+        component={FamilyScreen}
+        options={{ title: '我的家庭' }}
+      />
+    </ProfileStack.Navigator>
+  );
+};
+
+const TabNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Recipe') {
+            iconName = focused ? 'restaurant' : 'restaurant-outline';
+          } else if (route.name === 'AddItem') {
+            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'Recommended') {
+            iconName = focused ? 'star' : 'star-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#FCD34D',
+        tabBarInactiveTintColor: '#1F2B40',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E7EB',
+          paddingBottom: 5,
+          paddingTop: 5,
+          height: 60,
+        },
+        headerStyle: {
+          backgroundColor: '#FCD34D',
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+          elevation: 5,
+        },
+        headerTintColor: '#1F2B40',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{ title: 'My Fridge' }}
+      />
+      <Tab.Screen 
+        name="Recipe" 
+        component={RecipeScreen}
+        options={{ title: '菜谱' }}
+      />
+      <Tab.Screen 
+        name="AddItem" 
+        component={AddItemScreen}
+        options={{ title: '添加物品' }}
+      />
+      <Tab.Screen 
+        name="Recommended" 
+        component={RecommendedItemsScreen}
+        options={{ title: '推荐' }}
+      />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileStackNavigator}
+        options={{ 
+          title: '我的',
+          headerShown: false,
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const Navigation = () => {
   const { user, loading } = useAuth();
@@ -42,79 +163,14 @@ const Navigation = () => {
     <>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: {
-            backgroundColor: '#FCD34D',
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 3.84,
-            elevation: 5,
-          },
-          headerTintColor: '#1F2B40',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
+          headerShown: false,
         }}
       >
         {user ? (
-          // 已登录状态
           <>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                title: 'My Fridge',
-                headerRight: () => (
-                  <View style={styles.headerRight}>
-                    <UserAvatar
-                      user={user}
-                      onPress={handleMenuPress}
-                    />
-                  </View>
-                ),
-              }}
-            />
-            <Stack.Screen
-              name="AddItem"
-              component={AddItemScreen}
-              options={{ title: '添加物品' }}
-            />
-            <Stack.Screen
-              name="Recipe"
-              component={RecipeScreen}
-              options={{ title: '菜谱' }}
-            />
-            <Stack.Screen
-              name="UserProfile"
-              component={UserProfileScreen}
-              options={{ title: '用户信息' }}
-            />
-            <Stack.Screen
-              name="Family"
-              component={FamilyScreen}
-              options={{ title: '我的家庭' }}
-            />
-            <Stack.Screen
-              name="HealthProfile"
-              component={HealthProfileScreen}
-              options={{ title: '健康信息' }}
-            />
-            <Stack.Screen
-              name="FavoriteRecipes"
-              component={FavoriteRecipesScreen}
-              options={{ title: '收藏的菜谱' }}
-            />
-            <Stack.Screen
-              name="RecommendedItems"
-              component={RecommendedItemsScreen}
-              options={{ title: '推荐购买' }}
-            />
+            <Stack.Screen name="MainTabs" component={TabNavigator} />
           </>
         ) : (
-          // 未登录状态
           <>
             <Stack.Screen
               name="Login"

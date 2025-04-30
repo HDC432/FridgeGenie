@@ -49,15 +49,19 @@ export const getItems = async () => {
 export const getFamilyItems = async (familyId) => {
     try {
         if (!familyId) {
+            console.error('getFamilyItems: familyId is missing');
             throw new Error('familyId is required');
         }
 
+        console.log('getFamilyItems: 开始获取家庭物品，familyId:', familyId);
         const token = await authService.getToken();
         if (!token) {
+            console.error('getFamilyItems: 未获取到token');
             throw new Error('Not authenticated');
         }
 
         const url = `${API_URL}/items/family/${familyId}`;
+        console.log('getFamilyItems: 请求URL:', url);
         
         const response = await fetch(url, {
             method: 'GET',
@@ -68,17 +72,23 @@ export const getFamilyItems = async (familyId) => {
             }
         });
 
+        console.log('getFamilyItems: 服务器响应状态:', response.status);
         if (!response.ok) {
             const errorText = await response.text();
+            console.error('getFamilyItems: 服务器响应错误:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('获取到的家庭物品数据:', data);
+        console.log('getFamilyItems: 获取到的原始数据:', data);
 
         // 确保返回的数据格式正确
         if (!data || !Array.isArray(data.items)) {
-            console.error('返回的数据格式不正确:', data);
+            console.error('getFamilyItems: 返回的数据格式不正确:', data);
             throw new Error('返回的数据格式不正确');
         }
 
@@ -90,9 +100,10 @@ export const getFamilyItems = async (familyId) => {
                 return cleanItem;
             });
 
+        console.log('getFamilyItems: 处理后的物品列表:', processedItems);
         return { items: processedItems };
     } catch (error) {
-        console.error('Failed to get family items:', error);
+        console.error('getFamilyItems: 获取家庭物品失败:', error);
         throw error;
     }
 };

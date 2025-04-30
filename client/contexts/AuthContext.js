@@ -50,10 +50,31 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
-    // 清除用户信息
-    await AsyncStorage.removeItem('user');
+    try {
+      // 先清除状态
+      setUser(null);
+      
+      // 清除所有认证相关的存储
+      await Promise.all([
+        AsyncStorage.removeItem('user'),
+        AsyncStorage.removeItem('token'),
+        AsyncStorage.removeItem('familyId'),
+        AsyncStorage.removeItem('lastLogin'),
+      ]);
+
+      // 调用后端的登出接口
+      await authService.logout();
+    } catch (error) {
+      console.error('登出失败:', error);
+      // 即使出错也确保清除本地数据
+      setUser(null);
+      await Promise.all([
+        AsyncStorage.removeItem('user'),
+        AsyncStorage.removeItem('token'),
+        AsyncStorage.removeItem('familyId'),
+        AsyncStorage.removeItem('lastLogin'),
+      ]);
+    }
   };
 
   return (

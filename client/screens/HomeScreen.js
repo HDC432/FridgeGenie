@@ -18,10 +18,9 @@ import { getFamilyItems, deleteItem, updateItem } from '../services/databaseServ
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
 
-
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-const HomeScreen = ({ navigation, route }) => {
+const HomeScreen = ({ navigation }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -32,7 +31,15 @@ const HomeScreen = ({ navigation, route }) => {
   const loadItems = async () => {
     try {
       console.log('开始加载物品列表...');
-      if (!user?.familyId) {
+      console.log('当前用户信息:', user);
+      
+      if (!user) {
+        console.error('用户未登录');
+        Alert.alert('错误', '请先登录');
+        return;
+      }
+
+      if (!user.familyId) {
         console.error('用户未关联家庭');
         Alert.alert('错误', '请先加入或创建一个家庭');
         return;
@@ -62,13 +69,6 @@ const HomeScreen = ({ navigation, route }) => {
   useEffect(() => {
     loadItems();
   }, [user?.familyId]);
-
-  // Listen for refresh parameter changes
-  useEffect(() => {
-    if (route.params?.refresh) {
-      loadItems();
-    }
-  }, [route.params?.refresh]);
 
   useFocusEffect(
     useCallback(() => {
@@ -247,45 +247,32 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Hi, {user?.username}</Text>
-        <View style={styles.headerButtons}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Recipe')}
-          >
-            <Ionicons name="restaurant-outline" size={24} color={COLORS.BACKGROUND} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AddItem')}
-          >
-            <Ionicons name="add" size={24} color={COLORS.TEXT_PRIMARY} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {items.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>冰箱是空的</Text>
-          <TouchableOpacity
-            style={styles.addFirstButton}
-            onPress={() => navigation.navigate('AddItem')}
-          >
-            <Text style={styles.addFirstButtonText}>添加第一个物品</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.PRIMARY]} />
-          }
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[COLORS.PRIMARY]}
+            tintColor={COLORS.PRIMARY}
+          />
+        }
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="basket-outline" size={64} color={COLORS.TEXT_SECONDARY} />
+            <Text style={styles.emptyText}>冰箱里还没有物品</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('AddItem')}
+            >
+              <Text style={styles.addButtonText}>添加物品</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
       {renderQuantityModal()}
     </View>
   );
@@ -293,74 +280,39 @@ const HomeScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    ...COMMON_STYLES.CONTAINER,
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SPACING.LARGE,
-    backgroundColor: COLORS.BACKGROUND,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.LIGHT_GRAY,
-  },
-  title: {
-    ...COMMON_STYLES.HEADER_TITLE,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: SPACING.MEDIUM,
-  },
-  headerButton: {
-    backgroundColor: COLORS.SECONDARY,
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.CIRCLE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOW_STYLE.SMALL,
-  },
-  addButton: {
-    backgroundColor: COLORS.PRIMARY,
-    width: 40,
-    height: 40,
-    borderRadius: BORDER_RADIUS.CIRCLE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOW_STYLE.SMALL,
-  },
-  listContainer: {
-    padding: SPACING.LARGE,
-    flexGrow: 1,
+  listContent: {
+    padding: SPACING.MEDIUM,
+    paddingBottom: 80, // Add padding for bottom tab bar
   },
   itemWrapper: {
     flexDirection: 'row',
-    marginBottom: SPACING.MEDIUM,
+    marginBottom: SPACING.SMALL,
+    backgroundColor: '#fff',
     borderRadius: BORDER_RADIUS.MEDIUM,
-    overflow: 'hidden',
-    ...SHADOW_STYLE.MEDIUM,
+    ...SHADOW_STYLE,
   },
   stripe: {
-    width: 5,
-    height: '100%',
+    width: 4,
+    borderTopLeftRadius: BORDER_RADIUS.MEDIUM,
+    borderBottomLeftRadius: BORDER_RADIUS.MEDIUM,
   },
   itemContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: COLORS.LIGHT_GRAY,
     padding: SPACING.MEDIUM,
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   itemInfo: {
     flex: 1,
-    marginRight: SPACING.SMALL,
   },
   itemName: {
     fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
     color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.TINY,
+    marginBottom: 4,
   },
   itemDetails: {
     fontSize: FONT_SIZE.SMALL,
@@ -368,31 +320,34 @@ const styles = StyleSheet.create({
   },
   itemActions: {
     flexDirection: 'row',
-    gap: SPACING.SMALL,
+    alignItems: 'center',
   },
   actionButton: {
     padding: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    backgroundColor: COLORS.BACKGROUND,
-    ...SHADOW_STYLE.SMALL,
+    marginLeft: SPACING.SMALL,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: SPACING.LARGE,
+    justifyContent: 'center',
+    paddingVertical: SPACING.XLARGE,
   },
   emptyText: {
-    fontSize: FONT_SIZE.LARGE,
+    fontSize: FONT_SIZE.MEDIUM,
     color: COLORS.TEXT_SECONDARY,
+    marginTop: SPACING.MEDIUM,
     marginBottom: SPACING.LARGE,
   },
-  addFirstButton: {
-    ...COMMON_STYLES.BUTTON,
-    paddingHorizontal: SPACING.XLARGE,
+  addButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingHorizontal: SPACING.LARGE,
+    paddingVertical: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
   },
-  addFirstButtonText: {
-    ...COMMON_STYLES.BUTTON_TEXT,
+  addButtonText: {
+    color: '#fff',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   modalOverlay: {
     flex: 1,
@@ -401,30 +356,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.BACKGROUND,
+    backgroundColor: '#fff',
     borderRadius: BORDER_RADIUS.LARGE,
     padding: SPACING.LARGE,
     width: '80%',
     maxWidth: 400,
-    ...SHADOW_STYLE.LARGE,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: SPACING.LARGE,
+    marginBottom: SPACING.MEDIUM,
   },
   modalTitle: {
-    fontSize: FONT_SIZE.XLARGE,
+    fontSize: FONT_SIZE.LARGE,
     fontWeight: FONT_WEIGHT.BOLD,
     color: COLORS.TEXT_PRIMARY,
   },
   closeButton: {
-    padding: SPACING.TINY,
+    padding: SPACING.SMALL,
   },
   modalItemName: {
-    fontSize: FONT_SIZE.LARGE,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    fontSize: FONT_SIZE.MEDIUM,
     color: COLORS.TEXT_PRIMARY,
     marginBottom: SPACING.LARGE,
   },
@@ -437,35 +390,37 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SMALL,
   },
   quantityInput: {
-    ...COMMON_STYLES.INPUT,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    padding: SPACING.MEDIUM,
+    fontSize: FONT_SIZE.MEDIUM,
   },
   modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.LARGE,
+    justifyContent: 'flex-end',
   },
   modalButton: {
-    flex: 1,
+    paddingHorizontal: SPACING.LARGE,
     paddingVertical: SPACING.MEDIUM,
     borderRadius: BORDER_RADIUS.MEDIUM,
-    alignItems: 'center',
-    marginHorizontal: SPACING.SMALL,
+    marginLeft: SPACING.MEDIUM,
   },
   cancelButton: {
-    backgroundColor: COLORS.LIGHT_GRAY,
+    backgroundColor: COLORS.BACKGROUND,
   },
   confirmButton: {
     backgroundColor: COLORS.PRIMARY,
   },
   cancelButtonText: {
-    color: COLORS.TEXT_SECONDARY,
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
-  },
-  confirmButtonText: {
     color: COLORS.TEXT_PRIMARY,
     fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    fontWeight: FONT_WEIGHT.MEDIUM,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.MEDIUM,
   },
 });
 

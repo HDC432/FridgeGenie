@@ -11,10 +11,14 @@ class ItemModel {
     static async findByFamilyId(familyId) {
         console.log('ItemModel - findByFamilyId - 开始查询家庭物品:', familyId);
         try {
-            const { resources } = await itemsContainer.items.query({
+            const query = {
                 query: "SELECT * FROM c WHERE c.familyId = @familyId",
                 parameters: [{ name: "@familyId", value: familyId }]
-            }).fetchAll();
+            };
+            console.log('ItemModel - findByFamilyId - 查询语句:', query);
+
+            const { resources } = await itemsContainer.items.query(query).fetchAll();
+            console.log('ItemModel - findByFamilyId - 查询结果数量:', resources.length);
             console.log('ItemModel - findByFamilyId - 查询结果:', resources);
             return resources;
         } catch (error) {
