@@ -15,6 +15,7 @@ import RecipeScreen from './screens/RecipeScreen';
 import UserAvatar from './components/UserAvatar';
 import UserMenu from './components/UserMenu';
 import HealthProfileScreen from './screens/HealthProfileScreen';
+import FavoriteRecipesScreen from './screens/FavoriteRecipesScreen';
 import theme from './styles/theme';
 
 const Stack = createStackNavigator();
@@ -98,6 +99,11 @@ const Navigation = () => {
               name="HealthProfile"
               component={HealthProfileScreen}
               options={{ title: '健康信息' }}
+            />
+            <Stack.Screen
+              name="FavoriteRecipes"
+              component={FavoriteRecipesScreen}
+              options={{ title: '收藏的菜谱' }}
             />
           </>
         ) : (

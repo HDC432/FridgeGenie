@@ -18,6 +18,8 @@ import { getFamilyItems, updateItemQuantity } from '../services/databaseService'
 import { generateRecipes } from '../services/aiService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
+import { API_URL } from '../config/constants';
+import authService from '../services/authService';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -33,6 +35,7 @@ export default function RecipeScreen({ navigation }) {
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
   const { user } = useAuth();
   const [error, setError] = useState(null);
+  const [favoriteStatus, setFavoriteStatus] = useState({});
 
   const loadRefrigeratorItems = async () => {
     try {
@@ -258,9 +261,24 @@ export default function RecipeScreen({ navigation }) {
         <View style={styles.recipeHeader}>
           <View style={styles.recipeTitleRow}>
             <Text style={styles.recipeName}>{item.name}</Text>
-            <View style={styles.caloriesBadge}>
-              <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
-              <Text style={styles.caloriesText}>{item.nutrition.calories} 千卡</Text>
+            <View style={styles.recipeActions}>
+              <View style={styles.caloriesBadge}>
+                <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
+                <Text style={styles.caloriesText}>{item.nutrition.calories} 千卡</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.favoriteButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(item);
+                }}
+              >
+                <Ionicons 
+                  name={favoriteStatus[item.id || item.name] ? "heart" : "heart-outline"} 
+                  size={24} 
+                  color={favoriteStatus[item.id || item.name] ? COLORS.DANGER : COLORS.TEXT_SECONDARY} 
+                />
+              </TouchableOpacity>
             </View>
           </View>
           
@@ -330,6 +348,159 @@ export default function RecipeScreen({ navigation }) {
 
     return filteredRecipes;
   };
+
+  // 添加/取消收藏
+  const toggleFavorite = async (recipe) => {
+    if (!user) {
+      showMessage('提示', '请先登录');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = await authService.getToken();
+      const recipeId = recipe.id || recipe.name;
+      const isCurrentlyFavorite = favoriteStatus[recipeId];
+
+      if (isCurrentlyFavorite) {
+        // 取消收藏
+        console.log('开始取消收藏:', recipeId);
+        // 先获取收藏记录
+        const checkResponse = await fetch(`${API_URL}/favorites/${recipeId}/check`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const checkData = await checkResponse.json();
+        console.log('检查收藏状态响应:', checkData);
+
+        if (checkData.success && checkData.data.favoriteId) {
+          // 使用收藏记录的id来取消收藏
+          const response = await fetch(`${API_URL}/favorites/${checkData.data.favoriteId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await response.json();
+          console.log('取消收藏响应:', data);
+          if (response.ok) {
+            setFavoriteStatus(prev => ({
+              ...prev,
+              [recipeId]: false
+            }));
+            showMessage('成功', '已取消收藏');
+          } else {
+            showMessage('错误', data.message || '取消收藏失败');
+          }
+        } else {
+          showMessage('错误', '未找到收藏记录');
+        }
+      } else {
+        // 添加收藏
+        console.log('开始添加收藏:', recipeId);
+        const recipeData = {
+          id: recipeId,
+          name: recipe.name,
+          difficulty: recipe.difficulty,
+          cookingTime: recipe.cookingTime,
+          nutrition: recipe.nutrition,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          suitableFor: recipe.suitableFor || [],
+          healthConsiderations: recipe.healthConsiderations || []
+        };
+        console.log('收藏的菜谱数据:', recipeData);
+
+        const response = await fetch(`${API_URL}/favorites`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            recipeId: recipeId,
+            recipeData: recipeData
+          })
+        });
+        const data = await response.json();
+        console.log('添加收藏响应:', data);
+        if (response.ok) {
+          setFavoriteStatus(prev => ({
+            ...prev,
+            [recipeId]: true
+          }));
+          showMessage('成功', '已收藏菜谱');
+        } else {
+          showMessage('错误', data.message || '收藏失败');
+        }
+      }
+    } catch (error) {
+      console.error('收藏操作失败:', error);
+      showMessage('错误', error.message || '操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 检查是否已收藏
+  const checkFavorite = async (recipeId) => {
+    try {
+      // 如果recipeId是undefined，使用name作为id
+      if (!recipeId) {
+        console.log('recipeId为空，跳过检查');
+        return;
+      }
+      console.log('开始检查收藏状态:', recipeId);
+      const token = await authService.getToken();
+      const response = await fetch(`${API_URL}/favorites/${recipeId}/check`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      console.log('检查收藏状态响应:', data);
+      if (data.success) {
+        setFavoriteStatus(prev => ({
+          ...prev,
+          [recipeId]: data.data.isFavorite
+        }));
+      }
+    } catch (error) {
+      console.error('检查收藏状态失败:', error);
+    }
+  };
+
+  // 统一的提示方法
+  const showMessage = (title, message) => {
+    if (Platform.OS === 'web') {
+      window.alert(message);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
+  // 在 useEffect 中添加检查收藏状态的逻辑
+  useEffect(() => {
+    if (selectedRecipe && user) {
+      const recipeId = selectedRecipe.id || selectedRecipe.name;
+      console.log('检查选中菜谱的收藏状态:', recipeId);
+      checkFavorite(recipeId);
+    }
+  }, [selectedRecipe, user]);
+
+  // 在加载菜谱时检查所有菜谱的收藏状态
+  useEffect(() => {
+    if (recipes.length > 0 && user) {
+      console.log('开始检查所有菜谱的收藏状态');
+      recipes.forEach(recipe => {
+        const recipeId = recipe.id || recipe.name;
+        if (recipeId) {
+          checkFavorite(recipeId);
+        }
+      });
+    }
+  }, [recipes, user]);
 
   return (
     <View style={styles.container}>
@@ -443,6 +614,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.LARGE,
     fontWeight: FONT_WEIGHT.BOLD,
     color: COLORS.TEXT_PRIMARY,
+  },
+  recipeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.SMALL,
   },
   caloriesBadge: {
     flexDirection: 'row',
@@ -749,5 +925,8 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     display: 'none', // 隐藏标签容器
+  },
+  favoriteButton: {
+    padding: SPACING.SMALL,
   },
 }); 

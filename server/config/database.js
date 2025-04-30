@@ -14,6 +14,7 @@ const usersContainer = database.container('users');
 const familiesContainer = database.container('families');
 const itemsContainer = database.container('items');
 const healthProfilesContainer = database.container('healthProfiles');
+const favoriteRecipesContainer = database.container('favoriteRecipes');
 
 // 确保容器存在
 async function ensureContainers() {
@@ -42,6 +43,12 @@ async function ensureContainers() {
             partitionKey: { paths: ['/userId'] }
         });
         console.log('healthProfiles 容器已就绪');
+
+        await database.containers.createIfNotExists({ 
+            id: 'favoriteRecipes',
+            partitionKey: { paths: ['/userId'] }
+        });
+        console.log('favoriteRecipes 容器已就绪');
     } catch (error) {
         console.error('确保容器存在失败:', error);
         process.exit(1);
@@ -55,5 +62,6 @@ module.exports = {
     usersContainer,
     familiesContainer,
     itemsContainer,
-    healthProfilesContainer
+    healthProfilesContainer,
+    favoriteRecipesContainer
 }; 
