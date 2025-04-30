@@ -145,15 +145,15 @@ class UserService {
     );
   }
 
-  // 验证 token
+  // Verify token
   verifyToken(token) {
     try {
-      // 检查是否为测试用户的 token
+      // Check if it's a test user token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // 如果是测试用户，确保返回完整信息
+      // If it's a test user, ensure complete information is returned
       if (decoded.id === 'test-user-id-12345' && decoded.email === 'test@example.com') {
-        console.log('验证令牌 - 识别为测试用户');
+        console.log('Token verification - Identified as test user');
         return {
           id: 'test-user-id-12345',
           email: 'test@example.com'
@@ -162,7 +162,7 @@ class UserService {
       
       return decoded;
     } catch (error) {
-      throw new Error('无效的 token');
+      throw new Error('Invalid token');
     }
   }
 

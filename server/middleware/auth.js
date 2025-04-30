@@ -2,33 +2,33 @@ const userService = require('../services/userService');
 
 const auth = async (req, res, next) => {
   try {
-    console.log('Auth Middleware - 开始处理请求');
-    console.log('Auth Middleware - 请求头:', req.headers);
+    console.log('Auth Middleware - Starting request processing');
+    console.log('Auth Middleware - Request headers:', req.headers);
     
     const token = req.headers.authorization?.split(' ')[1];
-    console.log('Auth Middleware - 提取的token:', token);
+    console.log('Auth Middleware - Extracted token:', token);
     
     if (!token) {
-      console.log('Auth Middleware - 未提供token');
+      console.log('Auth Middleware - No token provided');
       return res.status(401).json({
         success: false,
-        message: '未提供认证令牌'
+        message: 'No authentication token provided'
       });
     }
 
-    console.log('Auth Middleware - 开始验证token');
+    console.log('Auth Middleware - Starting token verification');
     const decoded = userService.verifyToken(token);
-    console.log('Auth Middleware - token验证结果:', decoded);
+    console.log('Auth Middleware - Token verification result:', decoded);
     
     req.user = decoded;
-    console.log('Auth Middleware - 设置用户信息:', req.user);
+    console.log('Auth Middleware - Setting user info:', req.user);
     
     next();
   } catch (error) {
-    console.error('Auth Middleware - 错误:', error);
+    console.error('Auth Middleware - Error:', error);
     res.status(401).json({
       success: false,
-      message: '无效的认证令牌'
+      message: 'Invalid authentication token'
     });
   }
 };
