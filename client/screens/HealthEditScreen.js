@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.BACKGROUND,
     ...(Platform.OS === 'web' ? {
-      height: 'calc(100vh - 80px)', // 减去底部按钮的高度
+      height: 'calc(100vh - 80px)', 
       overflow: 'auto'
     } : {})
   },
@@ -375,13 +375,13 @@ const HealthEditScreen = ({ profile, setProfile, onSave, onCancel, openModal }) 
           style={[styles.button, styles.cancelButton]}
           onPress={onCancel}
         >
-          <Text style={styles.buttonText}>取消</Text>
+          <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.button, styles.saveButton]}
           onPress={onSave}
         >
-          <Text style={styles.buttonText}>保存</Text>
+          <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
       </View>
     </View>

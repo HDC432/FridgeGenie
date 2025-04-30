@@ -161,7 +161,7 @@ const HealthProfileScreen = ({ navigation }) => {
     container: {
       flex: 1,
       ...(Platform.OS === 'web' ? {
-        height: 'calc(100vh - 80px)', // 减去底部按钮的高度
+        height: 'calc(100vh - 80px)', 
         overflow: 'auto'
       } : {})
     },

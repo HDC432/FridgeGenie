@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/constants';
 
 class AuthService {
-  // 用户注册
   async register(username, email, password) {
     try {
       const response = await fetch(`${API_URL}/users/register`, {
@@ -15,10 +14,10 @@ class AuthService {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || '注册失败');
+        throw new Error(data.message || 'Registration failed');
       }
 
-      // 保存 token
+    
       await this.setToken(data.data.token);
       return data.data;
     } catch (error) {
@@ -26,7 +25,6 @@ class AuthService {
     }
   }
 
-  // 用户登录
   async login(email, password) {
     try {
       const response = await fetch(`${API_URL}/users/login`, {
@@ -39,14 +37,13 @@ class AuthService {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || '登录失败');
+        throw new Error(data.message || 'Login failed');
       }
 
       if (!data.success || !data.data || !data.data.user || !data.data.token) {
-        throw new Error('服务器返回数据格式错误');
+        throw new Error('Invalid server response format');
       }
-
-      // 保存 token 和用户信息
+  
       await this.setToken(data.data.token);
       await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
       return { user: data.data.user, token: data.data.token };
@@ -55,19 +52,16 @@ class AuthService {
     }
   }
 
-  // 获取当前用户信息
   async getCurrentUser() {
     try {
-      // 首先尝试从本地存储获取用户信息
       const cachedUser = await AsyncStorage.getItem('user');
       if (cachedUser) {
         return JSON.parse(cachedUser);
       }
 
-      // 如果本地没有，则从服务器获取
       const token = await this.getToken();
       if (!token) {
-        throw new Error('未登录');
+        throw new Error('Not logged in');
       }
 
       const response = await fetch(`${API_URL}/users/me`, {
@@ -78,50 +72,44 @@ class AuthService {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || '获取用户信息失败');
+        throw new Error(data.message || 'Failed to get user info');
       }
 
-      // 保存到本地存储
       await AsyncStorage.setItem('user', JSON.stringify(data.data));
       return data.data;
     } catch (error) {
-      // 如果获取失败，清除本地存储
       await AsyncStorage.removeItem('user');
       await AsyncStorage.removeItem('token');
       throw error;
     }
   }
 
-  // 登出
   async logout() {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
     } catch (error) {
-      console.error('登出失败:', error);
+      console.error('Logout failed:', error);
     }
   }
 
-  // 保存 token
   async setToken(token) {
     try {
       await AsyncStorage.setItem('token', token);
     } catch (error) {
-      console.error('保存 token 失败:', error);
+      console.error('Failed to save token:', error);
     }
   }
 
-  // 获取 token
   async getToken() {
     try {
       return await AsyncStorage.getItem('token');
     } catch (error) {
-      console.error('获取 token 失败:', error);
+      console.error('Failed to get token:', error);
       return null;
     }
   }
 
-  // 检查是否已登录
   async isAuthenticated() {
     try {
       const token = await this.getToken();

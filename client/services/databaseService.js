@@ -1,7 +1,7 @@
 import { API_URL, DEBUG } from '../config/database';
 import authService from './authService';
 
-// 获取所有物品
+// Get all items
 export const getItems = async () => {
     try {
         const token = await authService.getToken();
@@ -45,7 +45,7 @@ export const getItems = async () => {
     }
 };
 
-// 获取家庭物品
+// Get family items
 export const getFamilyItems = async (familyId) => {
     try {
         if (!familyId) {
@@ -74,17 +74,17 @@ export const getFamilyItems = async (familyId) => {
         }
         
         const data = await response.json();
-        console.log('获取到的家庭物品数据:', data);
+        console.log('Family items data received:', data);
 
-        // 确保返回的数据格式正确
+        // Ensure correct data format
         if (!data || !Array.isArray(data.items)) {
-            console.error('返回的数据格式不正确:', data);
-            throw new Error('返回的数据格式不正确');
+            console.error('Invalid data format:', data);
+            throw new Error('Invalid data format');
         }
 
-        // 过滤掉 Cosmos DB 的内部字段和零数量物品
+        // Filter out Cosmos DB internal fields and zero quantity items
         const processedItems = data.items
-            .filter(item => item.quantity > 0) // 过滤掉零数量物品
+            .filter(item => item.quantity > 0) // Filter out zero quantity items
             .map(item => {
                 const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
                 return cleanItem;
@@ -97,7 +97,7 @@ export const getFamilyItems = async (familyId) => {
     }
 };
 
-// 添加新物品
+// Add new item
 export const addItem = async (item) => {
     try {
         if (!item.familyId) {
@@ -109,21 +109,21 @@ export const addItem = async (item) => {
             throw new Error('Not authenticated');
         }
 
-        // 获取家庭所有物品
+        // Get all family items
         const familyItems = await getFamilyItems(item.familyId);
         
-        // 查找同名的零数量物品
+        // Find zero quantity item with same name
         const zeroQuantityItem = familyItems.items.find(
             existingItem => existingItem.name === item.name && existingItem.quantity === 0
         );
 
-        // 如果找到同名的零数量物品，先删除它
+        // If found zero quantity item with same name, delete it first
         if (zeroQuantityItem) {
-            console.log('找到同名的零数量物品，正在删除:', zeroQuantityItem);
+            console.log('Found zero quantity item with same name, deleting:', zeroQuantityItem);
             await deleteItem(zeroQuantityItem.id);
         }
 
-        // 添加新物品
+        // Add new item
         const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
             headers: {
@@ -145,7 +145,7 @@ export const addItem = async (item) => {
     }
 };
 
-// 更新物品
+// Update item
 export const updateItem = async (id, item) => {
     try {
         if (!item.familyId) {
@@ -178,7 +178,7 @@ export const updateItem = async (id, item) => {
     }
 };
 
-// 删除物品
+// Delete item
 export const deleteItem = async (id) => {
     try {
         const token = await authService.getToken();
@@ -206,7 +206,7 @@ export const deleteItem = async (id) => {
     }
 };
 
-// 获取单个物品
+// Get single item
 export const getItemById = async (id) => {
     try {
         const response = await fetch(`${API_URL}/items/${id}`, {
@@ -224,32 +224,32 @@ export const getItemById = async (id) => {
         const item = await response.json();
         return item;
     } catch (error) {
-        console.error('获取物品失败:', error);
+        console.error('Failed to get item:', error);
         throw error;
     }
 };
 
-// 更新物品数量
+// Update item quantity
 export const updateItemQuantity = async (id, newQuantity) => {
     try {
-        // 如果新数量为0，直接删除物品
+        // If new quantity is 0, delete the item
         if (newQuantity === 0) {
-            console.log('物品数量为0，正在删除物品:', id);
+            console.log('Item quantity is 0, deleting item:', id);
             await deleteItem(id);
             return null;
         }
 
-        // 首先获取当前物品
+        // First get current item
         const currentItem = await getItemById(id);
 
-        // 更新数量
+        // Update quantity
         const updatedItem = {
             ...currentItem,
             quantity: newQuantity,
             updatedAt: new Date().toISOString()
         };
 
-        // 使用 PUT 方法更新整个物品
+        // Use PUT method to update the entire item
         const updateResponse = await fetch(`${API_URL}/items/${id}`, {
             method: 'PUT',
             headers: {
@@ -264,21 +264,21 @@ export const updateItemQuantity = async (id, newQuantity) => {
         
         return await updateResponse.json();
     } catch (error) {
-        console.error('更新物品数量失败:', error);
+        console.error('Failed to update item quantity:', error);
         throw error;
     }
 };
 
-// 获取家庭成员
+// Get family members
 export const getFamilyMembers = async (familyId) => {
     try {
         const url = `${API_URL}/families/${familyId}/members`;
         if (DEBUG) {
-            console.log('请求URL:', url);
+            console.log('Request URL:', url);
         }
         
         const token = await authService.getToken();
-        console.log('获取到的token:', token);
+        console.log('Token received:', token);
         
         const response = await fetch(url, {
             method: 'GET',
@@ -291,7 +291,7 @@ export const getFamilyMembers = async (familyId) => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('服务器响应错误:', {
+            console.error('Server response error:', {
                 status: response.status,
                 statusText: response.statusText,
                 body: errorText
@@ -300,11 +300,11 @@ export const getFamilyMembers = async (familyId) => {
         }
         
         const data = await response.json();
-        console.log('获取到的家庭成员数据:', data);
+        console.log('Family members data received:', data);
 
         return data.data || [];
     } catch (error) {
-        console.error('获取家庭成员失败:', error);
+        console.error('Failed to get family members:', error);
         throw error;
     }
 }; 
