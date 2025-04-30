@@ -35,6 +35,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const userData = await authService.login(email, password);
+    if (!userData || !userData.user) {
+      throw new Error('登录失败：服务器返回数据无效');
+    }
     setUser(userData.user);
     // 保存用户信息到 AsyncStorage
     await AsyncStorage.setItem('user', JSON.stringify(userData.user));

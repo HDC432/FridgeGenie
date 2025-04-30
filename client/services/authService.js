@@ -42,10 +42,14 @@ class AuthService {
         throw new Error(data.message || '登录失败');
       }
 
+      if (!data.success || !data.data || !data.data.user || !data.data.token) {
+        throw new Error('服务器返回数据格式错误');
+      }
+
       // 保存 token 和用户信息
-      await this.setToken(data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(data.user));
-      return data.user;
+      await this.setToken(data.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
+      return { user: data.data.user, token: data.data.token };
     } catch (error) {
       throw error;
     }
