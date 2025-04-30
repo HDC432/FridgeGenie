@@ -218,16 +218,6 @@ const AddItemScreen = ({ navigation }) => {
     }
   };
 
-  // 扫描小票功能
-  const handleScanReceipt = () => {
-    Alert.alert('功能提示', '扫描小票功能即将上线');
-  };
-
-  // 语音添加功能
-  const handleVoiceInput = () => {
-    Alert.alert('功能提示', '语音添加功能即将上线');
-  };
-
   return (
     <KeyboardAvoidingView 
       style={styles.container}
@@ -299,23 +289,6 @@ const AddItemScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      
-      {/* 底部操作按钮 */}
-      <View style={styles.bottomButtonsContainer}>
-        <TouchableOpacity style={styles.bottomButton} onPress={handleScanReceipt}>
-          <View style={styles.bottomButtonIconContainer}>
-            <Ionicons name="scan-outline" size={24} color={COLORS.SECONDARY} />
-          </View>
-          <Text style={styles.bottomButtonText}>扫描小票</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.bottomButton} onPress={handleVoiceInput}>
-          <View style={styles.bottomButtonIconContainer}>
-            <Ionicons name="mic-outline" size={24} color={COLORS.SECONDARY} />
-          </View>
-          <Text style={styles.bottomButtonText}>语音添加</Text>
-        </TouchableOpacity>
-      </View>
 
       {/* 日期选择器模态框 */}
       <Modal
@@ -351,7 +324,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: SPACING.LARGE,
-    paddingBottom: 100, // 为底部按钮留出空间
   },
   title: {
     fontSize: FONT_SIZE.LARGE,
@@ -438,37 +410,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: FONT_SIZE.MEDIUM,
     fontWeight: FONT_WEIGHT.BOLD,
-    color: COLORS.SECONDARY,
-  },
-  bottomButtonsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    backgroundColor: COLORS.BACKGROUND,
-    borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'space-around',
-  },
-  bottomButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-  },
-  bottomButtonIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: COLORS.LIGHT_GRAY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 5,
-  },
-  bottomButtonText: {
-    fontSize: FONT_SIZE.SMALL,
     color: COLORS.SECONDARY,
   },
   // 模态框样式
