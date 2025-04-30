@@ -17,7 +17,7 @@ import { differenceInCalendarDays } from 'date-fns';
 import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -245,15 +245,9 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.headerButtons}>
           <TouchableOpacity
             style={styles.headerButton}
-            onPress={() => navigation.navigate('Recipes')}
+            onPress={() => navigation.navigate('Recipe')}
           >
             <Ionicons name="restaurant-outline" size={24} color={COLORS.BACKGROUND} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Home', { screen: 'RecommendedItems' })}
-          >
-            <Ionicons name="cart-outline" size={24} color={COLORS.BACKGROUND} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.addButton}

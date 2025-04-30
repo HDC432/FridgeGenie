@@ -88,6 +88,16 @@ const UserMenu = ({ visible, onClose }) => {
                   <Text style={styles.menuItemText}>菜谱收藏</Text>
                 </TouchableOpacity>
 
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('RecommendedItems')}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="cart-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>推荐购买</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity 
                   style={styles.menuItem}
                   onPress={() => handleNavigation('HealthProfile')}

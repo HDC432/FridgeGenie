@@ -6,7 +6,6 @@ import HomeScreen from '../screens/HomeScreen';
 import RecipeScreen from '../screens/RecipeScreen';
 import FamilyScreen from '../screens/FamilyScreen';
 import HealthProfileScreen from '../screens/HealthProfileScreen';
-import RecommendedItemsScreen from '../screens/RecommendedItemsScreen';
 import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -19,14 +18,6 @@ const HomeStack = () => {
                 name="Home" 
                 component={HomeScreen}
                 options={{ headerShown: false }}
-            />
-            <Stack.Screen 
-                name="RecommendedItems" 
-                component={RecommendedItemsScreen}
-                options={{ 
-                    title: '推荐购买食材',
-                    headerShown: true
-                }}
             />
         </Stack.Navigator>
     );
@@ -43,7 +34,7 @@ const AppNavigator = () => {
 
                     if (route.name === 'Home') {
                         iconName = focused ? 'home' : 'home-outline';
-                    } else if (route.name === 'Recipes') {
+                    } else if (route.name === 'Recipe') {
                         iconName = focused ? 'book' : 'book-outline';
                     } else if (route.name === 'Family') {
                         iconName = focused ? 'people' : 'people-outline';
@@ -74,7 +65,7 @@ const AppNavigator = () => {
                 }}
             />
             <Tab.Screen 
-                name="Recipes" 
+                name="Recipe" 
                 component={RecipeScreen}
                 options={{ title: '菜谱' }}
             />
