@@ -25,7 +25,7 @@ export const generateRecipes = async (ingredients, familyId) => {
       // 生成健康提示词
       const healthPrompt = generateHealthPrompt(familyHealthTags);
       
-      const prompt = `基于以下食材和健康考虑生成3个健康食谱，每个食谱需要包含：
+      const prompt = `基于以下食材和健康考虑生成5个健康食谱，每个食谱需要包含：
 1. 食谱名称
 2. 所需食材及用量
 3. 详细步骤
@@ -79,27 +79,7 @@ export const generateRecipes = async (ingredients, familyId) => {
   ]
 }`;
 
-      console.log('Using API Key:', OPENAI_API_KEY);
-      console.log('Request URL:', 'https://api.openai.com/v1/chat/completions');
-      console.log('Request Headers:', {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      });
-      console.log('Request Body:', {
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的家常菜食谱，并考虑家庭成员的健康需求"
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      });
+      console.log('健康提示词:', healthPrompt); // 添加日志以便调试
 
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -356,11 +336,15 @@ const generateHealthPrompt = (healthTags) => {
     );
     
     const healthConditions = uniqueTags.filter(tag => 
-        ['注意血糖', '注意血压', '注意心脏健康', '注意肾脏健康'].some(keyword => tag.includes(keyword))
+        ['控制血糖', '控制血压', '注意心脏健康', '注意肾脏健康'].some(keyword => tag.includes(keyword))
     );
     
     const weightGoals = uniqueTags.filter(tag => 
-        ['减脂', '增肌', '维持体重', '超重', '肥胖', '偏瘦'].some(keyword => tag.includes(keyword))
+        ['减脂需求', '增肌需求', '维持体重'].some(keyword => tag.includes(keyword))
+    );
+
+    const activityLevels = uniqueTags.filter(tag => 
+        ['久坐', '轻度活动', '中度活动', '活跃', '非常活跃'].some(keyword => tag.includes(keyword))
     );
 
     let prompt = '请考虑以下健康因素：\n';
@@ -375,6 +359,10 @@ const generateHealthPrompt = (healthTags) => {
     
     if (weightGoals.length > 0) {
         prompt += `- 体重目标：${weightGoals.join('，')}\n`;
+    }
+
+    if (activityLevels.length > 0) {
+        prompt += `- 活动水平：${activityLevels.join('，')}\n`;
     }
 
     return prompt;

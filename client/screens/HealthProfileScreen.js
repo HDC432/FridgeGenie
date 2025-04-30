@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../styles/theme';
+import axios from 'axios';
+import { API_URL } from '../config/constants';
+import { useAuth } from '../contexts/AuthContext';
+import authService from '../services/authService';
 // Temporarily comment out the env import to make UI work
 // import { OPENAI_API_KEY } from '@env';
 
@@ -12,6 +16,7 @@ const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
 import styles from '../styles/screens/HealthProfileScreen';
 
 const HealthProfileScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [profile, setProfile] = useState({
     height: '163',
     weight: '100',
@@ -96,10 +101,80 @@ const HealthProfileScreen = ({ navigation }) => {
     return profile[category].includes(option);
   };
   
+  // 显示提示信息
+  const showMessage = (title, message) => {
+    if (Platform.OS === 'web') {
+      // Web 端使用 window.alert
+      window.alert(`${title}\n${message}`);
+    } else {
+      // 移动端使用 Alert
+      Alert.alert(title, message);
+    }
+  };
+
   // 保存个人信息
-  const saveProfile = () => {
-    // 这里应该添加保存到API的逻辑
-    Alert.alert('成功', '健康档案已保存');
+  const saveProfile = async () => {
+    try {
+      // 获取 token
+      const token = await authService.getToken();
+      if (!token) {
+        showMessage('错误', '请先登录');
+        return;
+      }
+
+      // 转换数据格式以匹配后端 API
+      const healthData = {
+        basicInfo: {
+          height: parseFloat(profile.height),
+          weight: parseFloat(profile.weight),
+          age: parseInt(profile.age),
+          gender: profile.gender,
+          bloodType: profile.bloodType
+        },
+        healthConditions: {
+          hasDiabetes: profile.healthConditions.includes('糖尿病'),
+          hasHypertension: profile.healthConditions.includes('高血压'),
+          hasHeartDisease: profile.healthConditions.includes('心脏病'),
+          hasKidneyDisease: profile.healthConditions.includes('肾病'),
+          hasAllergies: profile.allergies.split(',').map(item => item.trim())
+        },
+        lifestyle: {
+          isVegetarian: profile.dietPreferences.includes('素食'),
+          isVegan: profile.dietPreferences.includes('纯素'),
+          isGlutenFree: profile.dietPreferences.includes('无麸质'),
+          isLactoseFree: profile.dietPreferences.includes('无乳糖'),
+          activityLevel: profile.activityLevel
+        },
+        dietaryGoals: {
+          weightGoal: profile.weightGoal === '减重' ? 'lose' : 
+                     profile.weightGoal === '增重' ? 'gain' : 'maintain',
+          calorieGoal: profile.calorieGoal ? parseInt(profile.calorieGoal) : null,
+          proteinGoal: profile.proteinGoal ? parseInt(profile.proteinGoal) : null,
+          carbGoal: profile.carbGoal ? parseInt(profile.carbGoal) : null,
+          fatGoal: profile.fatGoal ? parseInt(profile.fatGoal) : null
+        }
+      };
+
+      const response = await axios.put(
+        `${API_URL}/health/profile`,
+        healthData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        showMessage('成功', '健康档案已保存');
+      } else {
+        showMessage('错误', response.data.message || '保存失败');
+      }
+    } catch (error) {
+      console.error('保存健康档案失败:', error);
+      showMessage('错误', error.response?.data?.message || '保存失败，请稍后重试');
+    }
   };
 
   return (

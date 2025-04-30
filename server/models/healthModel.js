@@ -45,22 +45,22 @@ class HealthProfile {
         if (this.basicInfo.height && this.basicInfo.weight) {
             const bmi = this.calculateBMI();
             if (bmi >= 30) {
-                tags.push('肥胖');
+                tags.push('减脂需求');
             } else if (bmi >= 25) {
-                tags.push('超重');
+                tags.push('减脂需求');
             } else if (bmi >= 18.5) {
-                tags.push('体重正常');
+                tags.push('维持体重');
             } else {
-                tags.push('偏瘦');
+                tags.push('增肌需求');
             }
         }
 
         // 根据健康状况生成标签
         if (this.healthConditions.hasDiabetes) {
-            tags.push('注意血糖');
+            tags.push('控制血糖');
         }
         if (this.healthConditions.hasHypertension) {
-            tags.push('注意血压');
+            tags.push('控制血压');
         }
         if (this.healthConditions.hasHeartDisease) {
             tags.push('注意心脏健康');
@@ -108,10 +108,10 @@ class HealthProfile {
         // 根据饮食目标生成标签
         switch (this.dietaryGoals.weightGoal) {
             case 'lose':
-                tags.push('减脂');
+                tags.push('减脂需求');
                 break;
             case 'gain':
-                tags.push('增肌');
+                tags.push('增肌需求');
                 break;
             case 'maintain':
                 tags.push('维持体重');
