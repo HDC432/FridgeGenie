@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
+import BottomNav from '../components/BottomNav';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -40,28 +41,31 @@ const UserProfileScreen = () => {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.username?.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <Text style={styles.username}>{user?.username}</Text>
-      </View>
-
-      <View style={styles.content}>
-        {menuItems.map((item, index) => (
-          <View key={index} style={styles.menuItem}>
-            <View style={styles.menuItemLeft}>
-              <Ionicons name={item.icon} size={24} color={COLORS.PRIMARY} />
-              <Text style={styles.menuItemLabel}>{item.label}</Text>
-            </View>
-            <Text style={styles.menuItemValue}>{item.value}</Text>
+    <View style={{flex: 1, justifyContent: 'space-between'}}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user?.username?.charAt(0).toUpperCase()}
+            </Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
+          <Text style={styles.username}>{user?.username}</Text>
+        </View>
+
+        <View style={styles.content}>
+          {menuItems.map((item, index) => (
+            <View key={index} style={styles.menuItem}>
+              <View style={styles.menuItemLeft}>
+                <Ionicons name={item.icon} size={24} color={COLORS.PRIMARY} />
+                <Text style={styles.menuItemLabel}>{item.label}</Text>
+              </View>
+              <Text style={styles.menuItemValue}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+      <BottomNav />
+    </View>
   );
 };
 

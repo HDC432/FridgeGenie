@@ -17,6 +17,7 @@ import { format, addDays } from 'date-fns';
 import { addItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
+import BottomNav from '../components/BottomNav';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -229,115 +230,118 @@ const AddItemScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>添加物品</Text>
-          <Text style={styles.subtitle}>
-            将新的食品添加到你的冰箱清单中，并设置过期日期
-          </Text>
+    <View style={{flex: 1, justifyContent: 'space-between'}}>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>添加物品</Text>
+            <Text style={styles.subtitle}>
+              将新的食品添加到你的冰箱清单中，并设置过期日期
+            </Text>
 
-          <View style={styles.formSection}>
-            {/* 物品名称 */}
-            <Text style={styles.label}>物品名称</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="例如：牛奶、鸡蛋..."
-              value={name}
-              onChangeText={setName}
-            />
+            <View style={styles.formSection}>
+              {/* 物品名称 */}
+              <Text style={styles.label}>物品名称</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="例如：牛奶、鸡蛋..."
+                value={name}
+                onChangeText={setName}
+              />
 
-            {/* 数量 */}
-            <Text style={styles.label}>数量</Text>
-            <View style={styles.quantityRow}>
-              <TouchableOpacity
-                style={styles.quantityBtn}
-                onPress={decreaseQuantity}
-              >
-                <Ionicons name="remove" size={24} color={COLORS.SECONDARY} />
-              </TouchableOpacity>
-              <View style={styles.quantityInputContainer}>
-                <TextInput
-                  style={styles.quantityInput}
-                  value={quantity}
-                  onChangeText={setQuantity}
-                  keyboardType="number-pad"
-                  textAlign="center"
-                />
+              {/* 数量 */}
+              <Text style={styles.label}>数量</Text>
+              <View style={styles.quantityRow}>
+                <TouchableOpacity
+                  style={styles.quantityBtn}
+                  onPress={decreaseQuantity}
+                >
+                  <Ionicons name="remove" size={24} color={COLORS.SECONDARY} />
+                </TouchableOpacity>
+                <View style={styles.quantityInputContainer}>
+                  <TextInput
+                    style={styles.quantityInput}
+                    value={quantity}
+                    onChangeText={setQuantity}
+                    keyboardType="number-pad"
+                    textAlign="center"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.quantityBtn}
+                  onPress={increaseQuantity}
+                >
+                  <Ionicons name="add" size={24} color={COLORS.SECONDARY} />
+                </TouchableOpacity>
               </View>
+
+              {/* 过期日期 */}
+              <Text style={styles.label}>过期日期</Text>
               <TouchableOpacity
-                style={styles.quantityBtn}
-                onPress={increaseQuantity}
+                style={styles.datePickerBtn}
+                onPress={() => setShowDatePicker(true)}
               >
-                <Ionicons name="add" size={24} color={COLORS.SECONDARY} />
+                <Text style={styles.dateText}>
+                  {format(expiryDate, 'yyyy年MM月dd日')}
+                </Text>
+                <Ionicons name="calendar-outline" size={24} color={COLORS.SECONDARY} />
               </TouchableOpacity>
             </View>
 
-            {/* 过期日期 */}
-            <Text style={styles.label}>过期日期</Text>
+            {/* 提交按钮 */}
             <TouchableOpacity
-              style={styles.datePickerBtn}
-              onPress={() => setShowDatePicker(true)}
+              style={styles.submitButton}
+              onPress={handleSubmit}
+              disabled={loading}
             >
-              <Text style={styles.dateText}>
-                {format(expiryDate, 'yyyy年MM月dd日')}
-              </Text>
-              <Ionicons name="calendar-outline" size={24} color={COLORS.SECONDARY} />
+              <Text style={styles.submitButtonText}>添加到冰箱</Text>
             </TouchableOpacity>
           </View>
-
-          {/* 提交按钮 */}
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-            disabled={loading}
-          >
-            <Text style={styles.submitButtonText}>添加到冰箱</Text>
+        </ScrollView>
+        
+        {/* 底部操作按钮 */}
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity style={styles.bottomButton} onPress={handleScanReceipt}>
+            <View style={styles.bottomButtonIconContainer}>
+              <Ionicons name="scan-outline" size={24} color={COLORS.SECONDARY} />
+            </View>
+            <Text style={styles.bottomButtonText}>扫描小票</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.bottomButton} onPress={handleVoiceInput}>
+            <View style={styles.bottomButtonIconContainer}>
+              <Ionicons name="mic-outline" size={24} color={COLORS.SECONDARY} />
+            </View>
+            <Text style={styles.bottomButtonText}>语音添加</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-      
-      {/* 底部操作按钮 */}
-      <View style={styles.bottomButtonsContainer}>
-        <TouchableOpacity style={styles.bottomButton} onPress={handleScanReceipt}>
-          <View style={styles.bottomButtonIconContainer}>
-            <Ionicons name="scan-outline" size={24} color={COLORS.SECONDARY} />
-          </View>
-          <Text style={styles.bottomButtonText}>扫描小票</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.bottomButton} onPress={handleVoiceInput}>
-          <View style={styles.bottomButtonIconContainer}>
-            <Ionicons name="mic-outline" size={24} color={COLORS.SECONDARY} />
-          </View>
-          <Text style={styles.bottomButtonText}>语音添加</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* 日期选择器模态框 */}
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowDatePicker(false)}
+        {/* 日期选择器模态框 */}
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
         >
-          <Pressable style={styles.modalContainer} onPress={e => e.stopPropagation()}>
-            <SimpleDatePicker
-              date={expiryDate}
-              onDateChange={setExpiryDate}
-              onClose={() => setShowDatePicker(false)}
-            />
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowDatePicker(false)}
+          >
+            <Pressable style={styles.modalContainer} onPress={e => e.stopPropagation()}>
+              <SimpleDatePicker
+                date={expiryDate}
+                onDateChange={setExpiryDate}
+                onClose={() => setShowDatePicker(false)}
+              />
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
-    </KeyboardAvoidingView>
+        </Modal>
+      </KeyboardAvoidingView>
+      <BottomNav />
+    </View>
   );
 };
 

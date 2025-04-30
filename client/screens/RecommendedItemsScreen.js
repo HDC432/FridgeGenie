@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getFamilyMembers } from '../services/databaseService';
 import { getRecommendedItems } from '../services/aiService';
 import theme from '../styles/theme';
+import BottomNav from '../components/BottomNav';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -94,41 +95,45 @@ const RecommendedItemsScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.title}>推荐购买食材</Text>
+    <View style={{ flex: 1, justifyContent: 'space-between' }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color={COLORS.TEXT_PRIMARY} />
+          </TouchableOpacity>
+          <Text style={styles.title}>推荐购买食材</Text>
+        </View>
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        <FlatList
+          data={recommendedItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[COLORS.PRIMARY]}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>暂无推荐食材</Text>
+            </View>
+          }
+        />
       </View>
 
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      <FlatList
-        data={recommendedItems}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[COLORS.PRIMARY]}
-          />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>暂无推荐食材</Text>
-          </View>
-        }
-      />
+      <BottomNav />
     </View>
   );
 };
