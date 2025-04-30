@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { differenceInCalendarDays } from 'date-fns';
 import { getItems, deleteItem } from '../services/databaseService';
@@ -33,25 +33,48 @@ const ItemList = ({ navigation, refresh }) => {
   };
 
   const handleDelete = (id) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这个物品吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteItem(id);
-              loadItems(); // 重新加载列表
-            } catch (err) {
-              Alert.alert('错误', '删除失败，请重试');
-            }
+    console.log('当前平台:', Platform.OS);
+    console.log('是否Web平台:', Platform.OS === 'web');
+    
+    if (Platform.OS === 'web') {
+      console.log('使用Web确认对话框');
+      if (window.confirm('确定要删除这个物品吗？')) {
+        console.log('用户确认删除');
+        deleteItemAndRefresh(id);
+      } else {
+        console.log('用户取消删除');
+      }
+    } else {
+      console.log('使用原生Alert对话框');
+      Alert.alert(
+        '确认删除',
+        '确定要删除这个物品吗？',
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '删除',
+            style: 'destructive',
+            onPress: () => deleteItemAndRefresh(id),
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
+  };
+
+  const deleteItemAndRefresh = async (id) => {
+    console.log('开始删除物品:', id);
+    try {
+      await deleteItem(id);
+      console.log('删除成功，重新加载列表');
+      loadItems(); // 重新加载列表
+    } catch (err) {
+      console.error('删除失败:', err);
+      if (Platform.OS === 'web') {
+        alert('删除失败，请重试');
+      } else {
+        Alert.alert('错误', '删除失败，请重试');
+      }
+    }
   };
 
   const renderItem = ({ item }) => {
@@ -78,7 +101,12 @@ const ItemList = ({ navigation, refresh }) => {
           <View style={styles.itemActions}>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => handleDelete(item.id)}
+              onPress={() => {
+                console.log('删除按钮被点击');
+                console.log('当前平台:', Platform.OS);
+                console.log('是否Web平台:', Platform.OS === 'web');
+                handleDelete(item.id);
+              }}
             >
               <Ionicons name="trash-outline" size={24} color="#ff4444" />
             </TouchableOpacity>

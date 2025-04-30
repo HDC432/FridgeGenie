@@ -122,29 +122,48 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleDelete = (id) => {
     console.log('点击删除按钮，ID:', id);
-    Alert.alert(
-      '确认删除',
-      '确定要删除这个物品吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('开始删除物品，ID:', id);
-              await deleteItem(id);
-              console.log('删除成功，更新列表');
-              setItems(prevItems => prevItems.filter(item => item.id !== id));
-              Alert.alert('成功', '物品已删除');
-            } catch (err) {
-              console.error('删除失败:', err);
-              Alert.alert('错误', '删除失败，请重试');
-            }
+    console.log('当前平台:', Platform.OS);
+    
+    if (Platform.OS === 'web') {
+      if (window.confirm('确定要删除这个物品吗？')) {
+        deleteItemAndRefresh(id);
+      }
+    } else {
+      Alert.alert(
+        '确认删除',
+        '确定要删除这个物品吗？',
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '删除',
+            style: 'destructive',
+            onPress: () => deleteItemAndRefresh(id),
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
+  };
+
+  const deleteItemAndRefresh = async (id) => {
+    try {
+      console.log('开始删除物品，ID:', id);
+      await deleteItem(id);
+      console.log('删除成功，更新列表');
+      setItems(prevItems => prevItems.filter(item => item.id !== id));
+      
+      if (Platform.OS === 'web') {
+        alert('物品已删除');
+      } else {
+        Alert.alert('成功', '物品已删除');
+      }
+    } catch (err) {
+      console.error('删除失败:', err);
+      if (Platform.OS === 'web') {
+        alert('删除失败，请重试');
+      } else {
+        Alert.alert('错误', '删除失败，请重试');
+      }
+    }
   };
 
   const handleEditQuantity = (item) => {

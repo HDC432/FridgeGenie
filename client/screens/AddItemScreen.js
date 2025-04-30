@@ -23,11 +23,28 @@ const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, CO
 // 改进的日期选择器实现
 const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   
+  // 生成年份选项（当前年份前后5年）
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+      years.push(i);
+    }
+    return years;
+  };
+
+  // 生成月份选项
+  const generateMonthOptions = () => {
+    return Array.from({ length: 12 }, (_, i) => i);
+  };
+
   // 生成当前月份的日历数据
   const generateCalendarDays = () => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
+    const year = selectedYear;
+    const month = selectedMonth;
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
@@ -54,7 +71,7 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
     }
     
     // 添加下个月的前几天
-    const remainingDays = 42 - days.length; // 6行7列
+    const remainingDays = 42 - days.length;
     for (let i = 1; i <= remainingDays; i++) {
       const nextDate = new Date(year, month + 1, i);
       days.push({
@@ -69,11 +86,17 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
 
   const calendarDays = generateCalendarDays();
   const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+  const yearOptions = generateYearOptions();
+  const monthOptions = generateMonthOptions();
 
-  const changeMonth = (offset) => {
-    const newMonth = new Date(currentMonth);
-    newMonth.setMonth(newMonth.getMonth() + offset);
-    setCurrentMonth(newMonth);
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    setCurrentMonth(new Date(year, selectedMonth, 1));
+  };
+
+  const handleMonthChange = (month) => {
+    setSelectedMonth(month);
+    setCurrentMonth(new Date(selectedYear, month, 1));
   };
 
   const quickSelectOptions = [
@@ -95,17 +118,36 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
         </TouchableOpacity>
       </View>
 
-      {/* 月份导航 */}
-      <View style={styles.monthNavigator}>
-        <TouchableOpacity onPress={() => changeMonth(-1)}>
-          <Ionicons name="chevron-back" size={24} color={COLORS.SECONDARY} />
-        </TouchableOpacity>
-        <Text style={styles.monthText}>
-          {format(currentMonth, 'yyyy年MM月')}
-        </Text>
-        <TouchableOpacity onPress={() => changeMonth(1)}>
-          <Ionicons name="chevron-forward" size={24} color={COLORS.SECONDARY} />
-        </TouchableOpacity>
+      {/* 年份和月份选择器 */}
+      <View style={styles.yearMonthSelector}>
+        <View style={styles.selectContainer}>
+          <Text style={styles.selectLabel}>年份：</Text>
+          <select
+            value={selectedYear}
+            onChange={(e) => handleYearChange(Number(e.target.value))}
+            style={styles.select}
+          >
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>
+                {year}年
+              </option>
+            ))}
+          </select>
+        </View>
+        <View style={styles.selectContainer}>
+          <Text style={styles.selectLabel}>月份：</Text>
+          <select
+            value={selectedMonth}
+            onChange={(e) => handleMonthChange(Number(e.target.value))}
+            style={styles.select}
+          >
+            {monthOptions.map((month) => (
+              <option key={month} value={month}>
+                {month + 1}月
+              </option>
+            ))}
+          </select>
+        </View>
       </View>
 
       {/* 快速选择选项 */}
@@ -416,20 +458,22 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContainer: {
     backgroundColor: COLORS.BACKGROUND,
-    borderTopLeftRadius: BORDER_RADIUS.LARGE, 
-    borderTopRightRadius: BORDER_RADIUS.LARGE,
-    width: '100%',
+    borderRadius: BORDER_RADIUS.LARGE,
+    width: '90%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    overflow: 'hidden',
   },
   // 简易日期选择器样式
   simpleDatePickerContainer: {
     backgroundColor: COLORS.BACKGROUND,
-    borderTopLeftRadius: BORDER_RADIUS.LARGE,
-    borderTopRightRadius: BORDER_RADIUS.LARGE,
     width: '100%',
+    paddingBottom: SPACING.MEDIUM,
   },
   simpleDatePickerHeader: {
     flexDirection: 'row',
@@ -455,28 +499,44 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.MEDIUM,
     padding: SPACING.SMALL,
   },
-  monthNavigator: {
+  yearMonthSelector: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.LARGE,
-    paddingVertical: SPACING.MEDIUM,
+    paddingVertical: SPACING.SMALL,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
   },
-  monthText: {
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.BOLD,
+  selectContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: SPACING.SMALL,
+  },
+  selectLabel: {
+    fontSize: FONT_SIZE.SMALL,
     color: COLORS.SECONDARY,
+    marginRight: SPACING.SMALL,
+  },
+  select: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.SECONDARY,
+    padding: SPACING.SMALL / 2,
+    borderRadius: BORDER_RADIUS.SMALL,
+    borderWidth: 1,
+    borderColor: COLORS.LIGHT_GRAY,
+    backgroundColor: COLORS.BACKGROUND,
+    minWidth: 80,
   },
   quickSelectContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: SPACING.MEDIUM,
+    paddingVertical: SPACING.SMALL,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
   quickSelectButton: {
-    paddingHorizontal: SPACING.MEDIUM,
-    paddingVertical: SPACING.SMALL,
+    paddingHorizontal: SPACING.SMALL,
+    paddingVertical: SPACING.SMALL / 2,
     borderRadius: BORDER_RADIUS.SMALL,
     backgroundColor: COLORS.LIGHT_GRAY,
   },
@@ -486,7 +546,7 @@ const styles = StyleSheet.create({
   },
   weekDaysContainer: {
     flexDirection: 'row',
-    paddingVertical: SPACING.SMALL,
+    paddingVertical: SPACING.SMALL / 2,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
@@ -499,16 +559,17 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: SPACING.SMALL,
+    padding: SPACING.SMALL / 2,
   },
   calendarDay: {
     width: '14.28%',
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 2,
   },
   calendarDayText: {
-    fontSize: FONT_SIZE.MEDIUM,
+    fontSize: FONT_SIZE.SMALL,
     color: COLORS.SECONDARY,
   },
   otherMonthDay: {
