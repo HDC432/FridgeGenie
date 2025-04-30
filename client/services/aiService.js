@@ -9,7 +9,7 @@ import authService from './authService';
 
 // 添加重试配置
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1秒
+const RETRY_DELAY = 1000; // 1 second
 
 // 延迟函数
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -178,37 +178,37 @@ export const generateRecipes = async (ingredients, familyId) => {
       // Generate health prompt
       const healthPrompt = generateHealthPrompt(familyHealthTags);
       
-      const prompt = `Generate 5 healthy recipes based on the following ingredients and health considerations. Each recipe should include:
-1. Recipe name
-2. Required ingredients and quantities
-3. Detailed steps
-4. Cooking time
-5. Difficulty level
-6. Nutritional analysis (including calories, protein, carbs, fat, dietary fiber)
+      const prompt = `Based on the following ingredients and health considerations, generate 5 healthy recipes each including:
+1. Recipe Name
+2. Required Ingredients and Quantities
+3. Detailed Steps
+4. Cooking Time
+5. Difficulty Level
+6. Nutrition Analysis (including calories, protein, carbs, fat, fiber)
 
-Available ingredients: ${ingredients.join(', ')}
+Available Ingredients: ${ingredients.join(', ')}
 
-Family health tags: ${healthPrompt}
+Family Member Health Tags: ${healthPrompt}
 
-Please ensure recipes:
-- Use the provided ingredients
-- Prioritize family members' health tag requirements
-- If unable to meet all health tags, at least satisfy the most important ones
-- Nutritionally balanced
-- Suitable for home cooking
-- Clear and easy-to-follow steps
+Please ensure the recipes:
+- Use provided ingredients
+- Prioritize family member health tag needs
+- If you cannot fully satisfy all health tags, at least satisfy the most important ones
+- Nutrient balance
+- Suitable for family preparation
+- Clear and easy steps
 
 Please return in JSON format as follows:
 {
   "recipes": [
     {
-      "name": "Recipe name",
+      "name": "Recipe Name",
       "ingredients": [
-        { "name": "Ingredient name", "quantity": "Quantity" }
+        { "name": "Ingredient Name", "quantity": "Quantity" }
       ],
-      "instructions": "Detailed steps",
-      "cookingTime": "Cooking time",
-      "difficulty": "Difficulty level",
+      "instructions": "Detailed Steps",
+      "cookingTime": "Cooking Time",
+      "difficulty": "Difficulty Level",
       "nutrition": {
         "calories": number,
         "protein": "Protein content",
@@ -220,7 +220,7 @@ Please return in JSON format as follows:
   ]
 }`;
 
-      console.log('Health prompt:', healthPrompt); // Add log for debugging
+      console.log('Health Prompt:', healthPrompt); // Add log for debugging
 
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -229,7 +229,7 @@ Please return in JSON format as follows:
           messages: [
             {
               role: "system",
-              content: "You are a professional nutritionist and chef, skilled at creating healthy and delicious home recipes based on available ingredients while considering family members' health needs"
+              content: "You are a professional nutritionist and chef, skilled at creating healthy and delicious home recipes based on existing ingredients and considering family member health needs"
             },
             {
               role: "user",
@@ -275,11 +275,11 @@ Please return in JSON format as follows:
         }
         
         return recipes.recipes;
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
+      } catch (error) {
+        console.error('JSON parsing error:', error);
         console.error('Original content:', content);
         console.error('Cleaned content:', cleanedContent);
-        throw new Error(`JSON parsing error: ${parseError.message}`);
+        throw new Error(`JSON parsing error: ${error.message}`);
       }
     } catch (error) {
       console.error('Failed to generate recipes:', error);
@@ -291,7 +291,7 @@ Please return in JSON format as follows:
         console.error('Error status code:', status);
         console.error('Error message:', data);
         
-        // If quota error, wait longer
+        // If it's a quota error, wait longer
         if (status === 429 || (data.error && data.error.code === 'insufficient_quota')) {
           const waitTime = RETRY_DELAY * Math.pow(2, retries); // Exponential backoff
           console.log(`Quota limit reached, waiting ${waitTime}ms before retry...`);
@@ -304,7 +304,7 @@ Please return in JSON format as follows:
       // Increment retry count after error handling
       retries++;
       
-      // If retries remaining, wait and retry
+      // If there are more retries left, wait and retry
       if (retries < MAX_RETRIES) {
         const waitTime = RETRY_DELAY * Math.pow(2, retries);
         console.log(`Retry ${retries} failed, waiting ${waitTime}ms before next attempt...`);
@@ -341,7 +341,7 @@ export const recognizeFoodImage = async (imageUri) => {
     );
     return response.data;
   } catch (error) {
-    console.error('图像识别错误:', error);
+    console.error('Image recognition error:', error);
     throw error;
   }
 };
@@ -356,11 +356,11 @@ export const getFoodSuggestions = async (ingredients) => {
         messages: [
           {
             role: 'system',
-            content: '你是一个专业的厨师助手，请根据提供的食材给出烹饪建议。'
+            content: 'You are a professional chef assistant. Please provide cooking suggestions based on the provided ingredients.'
           },
           {
             role: 'user',
-            content: `我有以下食材：${ingredients.join(', ')}。请给我一些烹饪建议。`
+            content: `I have the following ingredients: ${ingredients.join(', ')}. Please give me some cooking suggestions.`
           }
         ]
       },
@@ -373,7 +373,7 @@ export const getFoodSuggestions = async (ingredients) => {
     );
     return response.data.choices[0].message.content;
   } catch (error) {
-    console.error('获取建议错误:', error);
+    console.error('Error getting suggestions:', error);
     throw error;
   }
 };
@@ -388,11 +388,11 @@ export const categorizeFood = async (foodName) => {
         messages: [
           {
             role: 'system',
-            content: '你是一个专业的食材分类助手，请将食材分类为：蔬菜、水果、肉类、海鲜、乳制品、调味料、其他。'
+            content: 'You are a professional food categorization assistant. Please categorize food items into: vegetables, fruits, meat, seafood, dairy products, seasonings, and others.'
           },
           {
             role: 'user',
-            content: `请将"${foodName}"分类到上述类别中。`
+            content: `Please categorize "${foodName}" into one of the above categories.`
           }
         ]
       },
@@ -405,7 +405,7 @@ export const categorizeFood = async (foodName) => {
     );
     return response.data.choices[0].message.content;
   } catch (error) {
-    console.error('分类错误:', error);
+    console.error('Categorization error:', error);
     throw error;
   }
 };
@@ -420,11 +420,11 @@ export const generateExpiryReminder = async (foodItem) => {
         messages: [
           {
             role: 'system',
-            content: '你是一个专业的食品保鲜助手，请根据食材的保质期生成友好的提醒。'
+            content: 'You are a professional food preservation assistant. Please generate friendly reminders based on food expiration dates.'
           },
           {
             role: 'user',
-            content: `我的${foodItem.name}将在${foodItem.expiryDate}过期，请生成一个提醒。`
+            content: `My ${foodItem.name} will expire on ${foodItem.expiryDate}, please generate a reminder.`
           }
         ]
       },
@@ -437,7 +437,7 @@ export const generateExpiryReminder = async (foodItem) => {
     );
     return response.data.choices[0].message.content;
   } catch (error) {
-    console.error('生成提醒错误:', error);
+    console.error('Error generating reminder:', error);
     throw error;
   }
 };
@@ -453,7 +453,7 @@ const getFamilyHealthTags = async (familyId) => {
         });
         return response.data.data;
     } catch (error) {
-        console.error('获取家庭成员健康标签失败:', error);
+        console.error('Failed to get family member health tags:', error);
         return [];
     }
 };
@@ -462,7 +462,7 @@ const getFamilyHealthTags = async (familyId) => {
 const generateHealthPrompt = (healthTags) => {
     if (!healthTags || healthTags.length === 0) return '';
 
-    // 确保所有标签都是字符串
+    // Ensure all tags are strings
     const tags = healthTags.flat().map(tag => {
         if (typeof tag === 'string') return tag;
         if (tag && typeof tag === 'object') return tag.name || tag.tag || '';
@@ -471,39 +471,39 @@ const generateHealthPrompt = (healthTags) => {
 
     const uniqueTags = [...new Set(tags)];
     
-    // 分类处理健康标签
+    // Categorize health tags
     const dietaryRestrictions = uniqueTags.filter(tag => 
-        ['素食', '纯素', '无麸质', '无乳糖', '过敏'].some(keyword => tag.includes(keyword))
+        ['vegetarian', 'vegan', 'gluten-free', 'lactose-free', 'allergies'].some(keyword => tag.includes(keyword))
     );
     
     const healthConditions = uniqueTags.filter(tag => 
-        ['控制血糖', '控制血压', '注意心脏健康', '注意肾脏健康'].some(keyword => tag.includes(keyword))
+        ['blood sugar control', 'blood pressure control', 'heart health attention', 'kidney health attention'].some(keyword => tag.includes(keyword))
     );
     
     const weightGoals = uniqueTags.filter(tag => 
-        ['减脂需求', '增肌需求', '维持体重'].some(keyword => tag.includes(keyword))
+        ['fat reduction', 'muscle building', 'weight maintenance'].some(keyword => tag.includes(keyword))
     );
 
     const activityLevels = uniqueTags.filter(tag => 
-        ['久坐', '轻度活动', '中度活动', '活跃', '非常活跃'].some(keyword => tag.includes(keyword))
+        ['sedentary', 'light activity', 'moderate activity', 'active', 'very active'].some(keyword => tag.includes(keyword))
     );
 
-    let prompt = '请考虑以下健康因素：\n';
+    let prompt = 'Please consider the following health factors:\n';
     
     if (dietaryRestrictions.length > 0) {
-        prompt += `- 饮食限制：${dietaryRestrictions.join('，')}\n`;
+        prompt += `- Dietary Restrictions: ${dietaryRestrictions.join(', ')}\n`;
     }
     
     if (healthConditions.length > 0) {
-        prompt += `- 健康状况：${healthConditions.join('，')}\n`;
+        prompt += `- Health Conditions: ${healthConditions.join(', ')}\n`;
     }
     
     if (weightGoals.length > 0) {
-        prompt += `- 体重目标：${weightGoals.join('，')}\n`;
+        prompt += `- Weight Goals: ${weightGoals.join(', ')}\n`;
     }
 
     if (activityLevels.length > 0) {
-        prompt += `- 活动水平：${activityLevels.join('，')}\n`;
+        prompt += `- Activity Level: ${activityLevels.join(', ')}\n`;
     }
 
     return prompt;
@@ -521,23 +521,23 @@ export const generateDietaryAdvice = async (familyId) => {
         
         // 构建提示词
         const prompt = `
-你是一个专业的营养师。请根据以下健康信息为这个家庭提供饮食建议：
+You are a professional nutritionist. Please provide dietary advice for this family based on the following health information:
 
 ${healthPrompt}
 
-请提供：
-1. 每日饮食建议
-2. 营养搭配原则
-3. 需要避免的食物
-4. 推荐的食物
-5. 饮食时间建议
-6. 特殊注意事项
+Please provide:
+1. Daily Diet Advice
+2. Nutrient Combination Principles
+3. Foods to Avoid
+4. Recommended Foods
+5. Diet Time Advice
+6. Special Considerations
 
-请确保建议：
-- 科学合理
-- 实用可行
-- 考虑所有健康因素
-- 适合家庭执行
+Please ensure the advice:
+- Scientific and Reasonable
+- Practical and Feasible
+- Consider All Health Factors
+- Suitable for Family Execution
 `;
 
         const response = await axios.post(`${API_URL}/api/ai/generate`, {
@@ -548,7 +548,7 @@ ${healthPrompt}
 
         return response.data;
     } catch (error) {
-        console.error('生成饮食建议失败:', error);
+        console.error('Failed to generate dietary advice:', error);
         throw error;
     }
 };
@@ -571,30 +571,30 @@ export const getRecommendedItems = async ({ familyId }) => {
     const healthPrompt = generateHealthPrompt(familyHealthTags);
 
     // 构建提示词
-    const prompt = `你是一个专业的营养师和购物助手。请根据以下信息推荐需要购买的食材：
+    const prompt = `You are a professional nutritionist and shopping assistant. Please recommend ingredients to buy based on the following information:
 
-家庭成员健康标签：
+Family Member Health Tags:
 ${healthPrompt}
 
-收藏的菜谱：
+Favorite Recipes:
 ${favoriteRecipes.map(recipe => recipe.recipeData.name).join(', ')}
 
-请推荐需要购买的食材，考虑以下因素：
-1. 家庭成员的健康需求
-2. 收藏菜谱中需要的食材
-3. 营养均衡
-4. 季节性食材
-5. 食材的保质期
+Please recommend ingredients to buy, considering the following factors:
+1. Family Member Health Needs
+2. Ingredients Needed for Favorite Recipes
+3. Nutrient Balance
+4. Seasonal Ingredients
+5. Food Expiration Dates
 
-请以JSON格式返回，格式如下：
+Please return the response in JSON format as follows:
 {
   "recommendedItems": [
     {
-      "id": "唯一标识符",
-      "name": "食材名称",
-      "reason": "推荐原因",
-      "recommendedQuantity": "推荐数量",
-      "priority": "优先级（高/中/低）"
+      "id": "Unique Identifier",
+      "name": "Ingredient Name",
+      "reason": "Recommendation Reason",
+      "recommendedQuantity": "Recommended Quantity",
+      "priority": "Priority (High/Medium/Low)"
     }
   ]
 }`;
@@ -606,7 +606,7 @@ ${favoriteRecipes.map(recipe => recipe.recipeData.name).join(', ')}
         messages: [
           {
             role: "system",
-            content: "你是一个专业的营养师和购物助手，擅长根据家庭成员的健康需求和收藏的菜谱推荐需要购买的食材。"
+            content: "You are a professional nutritionist and shopping assistant, skilled at recommending ingredients to buy based on family member health needs and favorite recipes."
           },
           {
             role: "user",

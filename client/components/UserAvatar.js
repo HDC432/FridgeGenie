@@ -1,3 +1,14 @@
+/**
+ * UserAvatar Component
+ * Displays a user's avatar image or initials in a circular container
+ * @param {Object} props - Component props
+ * @param {Object} props.user - User object containing avatar and username information
+ * @param {string} [props.user.avatar] - URL of the user's avatar image
+ * @param {string} [props.user.username] - User's username for generating initials
+ * @param {Function} [props.onPress] - Callback function when avatar is pressed
+ * @param {number} [props.size=40] - Size of the avatar in pixels
+ * @returns {JSX.Element|null} Rendered component or null if no user is provided
+ */
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -6,6 +17,10 @@ const UserAvatar = ({ user, onPress, size = 40 }) => {
     return null;
   }
 
+  /**
+   * Generates initials from the user's username
+   * @returns {string} Uppercase initials or '?' if no username is available
+   */
   const getInitials = () => {
     if (!user.username) return '?';
     return user.username
@@ -54,6 +69,10 @@ const UserAvatar = ({ user, onPress, size = 40 }) => {
   );
 };
 
+/**
+ * Styles for the UserAvatar component
+ * @type {Object}
+ */
 const styles = StyleSheet.create({
   avatarContainer: {
     overflow: 'hidden',

@@ -67,7 +67,7 @@ const AIAssistant = () => {
   const windowHeight = Dimensions.get('window').height;
   const navigation = useNavigation();
 
-  // 添加日期工具函数
+  // Add date utility functions
   const getLocalDateString = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -75,20 +75,20 @@ const AIAssistant = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // 添加相对日期处理函数
+  // Add relative date handling function
   const getRelativeDateString = (daysToAdd) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // 重置时间为当天开始
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + daysToAdd);
     return getLocalDateString(targetDate);
   };
 
-  // 添加默认日期处理函数
+  // Add default date handling function
   const getDefaultDateString = () => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // 重置时间为当天开始
-    // 默认设置为7天后
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    // Default to 7 days later
     const targetDate = new Date(today);
     targetDate.setDate(today.getDate() + 7);
     return getLocalDateString(targetDate);
@@ -265,12 +265,12 @@ const AIAssistant = () => {
   const speak = async (text) => {
     try {
       await Speech.speak(text, {
-        language: 'zh-CN',
+        language: 'en-US',
         pitch: 1.0,
         rate: 0.9,
       });
     } catch (err) {
-      console.error('语音合成错误:', err);
+      console.error('Speech synthesis error:', err);
     }
   };
 
@@ -285,33 +285,41 @@ const AIAssistant = () => {
       let operationResult = '';
       
       if (action) {
-        // Execute the corresponding action
-        await executeAction(action);
-        
-        // Generate success message based on action type
-        switch (action.type) {
-          case 'ADD_ITEM':
-            operationResult = `Successfully added ${action.quantity} ${action.item}(s) to your fridge.`;
-            break;
-          case 'DELETE_ITEM':
-            operationResult = `Successfully deleted ${action.item} from your fridge.`;
-            break;
-          case 'UPDATE_ITEM':
-            operationResult = `Successfully updated ${action.item} quantity to ${action.quantity}.`;
-            break;
+        if (action.type === 'CHAT') {
+          // For chat messages, use the original response directly
+          operationResult = response;
+        } else {
+          // Execute the corresponding action for specific commands
+          await executeAction(action);
+          
+          // Generate success message based on action type
+          switch (action.type) {
+            case 'ADD_ITEM':
+              operationResult = `Successfully added ${action.quantity} ${action.item}(s) to your fridge.`;
+              break;
+            case 'DELETE_ITEM':
+              operationResult = `Successfully deleted ${action.item} from your fridge.`;
+              break;
+            case 'UPDATE_ITEM':
+              operationResult = `Successfully updated ${action.item} quantity to ${action.quantity}.`;
+              break;
+          }
         }
+      } else {
+        // If no action was parsed, use the original response
+        operationResult = response;
       }
 
       // Add AI's response to message list
       const assistantMessage = {
-        text: operationResult || response,
+        text: operationResult,
         sender: 'assistant',
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, assistantMessage]);
       
       // Read out AI's response
-      speak(operationResult || response);
+      speak(operationResult);
 
       // Refresh the home screen if needed
       if (action && (action.type === 'ADD_ITEM' || action.type === 'DELETE_ITEM' || action.type === 'UPDATE_ITEM')) {
@@ -352,6 +360,10 @@ const AIAssistant = () => {
       console.log('Executing action:', action);
 
       switch (action.type) {
+        case 'CHAT':
+          // For chat messages, just return the message as is
+          return action.message;
+
         case 'ADD_ITEM': {
           let expiryDate;
           if (action.expiryDate) {
@@ -435,11 +447,11 @@ const AIAssistant = () => {
           });
 
           if (!queryResponse.ok) {
-            throw new Error('查询物品失败');
+            throw new Error('Failed to query item');
           }
 
           const itemData = await queryResponse.json();
-          const queryConfirmation = `${action.item} 当前数量为 ${itemData.quantity}`;
+          const queryConfirmation = `Current quantity of ${action.item} is ${itemData.quantity}`;
           await speak(queryConfirmation);
           setMessages(prev => [
             ...prev,
@@ -467,22 +479,22 @@ const AIAssistant = () => {
         let date;
 
         if (typeof dateInput === 'string') {
-          // 解析日期字符串为本地时间
+          // Parse date string to local time
           const [year, month, day] = dateInput.split('-').map(Number);
-          date = new Date(year, month - 1, day); // 使用本地时区
+          date = new Date(year, month - 1, day); // Use local timezone
         } else if (dateInput instanceof Date) {
           date = new Date(dateInput.getFullYear(), dateInput.getMonth(), dateInput.getDate());
         } else {
           return null;
         }
 
-        // 确保是有效日期
+        // Ensure it's a valid date
         if (isNaN(date.getTime())) {
           console.warn('Invalid date:', dateInput);
           return null;
         }
 
-        // 返回格式化后的 YYYY-MM-DD（避免时区偏移）
+        // Return formatted YYYY-MM-DD (avoid timezone offset)
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
@@ -500,8 +512,8 @@ const AIAssistant = () => {
       if (!dateText) return null;
       console.log('Original date text:', dateText);
 
-      // —— 1. 先把中文数字批量转换成阿拉伯数字 ——  
-      //    "五月十五号" → "5月15号"
+      // Step 1: Convert Chinese numbers to Arabic numbers
+      // "May 15th" → "5月15号"
       const normalized = dateText.replace(
         /[一二三四五六七八九十]{1,3}/g,
         (m) => chineseToNumber(m)
@@ -510,9 +522,9 @@ const AIAssistant = () => {
       try {
         const now = new Date();
         now.setHours(0, 0, 0, 0);
-        const nextYear = now.getFullYear() + 1;  // 明年
+        const nextYear = now.getFullYear() + 1;  // Next year
 
-        // 检查日期是否应该用明年
+        // Check if date should use next year
         const shouldUseNextYear = (month, day) => {
           const thisYear = now.getFullYear();
           const dateThisYear = new Date(thisYear, month - 1, day);
@@ -520,22 +532,22 @@ const AIAssistant = () => {
           return dateThisYear < now;
         };
 
-        // —— 2. 检查是否包含明确的年份 ——
-        const hasExplicitYear = normalized.includes('明年') || /\d{4}年/.test(normalized);
+        // Step 2: Check for explicit year
+        const hasExplicitYear = normalized.includes('next year') || /\d{4}年/.test(normalized);
         
-        // —— 3. 中文"X月Y号/日"格式 ——  
+        // Step 3: Chinese "Month Day" format
         const chineseMatch = normalized.match(/(\d{1,2})月\s*(\d{1,2})[号日]?/);
         if (chineseMatch) {
           const month = parseInt(chineseMatch[1], 10);
           const day = parseInt(chineseMatch[2], 10);
-          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          // If no explicit year and date has passed this year, use next year
           const year = hasExplicitYear ? now.getFullYear() : 
                       shouldUseNextYear(month, day) ? nextYear : now.getFullYear();
           console.log('Parsed Chinese date:', { year, month, day, shouldUseNextYear: shouldUseNextYear(month, day) });
           return getLocalDateString(new Date(year, month - 1, day));
         }
 
-        // —— 4. 英文"Month Day"格式 ——  
+        // Step 4: English "Month Day" format
         const engMatch = normalized.match(
           /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{1,2})(?:st|nd|rd|th)?\b/i
         );
@@ -550,14 +562,14 @@ const AIAssistant = () => {
           };
           const month = monthNames[engMatch[1].toLowerCase()] + 1;
           const day = parseInt(engMatch[2], 10);
-          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          // If no explicit year and date has passed this year, use next year
           const year = hasExplicitYear ? now.getFullYear() : 
                       shouldUseNextYear(month, day) ? nextYear : now.getFullYear();
           console.log('Parsed English date:', { year, month, day, shouldUseNextYear: shouldUseNextYear(month, day) });
           return getLocalDateString(new Date(year, month - 1, day));
         }
 
-        // —— 5. 相对日期（X天后，下周等）——
+        // Step 5: Relative dates (X days later, next week, etc.)
         const relativeDayMatch = normalized.match(/(\d+)(?:天|日)后/);
         if (relativeDayMatch) {
           const days = parseInt(relativeDayMatch[1], 10);
@@ -567,18 +579,18 @@ const AIAssistant = () => {
           return getLocalDateString(targetDate);
         }
 
-        if (normalized.includes('下周') || normalized.includes('下个星期')) {
+        if (normalized.includes('next week')) {
           const targetDate = new Date(now);
           targetDate.setDate(now.getDate() + 7);
           console.log('Parsed next week:', { targetDate });
           return getLocalDateString(targetDate);
         }
 
-        // —— 6. 其它自然语言，使用 chrono-node ——
+        // Step 6: Other natural language, use chrono-node
         const chronoParsed = chrono.parseDate(normalized, now, { forwardDate: true });
         if (chronoParsed) {
           chronoParsed.setHours(0, 0, 0, 0);
-          // 如果没有明确指定年份，且日期在今年已过，使用明年
+          // If no explicit year and date has passed this year, use next year
           if (!hasExplicitYear && chronoParsed < now) {
             chronoParsed.setFullYear(nextYear);
           }
@@ -599,7 +611,7 @@ const AIAssistant = () => {
     if (addItemMatch) {
       console.log('Matched strict ADD pattern:', addItemMatch);
       const [_, quantity, item, expiryDate] = addItemMatch;
-      // 直接使用匹配到的日期，不进行转换
+      // Use matched date directly, no conversion needed
       return {
         type: 'ADD_ITEM',
         quantity: parseInt(quantity),
@@ -616,13 +628,13 @@ const AIAssistant = () => {
       let parsedExpiry = null;
       
       if (expiryText) {
-        // 检查是否包含完整的日期格式（YYYY-MM-DD）
+        // Check if it contains a complete date format (YYYY-MM-DD)
         const dateMatch = expiryText.match(/(\d{4}-\d{2}-\d{2})/);
         if (dateMatch) {
           parsedExpiry = dateMatch[1];
           console.log('Found formatted date in expiry text:', parsedExpiry);
         } else {
-          // 如果不是完整格式，使用自然语言解析
+          // If not complete format, use natural language parsing
           parsedExpiry = parseNaturalLanguageDate(expiryText);
           console.log('Parsed natural language date:', parsedExpiry);
         }
@@ -661,8 +673,8 @@ const AIAssistant = () => {
       return { type: 'QUERY_ITEM', item: queryMatch[1].trim() };
     }
 
-    console.log('No pattern matched.');
-    return null;
+    console.log('No pattern matched, returning original response.');
+    return { type: 'CHAT', message: response };
   };
 
   const sendMessage = async () => {
@@ -682,7 +694,7 @@ const AIAssistant = () => {
       const aiResponse = await sendMessageToAI(inputText);
       await handleAIResponse(aiResponse);
     } catch (error) {
-      console.error('发送消息错误:', error);
+      console.error('Error sending message:', error);
       const errorMessage = {
         text: ERROR_MESSAGES.SERVER_ERROR,
         sender: 'assistant',
@@ -757,7 +769,7 @@ const AIAssistant = () => {
               style={styles.input}
               value={inputText}
               onChangeText={setInputText}
-              placeholder="和我聊聊你的冰箱吧~ ⭐️"
+              placeholder="Let's talk about food! ⭐️"
               multiline
               editable={!isLoading}
             />

@@ -1,3 +1,11 @@
+/**
+ * ItemList Component
+ * Displays a list of items with their expiry dates and allows deletion
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object for screen navigation
+ * @param {boolean} props.refresh - Refresh trigger to reload items
+ * @returns {JSX.Element} Rendered component
+ */
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,11 +21,14 @@ const ItemList = ({ navigation, refresh }) => {
     loadItems();
   }, [refresh]);
 
+  /**
+   * Loads items from the database and sorts them by expiry date
+   */
   const loadItems = async () => {
     try {
       const resp = await getItems();
       if (resp && resp.items) {
-        // 按过期时间升序排序
+        // Sort by expiry date in ascending order
         const sortedItems = [...resp.items].sort(
           (a, b) => new Date(a.expiryDate) - new Date(b.expiryDate)
         );
@@ -25,34 +36,38 @@ const ItemList = ({ navigation, refresh }) => {
         setLastUpdate(new Date());
       }
     } catch (err) {
-      console.error('加载物品失败:', err);
-      Alert.alert('错误', '加载物品失败，请重试');
+      console.error('Failed to load items:', err);
+      Alert.alert('Error', 'Failed to load items. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Handles item deletion with platform-specific confirmation dialogs
+   * @param {string} id - ID of the item to delete
+   */
   const handleDelete = (id) => {
-    console.log('当前平台:', Platform.OS);
-    console.log('是否Web平台:', Platform.OS === 'web');
+    console.log('Current platform:', Platform.OS);
+    console.log('Is Web platform:', Platform.OS === 'web');
     
     if (Platform.OS === 'web') {
-      console.log('使用Web确认对话框');
-      if (window.confirm('确定要删除这个物品吗？')) {
-        console.log('用户确认删除');
+      console.log('Using Web confirmation dialog');
+      if (window.confirm('Are you sure you want to delete this item?')) {
+        console.log('User confirmed deletion');
         deleteItemAndRefresh(id);
       } else {
-        console.log('用户取消删除');
+        console.log('User cancelled deletion');
       }
     } else {
-      console.log('使用原生Alert对话框');
+      console.log('Using native Alert dialog');
       Alert.alert(
-        '确认删除',
-        '确定要删除这个物品吗？',
+        'Confirm Deletion',
+        'Are you sure you want to delete this item?',
         [
-          { text: '取消', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: '删除',
+            text: 'Delete',
             style: 'destructive',
             onPress: () => deleteItemAndRefresh(id),
           },
@@ -61,32 +76,42 @@ const ItemList = ({ navigation, refresh }) => {
     }
   };
 
+  /**
+   * Deletes an item and refreshes the list
+   * @param {string} id - ID of the item to delete
+   */
   const deleteItemAndRefresh = async (id) => {
-    console.log('开始删除物品:', id);
+    console.log('Starting item deletion:', id);
     try {
       await deleteItem(id);
-      console.log('删除成功，重新加载列表');
-      loadItems(); // 重新加载列表
+      console.log('Deletion successful, reloading list');
+      loadItems(); // Reload the list
     } catch (err) {
-      console.error('删除失败:', err);
+      console.error('Deletion failed:', err);
       if (Platform.OS === 'web') {
-        alert('删除失败，请重试');
+        alert('Deletion failed. Please try again.');
       } else {
-        Alert.alert('错误', '删除失败，请重试');
+        Alert.alert('Error', 'Deletion failed. Please try again.');
       }
     }
   };
 
+  /**
+   * Renders a single item in the list
+   * @param {Object} param0 - Item data
+   * @param {Object} param0.item - The item to render
+   * @returns {JSX.Element} Rendered item component
+   */
   const renderItem = ({ item }) => {
     const daysLeft = differenceInCalendarDays(
       new Date(item.expiryDate),
       new Date()
     );
 
-    let stripeColor = '#4CAF50'; // 正常
-    if (daysLeft <= 1) stripeColor = '#F44336'; // 紧急
-    else if (daysLeft <= 3) stripeColor = '#FF9800'; // 注意
-    else if (daysLeft <= 7) stripeColor = '#FFEB3B'; // 警告
+    let stripeColor = '#4CAF50'; // Normal
+    if (daysLeft <= 1) stripeColor = '#F44336'; // Urgent
+    else if (daysLeft <= 3) stripeColor = '#FF9800'; // Attention
+    else if (daysLeft <= 7) stripeColor = '#FFEB3B'; // Warning
 
     return (
       <View style={styles.itemWrapper}>
@@ -95,16 +120,16 @@ const ItemList = ({ navigation, refresh }) => {
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{item.name}</Text>
             <Text style={styles.itemDetails}>
-              数量: {item.quantity} | 过期: {new Date(item.expiryDate).toLocaleDateString()} ({daysLeft}天)
+              Quantity: {item.quantity} | Expires: {new Date(item.expiryDate).toLocaleDateString()} ({daysLeft} days)
             </Text>
           </View>
           <View style={styles.itemActions}>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={() => {
-                console.log('删除按钮被点击');
-                console.log('当前平台:', Platform.OS);
-                console.log('是否Web平台:', Platform.OS === 'web');
+                console.log('Delete button clicked');
+                console.log('Current platform:', Platform.OS);
+                console.log('Is Web platform:', Platform.OS === 'web');
                 handleDelete(item.id);
               }}
             >
@@ -119,12 +144,12 @@ const ItemList = ({ navigation, refresh }) => {
   if (items.length === 0 && !loading) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>没有物品</Text>
+        <Text style={styles.emptyText}>No items</Text>
         <TouchableOpacity
           style={styles.addFirstButton}
           onPress={() => navigation.navigate('AddItem')}
         >
-          <Text style={styles.addFirstButtonText}>添加物品</Text>
+          <Text style={styles.addFirstButtonText}>Add Item</Text>
         </TouchableOpacity>
       </View>
     );
@@ -134,7 +159,7 @@ const ItemList = ({ navigation, refresh }) => {
     <View style={styles.container}>
       {lastUpdate && (
         <Text style={styles.lastUpdateText}>
-          上次更新: {lastUpdate.toLocaleTimeString()}
+          Last updated: {lastUpdate.toLocaleTimeString()}
         </Text>
       )}
       <FlatList

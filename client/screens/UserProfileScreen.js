@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,20 +18,49 @@ const UserProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert(
-      '确认退出',
-      '确定要退出登录吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '退出',
-          style: 'destructive',
-          onPress: () => {
-            logout();
+    console.log('Logout button pressed');
+    
+    if (Platform.OS === 'web') {
+      // Web 平台使用 window.confirm
+      if (window.confirm('确定要退出登录吗？')) {
+        console.log('Logout confirmed');
+        handleLogoutAction();
+      }
+    } else {
+      // 移动平台使用 Alert.alert
+      Alert.alert(
+        '确认退出',
+        '确定要退出登录吗？',
+        [
+          { text: '取消', style: 'cancel' },
+          {
+            text: '退出',
+            style: 'destructive',
+            onPress: handleLogoutAction,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
+  };
+
+  const handleLogoutAction = async () => {
+    console.log('Logout confirmed');
+    try {
+      await logout();
+      console.log('Logout successful');
+      // 登出后导航到登录页面
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+      if (Platform.OS === 'web') {
+        window.alert('退出登录失败，请重试');
+      } else {
+        Alert.alert('错误', '退出登录失败，请重试');
+      }
+    }
   };
 
   const menuItems = [

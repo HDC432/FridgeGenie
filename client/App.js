@@ -1,3 +1,7 @@
+/**
+ * Main application component for FridgeGenie
+ * Handles navigation and authentication state
+ */
 import 'react-native-gesture-handler';
 import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,6 +29,10 @@ import theme from './styles/theme';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+/**
+ * TabNavigator component that handles the bottom tab navigation
+ * @returns {JSX.Element} The tab navigator component
+ */
 const TabNavigator = () => {
   const { user } = useAuth();
 
@@ -64,33 +72,37 @@ const TabNavigator = () => {
         name="Home" 
         component={HomeScreen}
         options={{ 
-          title: '首页',
+          title: 'Home',
         }}
       />
       <Tab.Screen 
         name="Recipe" 
         component={RecipeScreen}
-        options={{ title: '菜谱' }}
+        options={{ title: 'Recipes' }}
       />
       <Tab.Screen 
         name="AddItem" 
         component={AddItemScreen}
-        options={{ title: '添加物品' }}
+        options={{ title: 'Add' }}
       />
       <Tab.Screen 
         name="Recommended" 
         component={RecommendedItemsScreen}
-        options={{ title: '推荐' }}
+        options={{ title: 'Recommended' }}
       />
       <Tab.Screen 
         name="Profile" 
         component={UserProfileScreen}
-        options={{ title: '我的' }}
+        options={{ title: 'Profile' }}
       />
     </Tab.Navigator>
   );
 };
 
+/**
+ * Navigation component that handles the main navigation stack
+ * @returns {JSX.Element} The navigation component
+ */
 const Navigation = () => {
   const { user, loading } = useAuth();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -111,7 +123,7 @@ const Navigation = () => {
     <NavigationContainer>
       <Stack.Navigator>
         {!user ? (
-          // 未登录状态
+          // Not logged in state
           <>
             <Stack.Screen
               name="Login"
@@ -125,7 +137,7 @@ const Navigation = () => {
             />
           </>
         ) : (
-          // 已登录状态
+          // Logged in state
           <>
             <Stack.Screen
               name="MainTabs"
@@ -135,22 +147,22 @@ const Navigation = () => {
             <Stack.Screen
               name="UserProfile"
               component={UserProfileScreen}
-              options={{ title: '用户信息' }}
+              options={{ title: 'User Profile' }}
             />
             <Stack.Screen
               name="Family"
               component={FamilyScreen}
-              options={{ title: '我的家庭' }}
+              options={{ title: 'My Family' }}
             />
             <Stack.Screen
               name="HealthProfile"
               component={HealthProfileScreen}
-              options={{ title: '健康信息' }}
+              options={{ title: 'Health Profile' }}
             />
             <Stack.Screen
               name="FavoriteRecipes"
               component={FavoriteRecipesScreen}
-              options={{ title: '收藏的菜谱' }}
+              options={{ title: 'Favorite Recipes' }}
             />
           </>
         )}
@@ -172,6 +184,10 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Root App component
+ * @returns {JSX.Element} The root app component
+ */
 export default function App() {
   return (
     <AuthProvider>

@@ -1,15 +1,15 @@
 import env from '../config/env';
 
-// API 配置
+// API Configuration
 export const API_URL = 'http://localhost:3001';
 
-// Azure Speech Services 配置
+// Azure Speech Services Configuration
 export const AZURE_SPEECH = {
   SUBSCRIPTION_KEY: env.AZURE_SPEECH_KEY,
-  REGION: 'eastus', // 例如: 'eastus', 'westeurope' 等
-  LANGUAGE: 'zh-CN', // 语音识别语言
-  RECOGNITION_MODE: 'conversation', // 识别模式：conversation, dictation, interactive
-  OUTPUT_FORMAT: 'simple', // 输出格式：simple, detailed
+  REGION: 'eastus', // Example: 'eastus', 'westeurope', etc.
+  LANGUAGE: 'en-US', // Speech recognition language
+  RECOGNITION_MODE: 'conversation', // Recognition mode: conversation, dictation, interactive
+  OUTPUT_FORMAT: 'simple', // Output format: simple, detailed
   AUDIO_CONFIG: {
     sampleRateHz: 16000,
     bitsPerSample: 16,
@@ -17,7 +17,7 @@ export const AZURE_SPEECH = {
   },
 };
 
-// 应用配置
+// Application Configuration
 export const APP_CONFIG = {
   THEME: {
     PRIMARY_COLOR: '#007AFF',
@@ -28,7 +28,7 @@ export const APP_CONFIG = {
   CHAT: {
     MAX_MESSAGE_LENGTH: 1000,
     AUTO_SCROLL: true,
-    MESSAGE_DELAY: 1000, // 消息发送延迟（毫秒）
+    MESSAGE_DELAY: 1000, // Message sending delay (milliseconds)
   },
   VOICE: {
     ENABLED: true,
@@ -38,21 +38,21 @@ export const APP_CONFIG = {
     PITCH: 1.0,
   },
   STORAGE: {
-    MESSAGE_HISTORY_LIMIT: 100, // 保存的消息历史记录数量
-    CACHE_EXPIRY: 24 * 60 * 60 * 1000, // 缓存过期时间（毫秒）
+    MESSAGE_HISTORY_LIMIT: 100, // Number of saved message history
+    CACHE_EXPIRY: 24 * 60 * 60 * 1000, // Cache expiration time (milliseconds)
   },
 };
 
-// 错误消息配置
+// Error Messages Configuration
 export const ERROR_MESSAGES = {
-  NETWORK_ERROR: '网络连接失败，请检查网络设置',
-  SPEECH_RECOGNITION_ERROR: '语音识别失败，请重试',
-  PERMISSION_DENIED: '需要麦克风权限才能使用语音功能',
-  INVALID_INPUT: '输入内容无效，请重新输入',
-  SERVER_ERROR: '服务器错误，请稍后重试',
+  NETWORK_ERROR: 'Network connection failed, please check your network settings',
+  SPEECH_RECOGNITION_ERROR: 'Speech recognition failed, please try again',
+  PERMISSION_DENIED: 'Microphone permission is required to use voice features',
+  INVALID_INPUT: 'Invalid input, please try again',
+  SERVER_ERROR: 'Server error, please try again later',
 };
 
-// 功能开关配置
+// Feature Flags Configuration
 export const FEATURE_FLAGS = {
   ENABLE_VOICE_INPUT: true,
   ENABLE_VOICE_OUTPUT: true,

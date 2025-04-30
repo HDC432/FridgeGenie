@@ -111,11 +111,13 @@ class FamilyService {
                 return { success: false, message: '家庭不存在' };
             }
 
-            // 检查操作者是否是管理员
-            const admin = family.members.find(m => m.userId === adminId);
-            if (!admin || admin.role !== 'admin') {
-                console.log('FamilyService - removeMember - 操作者不是管理员');
-                return { success: false, message: '只有管理员可以移除成员' };
+            // 如果是管理员移除其他成员，检查权限
+            if (adminId && adminId !== userId) {
+                const admin = family.members.find(m => m.userId === adminId);
+                if (!admin || admin.role !== 'admin') {
+                    console.log('FamilyService - removeMember - 操作者不是管理员');
+                    return { success: false, message: '只有管理员可以移除成员' };
+                }
             }
 
             // 检查用户是否是家庭成员
@@ -134,13 +136,15 @@ class FamilyService {
                 return { success: true, message: '家庭已删除' };
             }
 
-            // 如果是管理员，需要转移管理员权限
+            // 如果是管理员退出，需要转移管理员权限和creatorId
             if (family.members[memberIndex].role === 'admin') {
                 console.log('FamilyService - removeMember - 管理员退出，需要转移权限');
                 // 找到第一个非管理员成员
                 const newAdminIndex = family.members.findIndex(m => m.role !== 'admin' && m.userId !== userId);
                 if (newAdminIndex !== -1) {
                     family.members[newAdminIndex].role = 'admin';
+                    // 更新 creatorId 为新管理员的 ID
+                    family.creatorId = family.members[newAdminIndex].userId;
                 }
             }
 
