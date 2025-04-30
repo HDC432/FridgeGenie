@@ -30,7 +30,6 @@ export default function RecipeScreen({ navigation }) {
   const [selectedQuantities, setSelectedQuantities] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
   const { user } = useAuth();
   const [error, setError] = useState(null);
@@ -329,19 +328,6 @@ export default function RecipeScreen({ navigation }) {
       );
     }
 
-    // 根据标签过滤
-    if (activeTab === 'matched') {
-      // 只显示能够使用冰箱中食材的菜谱
-      if (refrigeratorItems && refrigeratorItems.length > 0) {
-        const refrigeratorItemNames = refrigeratorItems.map(item => item.name.toLowerCase());
-        filteredRecipes = filteredRecipes.filter(recipe =>
-          recipe.ingredients.some(ing =>
-            refrigeratorItemNames.includes(ing.name.toLowerCase())
-          )
-        );
-      }
-    }
-
     return filteredRecipes;
   };
 
@@ -363,43 +349,6 @@ export default function RecipeScreen({ navigation }) {
             onChangeText={setSearchQuery}
           />
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabsContainer}
-        >
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'all' ? styles.activeTab : styles.inactiveTab]}
-            onPress={() => setActiveTab('all')}
-          >
-            <Text
-              style={[styles.tabText, activeTab === 'all' ? styles.activeTabText : styles.inactiveTabText]}
-            >
-              全部菜谱
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'matched' ? styles.activeTab : styles.inactiveTab]}
-            onPress={() => setActiveTab('matched')}
-          >
-            <Text
-              style={[styles.tabText, activeTab === 'matched' ? styles.activeTabText : styles.inactiveTabText]}
-            >
-              冰箱食材可做
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'fav' ? styles.activeTab : styles.inactiveTab]}
-            onPress={() => setActiveTab('fav')}
-          >
-            <Text
-              style={[styles.tabText, activeTab === 'fav' ? styles.activeTabText : styles.inactiveTabText]}
-            >
-              我的收藏
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
       </View>
 
       {loading ? (
@@ -417,9 +366,7 @@ export default function RecipeScreen({ navigation }) {
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            {activeTab === 'matched'
-              ? '没有找到可以用冰箱食材制作的菜谱'
-              : '请添加食材到冰箱来生成菜谱推荐'}
+            请添加食材到冰箱来生成菜谱推荐
           </Text>
           <TouchableOpacity 
             style={styles.refreshButton}
@@ -465,32 +412,6 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.SMALL,
     fontSize: FONT_SIZE.MEDIUM,
     color: COLORS.TEXT_PRIMARY,
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    marginBottom: SPACING.MEDIUM,
-  },
-  tab: {
-    paddingVertical: SPACING.SMALL,
-    paddingHorizontal: SPACING.LARGE,
-    marginRight: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.ROUNDED,
-  },
-  activeTab: {
-    backgroundColor: COLORS.PRIMARY,
-  },
-  inactiveTab: {
-    backgroundColor: COLORS.LIGHT_GRAY,
-  },
-  tabText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: FONT_WEIGHT.MEDIUM,
-  },
-  activeTabText: {
-    color: COLORS.TEXT_PRIMARY,
-  },
-  inactiveTabText: {
-    color: COLORS.TEXT_SECONDARY,
   },
   loadingContainer: {
     flex: 1,
@@ -825,5 +746,8 @@ const styles = StyleSheet.create({
   healthConsiderationTagText: {
     fontSize: FONT_SIZE.SMALL,
     color: COLORS.TEXT_PRIMARY,
+  },
+  tabsContainer: {
+    display: 'none', // 隐藏标签容器
   },
 }); 
