@@ -269,6 +269,7 @@ const AIAssistant = () => {
                 }),
               },
             ],
+            opacity: slideAnim,
           },
         ]}
       >
@@ -344,7 +345,10 @@ const AIAssistant = () => {
         </KeyboardAvoidingView>
       </Animated.View>
 
-      <TouchableOpacity style={styles.floatingButton} onPress={toggleChat}>
+      <TouchableOpacity 
+        style={styles.floatingButton} 
+        onPress={toggleChat}
+      >
         <Ionicons name="chatbubble" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
@@ -375,6 +379,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    zIndex: 10000,
   },
   chatContainer: {
     position: 'absolute',
@@ -389,6 +397,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    zIndex: 9999,
   },
   chatHeader: {
     flexDirection: 'row',
