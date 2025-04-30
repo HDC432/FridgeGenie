@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Home screen component that displays a list of food items in the fridge
+ * with their quantities and expiry dates. Users can manage items by updating quantities
+ * or deleting them.
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
@@ -21,6 +27,13 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
+/**
+ * HomeScreen component that displays and manages food items in the fridge
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @param {Object} props.route - Route object containing navigation parameters
+ * @returns {React.Component} Rendered component
+ */
 const HomeScreen = ({ navigation, route }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,31 +44,31 @@ const HomeScreen = ({ navigation, route }) => {
 
   const loadItems = async () => {
     try {
-      console.log('开始加载物品列表...');
+      console.log('Loading items list...');
       if (!user?.familyId) {
-        console.error('用户未关联家庭');
-        Alert.alert('错误', '请先加入或创建一个家庭');
+        console.error('User not associated with a family');
+        Alert.alert('Error', 'Please join or create a family first');
         return;
       }
 
-      console.log('用户家庭ID:', user.familyId);
+      console.log('User family ID:', user.familyId);
       const resp = await getFamilyItems(user.familyId);
-      console.log('获取到的物品数据:', resp);
+      console.log('Retrieved items data:', resp);
       
       if (resp && Array.isArray(resp.items)) {
         const rawItems = resp.items;
-        // 过滤掉数量为0的物品，并按过期时间升序排序
+        // Filter out items with quantity 0 and sort by expiry date
         const filteredItems = rawItems.filter(item => item.quantity > 0);
         filteredItems.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-        console.log('排序后的物品列表:', filteredItems);
+        console.log('Sorted items list:', filteredItems);
         setItems(filteredItems);
       } else {
-        console.error('返回的数据格式不正确:', resp);
-        Alert.alert('错误', '获取数据失败，请重试');
+        console.error('Invalid data format:', resp);
+        Alert.alert('Error', 'Failed to fetch data, please try again');
       }
     } catch (err) {
-      console.error('加载物品失败:', err);
-      Alert.alert('错误', '加载物品失败，请重试');
+      console.error('Failed to load items:', err);
+      Alert.alert('Error', 'Failed to load items, please try again');
     }
   };
 
@@ -87,19 +100,19 @@ const HomeScreen = ({ navigation, route }) => {
     
     const quantity = parseInt(newQuantity, 10);
     if (isNaN(quantity) || quantity < 0) {
-      Alert.alert('错误', '请输入有效的数量');
+      Alert.alert('Error', 'Please enter a valid quantity');
       return;
     }
 
     try {
       if (quantity === 0) {
-        // 如果数量为0，直接删除物品
+        // If quantity is 0, delete the item
         await deleteItem(selectedItem.id);
         setItems(prevItems => prevItems.filter(item => item.id !== selectedItem.id));
         setIsQuantityModalVisible(false);
-        Alert.alert('成功', '物品已删除');
+        Alert.alert('Success', 'Item deleted');
       } else {
-        // 更新物品数量
+        // Update item quantity
         const updatedItem = await updateItem(selectedItem.id, {
           ...selectedItem,
           quantity: quantity,
@@ -112,30 +125,30 @@ const HomeScreen = ({ navigation, route }) => {
         );
         setIsQuantityModalVisible(false);
         setNewQuantity('');
-        Alert.alert('成功', '数量已更新');
+        Alert.alert('Success', 'Quantity updated');
       }
     } catch (error) {
-      console.error('操作失败:', error);
-      Alert.alert('错误', '操作失败，请重试');
+      console.error('Operation failed:', error);
+      Alert.alert('Error', 'Operation failed, please try again');
     }
   };
 
   const handleDelete = (id) => {
-    console.log('点击删除按钮，ID:', id);
-    console.log('当前平台:', Platform.OS);
+    console.log('Delete button clicked, ID:', id);
+    console.log('Current platform:', Platform.OS);
     
     if (Platform.OS === 'web') {
-      if (window.confirm('确定要删除这个物品吗？')) {
+      if (window.confirm('Are you sure you want to delete this item?')) {
         deleteItemAndRefresh(id);
       }
     } else {
       Alert.alert(
-        '确认删除',
-        '确定要删除这个物品吗？',
+        'Confirm Delete',
+        'Are you sure you want to delete this item?',
         [
-          { text: '取消', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: '删除',
+            text: 'Delete',
             style: 'destructive',
             onPress: () => deleteItemAndRefresh(id),
           },
@@ -146,22 +159,22 @@ const HomeScreen = ({ navigation, route }) => {
 
   const deleteItemAndRefresh = async (id) => {
     try {
-      console.log('开始删除物品，ID:', id);
+      console.log('Starting item deletion, ID:', id);
       await deleteItem(id);
-      console.log('删除成功，更新列表');
+      console.log('Deletion successful, updating list');
       setItems(prevItems => prevItems.filter(item => item.id !== id));
       
       if (Platform.OS === 'web') {
-        alert('物品已删除');
+        alert('Item deleted');
       } else {
-        Alert.alert('成功', '物品已删除');
+        Alert.alert('Success', 'Item deleted');
       }
     } catch (err) {
-      console.error('删除失败:', err);
+      console.error('Deletion failed:', err);
       if (Platform.OS === 'web') {
-        alert('删除失败，请重试');
+        alert('Deletion failed, please try again');
       } else {
-        Alert.alert('错误', '删除失败，请重试');
+        Alert.alert('Error', 'Deletion failed, please try again');
       }
     }
   };
@@ -179,10 +192,10 @@ const HomeScreen = ({ navigation, route }) => {
     }
     const daysLeft = differenceInCalendarDays(expiry, new Date());
 
-    let stripeColor = COLORS.SUCCESS; // > 7 天：绿
-    if (daysLeft <= 1)      stripeColor = COLORS.DANGER; // ≤1 天：红
-    else if (daysLeft <= 3) stripeColor = COLORS.ALERT; // ≤3 天：橙
-    else if (daysLeft <= 7) stripeColor = COLORS.WARNING; // ≤7 天：黄
+    let stripeColor = COLORS.SUCCESS; 
+    if (daysLeft <= 1)      stripeColor = COLORS.DANGER; 
+    else if (daysLeft <= 3) stripeColor = COLORS.ALERT; 
+    else if (daysLeft <= 7) stripeColor = COLORS.WARNING;
 
     return (
       <View style={styles.itemWrapper}>
@@ -191,7 +204,7 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.itemInfo}>
             <Text style={styles.itemName}>{item.name}</Text>
             <Text style={styles.itemDetails}>
-              数量: {item.quantity} | 过期: {expiry.toLocaleDateString()} ({daysLeft} 天)
+              Qty: {item.quantity} | Exp: {expiry.toLocaleDateString()} ({daysLeft}d)
             </Text>
           </View>
           <View style={styles.itemActions}>
@@ -223,7 +236,7 @@ const HomeScreen = ({ navigation, route }) => {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>编辑数量</Text>
+            <Text style={styles.modalTitle}>Edit Quantity</Text>
             <TouchableOpacity
               onPress={() => setIsQuantityModalVisible(false)}
               style={styles.closeButton}
@@ -235,13 +248,13 @@ const HomeScreen = ({ navigation, route }) => {
           <Text style={styles.modalItemName}>{selectedItem?.name}</Text>
           
           <View style={styles.quantityInputContainer}>
-            <Text style={styles.quantityLabel}>数量:</Text>
+            <Text style={styles.quantityLabel}>Quantity:</Text>
             <TextInput
               style={styles.quantityInput}
               value={newQuantity}
               onChangeText={setNewQuantity}
               keyboardType="number-pad"
-              placeholder="请输入数量"
+              placeholder="Please enter quantity"
             />
           </View>
 
@@ -250,13 +263,13 @@ const HomeScreen = ({ navigation, route }) => {
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setIsQuantityModalVisible(false)}
             >
-              <Text style={styles.cancelButtonText}>取消</Text>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modalButton, styles.confirmButton]}
               onPress={handleQuantityUpdate}
             >
-              <Text style={styles.confirmButtonText}>确认</Text>
+              <Text style={styles.confirmButtonText}>Confirm</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -279,7 +292,7 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.statCard}>
             <Ionicons name="cube-outline" size={24} color={COLORS.PRIMARY} />
             <Text style={styles.statNumber}>{items.length}</Text>
-            <Text style={styles.statLabel}>总物品</Text>
+            <Text style={styles.statLabel}>Total Items</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="alert-circle-outline" size={24} color={COLORS.ALERT} />
@@ -289,7 +302,7 @@ const HomeScreen = ({ navigation, route }) => {
                 return daysLeft <= 3;
               }).length}
             </Text>
-            <Text style={styles.statLabel}>即将过期</Text>
+            <Text style={styles.statLabel}>Expiring Soon</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="time-outline" size={24} color={COLORS.SUCCESS} />
@@ -299,7 +312,7 @@ const HomeScreen = ({ navigation, route }) => {
                 return daysLeft > 7;
               }).length}
             </Text>
-            <Text style={styles.statLabel}>状态良好</Text>
+            <Text style={styles.statLabel}>Good Condition</Text>
           </View>
         </View>
       </View>
@@ -309,12 +322,12 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.emptyIconContainer}>
             <Ionicons name="cube-outline" size={120} color={COLORS.TEXT_SECONDARY} />
           </View>
-          <Text style={styles.emptyText}>冰箱是空的</Text>
+          <Text style={styles.emptyText}>Fridge is empty</Text>
           <TouchableOpacity
             style={styles.addFirstButton}
             onPress={() => navigation.navigate('AddItem')}
           >
-            <Text style={styles.addFirstButtonText}>添加第一个物品</Text>
+            <Text style={styles.addFirstButtonText}>Add First Item</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -367,9 +380,10 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   username: {
-    fontSize: FONT_SIZE.XLARGE,
+    fontSize: FONT_SIZE.XXLARGE,
     color: COLORS.TEXT_SECONDARY,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   statsContainer: {
     flexDirection: 'row',
