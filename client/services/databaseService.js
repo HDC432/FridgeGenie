@@ -48,6 +48,10 @@ export const getItems = async () => {
 // 获取家庭物品
 export const getFamilyItems = async (familyId) => {
     try {
+        if (!familyId) {
+            throw new Error('familyId is required');
+        }
+
         const token = await authService.getToken();
         if (!token) {
             throw new Error('Not authenticated');
@@ -114,24 +118,31 @@ export const addItem = async (item) => {
 export const updateItem = async (id, item) => {
     try {
         if (!item.familyId) {
-            throw new Error('familyId 是必填字段');
+            throw new Error('familyId is required');
+        }
+
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
         }
 
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(item),
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         return await response.json();
     } catch (error) {
-        console.error('更新物品失败:', error);
+        console.error('Failed to update item:', error);
         throw error;
     }
 };
@@ -139,20 +150,27 @@ export const updateItem = async (id, item) => {
 // 删除物品
 export const deleteItem = async (id) => {
     try {
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         return true;
     } catch (error) {
-        console.error('删除物品失败:', error);
+        console.error('Failed to delete item:', error);
         throw error;
     }
 };

@@ -21,7 +21,7 @@ import { recognizeSpeech, getAudioFormat } from '../services/speechService';
 import { API_URL, ERROR_MESSAGES } from '../config';
 import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../services/authService';
-import { addItem } from '../../services/databaseService';
+import { addItem, getFamilyItems, deleteItem, updateItem } from '../../services/databaseService';
 import { useNavigation } from '@react-navigation/native';
 
 const AIAssistant = () => {
@@ -155,33 +155,70 @@ const AIAssistant = () => {
 
   const handleAIResponse = async (response) => {
     try {
-      // 解析 AI 的回复，提取操作信息
-      const action = parseAIResponse(response);
-      
-      if (action) {
-        // 执行相应的操作
-        await executeAction(action);
+      if (!user || !user.familyId) {
+        throw new Error('Please log in to manage items');
       }
 
-      // 添加 AI 的回复到消息列表
+      // Parse AI response to extract action information
+      const action = parseAIResponse(response);
+      let operationResult = '';
+      
+      if (action) {
+        // Execute the corresponding action
+        await executeAction(action);
+        
+        // Generate success message based on action type
+        switch (action.type) {
+          case 'ADD_ITEM':
+            operationResult = `Successfully added ${action.quantity} ${action.item}(s) to your fridge.`;
+            break;
+          case 'DELETE_ITEM':
+            operationResult = `Successfully deleted ${action.item} from your fridge.`;
+            break;
+          case 'UPDATE_ITEM':
+            operationResult = `Successfully updated ${action.item} quantity to ${action.quantity}.`;
+            break;
+        }
+      }
+
+      // Add AI's response to message list
       const assistantMessage = {
-        text: response,
+        text: operationResult || response,
         sender: 'assistant',
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, assistantMessage]);
       
-      // 使用语音读出 AI 的回复
-      speak(response);
+      // Read out AI's response
+      speak(operationResult || response);
+
+      // Refresh the home screen if needed
+      if (action && (action.type === 'ADD_ITEM' || action.type === 'DELETE_ITEM' || action.type === 'UPDATE_ITEM')) {
+        navigation.setParams({ refresh: Date.now() });
+      }
     } catch (error) {
-      console.error('处理 AI 回复错误:', error);
+      console.error('Error handling AI response:', error);
       const errorMessage = {
-        text: ERROR_MESSAGES.SERVER_ERROR,
+        text: error.message || ERROR_MESSAGES.SERVER_ERROR,
         sender: 'assistant',
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);
-      speak(ERROR_MESSAGES.SERVER_ERROR);
+      speak(error.message || ERROR_MESSAGES.SERVER_ERROR);
+      
+      // Show alert for authentication errors
+      if (error.message.includes('authenticated') || error.message.includes('log in')) {
+        Alert.alert(
+          'Authentication Error',
+          'Please log in to continue',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.navigate('Login')
+            }
+          ]
+        );
+      }
     }
   };
 
@@ -209,56 +246,50 @@ const AIAssistant = () => {
           const result = await addItem(newItem);
           console.log('Add item result:', result);
           
-          if (result) {
-            setMessages(prev => [...prev, { type: 'assistant', content: `Successfully added ${action.quantity} ${action.item}(s) to your fridge.` }]);
-            // Trigger a refresh of the HomeScreen
-            navigation.setParams({ refresh: Date.now() });
+          if (!result) {
+            throw new Error('Failed to add item');
           }
           break;
 
         case 'DELETE_ITEM':
-          const deleteResponse = await fetch(`${API_URL}/items/name/${encodeURIComponent(action.item)}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-          });
-
-          if (!deleteResponse.ok) {
-            throw new Error('删除物品失败');
+          // First find the item by name in the family's items
+          const { items } = await getFamilyItems(user.familyId);
+          const itemToDelete = items.find(item => 
+            item.name.toLowerCase() === action.item.toLowerCase()
+          );
+          
+          if (!itemToDelete) {
+            throw new Error(`Item "${action.item}" not found in your fridge`);
           }
-
-          const deleteConfirmation = `${action.item} 已成功删除`;
-          await speak(deleteConfirmation);
-          setMessages(prev => [
-            ...prev,
-            { text: deleteConfirmation, sender: 'assistant', timestamp: new Date().toISOString() },
-          ]);
+          
+          const deleteResult = await deleteItem(itemToDelete.id);
+          if (!deleteResult) {
+            throw new Error('Failed to delete item');
+          }
           break;
 
         case 'UPDATE_ITEM':
-          const updateResponse = await fetch(`${API_URL}/items/name/${encodeURIComponent(action.item)}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              quantity: action.quantity,
-              familyId: currentUser.familyId
-            }),
-          });
-
-          if (!updateResponse.ok) {
-            throw new Error('更新物品失败');
+          // First find the item by name
+          const { items: updateItems } = await getFamilyItems(user.familyId);
+          const itemToUpdate = updateItems.find(item => 
+            item.name.toLowerCase() === action.item.toLowerCase()
+          );
+          
+          if (!itemToUpdate) {
+            throw new Error(`Item "${action.item}" not found in your fridge`);
           }
-
-          const updateConfirmation = `${action.item} 数量已更新为 ${action.quantity}`;
-          await speak(updateConfirmation);
-          setMessages(prev => [
-            ...prev,
-            { text: updateConfirmation, sender: 'assistant', timestamp: new Date().toISOString() },
-          ]);
+          
+          const updatedItem = {
+            ...itemToUpdate,
+            quantity: action.quantity,
+            familyId: user.familyId,
+            updatedAt: new Date().toISOString()
+          };
+          
+          const updateResult = await updateItem(itemToUpdate.id, updatedItem);
+          if (!updateResult) {
+            throw new Error('Failed to update item');
+          }
           break;
 
         case 'QUERY_ITEM':
@@ -282,11 +313,11 @@ const AIAssistant = () => {
           break;
 
         default:
-          console.log('未知操作类型:', action.type);
+          console.log('No action needed');
       }
     } catch (error) {
-      console.error('执行操作错误:', error);
-      setMessages(prev => [...prev, { type: 'assistant', content: `Sorry, I couldn't complete that action. Error: ${error.message}` }]);
+      console.error('Action execution error:', error);
+      throw error;
     }
   };
 
