@@ -5,6 +5,7 @@ const familyRoutes = require('./routes/familyRoutes');
 const itemRoutes = require('./routes/itemRoutes');
 const userRoutes = require('./routes/userRoutes');
 const healthRoutes = require('./routes/healthRoutes');
+const favoriteRecipeRoutes = require('./routes/favoriteRecipeRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -37,6 +38,9 @@ app.use('/items', itemRoutes);
 
 // 健康相关路由
 app.use('/health', healthRoutes);
+
+// 收藏相关路由
+app.use('/favorites', favoriteRecipeRoutes);
 
 // 错误处理中间件
 app.use((err, req, res, next) => {

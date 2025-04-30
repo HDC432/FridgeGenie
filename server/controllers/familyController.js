@@ -195,6 +195,46 @@ class FamilyController {
             });
         }
     }
+
+    // 获取家庭成员
+    async getFamilyMembers(req, res) {
+        try {
+            const { familyId } = req.params;
+            console.log('获取家庭成员 - 开始:', familyId);
+
+            // 获取家庭信息
+            const family = await Family.findById(familyId);
+            if (!family) {
+                throw new Error('家庭不存在');
+            }
+
+            // 获取所有成员的用户信息
+            const membersWithInfo = await Promise.all(
+                family.members.map(async (member) => {
+                    const user = await User.findById(member.userId);
+                    return {
+                        ...member,
+                        username: user ? user.username : '未知用户',
+                        email: user ? user.email : '未知邮箱'
+                    };
+                })
+            );
+
+            console.log('获取家庭成员 - 成功:', membersWithInfo);
+            res.json({
+                success: true,
+                message: '获取家庭成员成功',
+                data: membersWithInfo
+            });
+        } catch (error) {
+            console.error('获取家庭成员失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '获取家庭成员失败',
+                error: error.message
+            });
+        }
+    }
 }
 
 module.exports = new FamilyController(); 

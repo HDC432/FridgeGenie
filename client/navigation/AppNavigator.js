@@ -34,7 +34,7 @@ const AppNavigator = () => {
 
                     if (route.name === 'Home') {
                         iconName = focused ? 'home' : 'home-outline';
-                    } else if (route.name === 'Recipes') {
+                    } else if (route.name === 'Recipe') {
                         iconName = focused ? 'book' : 'book-outline';
                     } else if (route.name === 'Family') {
                         iconName = focused ? 'people' : 'people-outline';
@@ -65,7 +65,7 @@ const AppNavigator = () => {
                 }}
             />
             <Tab.Screen 
-                name="Recipes" 
+                name="Recipe" 
                 component={RecipeScreen}
                 options={{ title: '菜谱' }}
             />

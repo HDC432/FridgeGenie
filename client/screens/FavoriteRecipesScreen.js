@@ -6,103 +6,155 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Image,
   Alert,
   Modal,
   ScrollView,
   Platform,
-  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getFamilyItems, updateItemQuantity } from '../services/databaseService';
-import { generateRecipes } from '../services/aiService';
 import { useAuth } from '../contexts/AuthContext';
-import theme from '../styles/theme';
 import { API_URL } from '../config/constants';
 import authService from '../services/authService';
+import { getFamilyItems, updateItemQuantity } from '../services/databaseService';
+import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-const DEFAULT_RECIPES = [];
-
-export default function RecipeScreen({ navigation }) {
-  const [recipes, setRecipes] = useState([]);
+const FavoriteRecipesScreen = ({ navigation }) => {
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [selectedQuantities, setSelectedQuantities] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
   const { user } = useAuth();
-  const [error, setError] = useState(null);
-  const [favoriteStatus, setFavoriteStatus] = useState({});
 
-  const loadRefrigeratorItems = async () => {
+  const loadFavorites = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
-      if (!user?.familyId) {
-        // 没有默认菜谱，显示空列表
-        console.log('用户未登录或无家庭ID，无菜谱显示');
-        setRecipes([]);
-        setLoading(false);
-        return;
-      }
-
-      const response = await getFamilyItems(user.familyId);
-      if (response && response.items && Array.isArray(response.items)) {
-        const items = response.items;
-        setRefrigeratorItems(items);
-        
-        try {
-          // 提取食材名称用于生成食谱
-          const ingredients = items.map(item => item.name);
-          
-          if (ingredients.length === 0) {
-            console.log('冰箱中没有食材，无菜谱显示');
-            setRecipes([]);
-          } else {
-            console.log('开始生成食谱，基于食材:', ingredients);
-            const generatedRecipes = await generateRecipes(ingredients, user.familyId);
-            
-            if (Array.isArray(generatedRecipes) && generatedRecipes.length > 0) {
-              console.log('成功生成食谱', generatedRecipes.length);
-              setRecipes(generatedRecipes);
-            } else {
-              console.log('生成食谱为空，无菜谱显示');
-              setRecipes([]);
-            }
-          }
-        } catch (recipeError) {
-          console.error('生成食谱错误:', recipeError);
-          setError('无法生成食谱，请检查网络连接或稍后再试');
-          setRecipes([]);
+      const token = await authService.getToken();
+      console.log('开始加载收藏菜谱');
+      const response = await fetch(`${API_URL}/favorites`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } else {
-        console.log('没有找到冰箱物品或格式不正确，无菜谱显示');
-        setRecipes([]);
+      });
+      const data = await response.json();
+      console.log('收藏菜谱数据:', data);
+      if (data.success) {
+        console.log('收藏菜谱列表:', data.data);
+        // 检查每个收藏记录的数据结构
+        data.data.forEach(fav => {
+          console.log('收藏记录详情:', {
+            id: fav.id,
+            recipeId: fav.recipeData.id,
+            name: fav.recipeData.name
+          });
+        });
+        setFavorites(data.data);
       }
     } catch (error) {
-      console.error('获取冰箱物品失败:', error);
-      setError('获取物品失败，请检查网络连接或稍后再试');
-      setRecipes([]);
+      console.error('获取收藏菜谱失败:', error);
+      showMessage('错误', '获取收藏菜谱失败');
     } finally {
       setLoading(false);
     }
   };
 
+  const loadRefrigeratorItems = async () => {
+    try {
+      if (!user?.familyId) {
+        console.log('用户未登录或无家庭ID');
+        return;
+      }
+      console.log('开始加载冰箱物品，家庭ID:', user.familyId);
+      const response = await getFamilyItems(user.familyId);
+      console.log('冰箱物品响应:', response);
+      if (response && response.items) {
+        console.log('成功加载冰箱物品:', response.items);
+        setRefrigeratorItems(response.items);
+      } else {
+        console.log('未找到冰箱物品');
+      }
+    } catch (error) {
+      console.error('获取冰箱物品失败:', error);
+    }
+  };
+
   useEffect(() => {
+    loadFavorites();
     loadRefrigeratorItems();
   }, [user?.familyId]);
 
+  const toggleFavorite = async (recipe) => {
+    if (!user) {
+      showMessage('提示', '请先登录');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = await authService.getToken();
+      
+      console.log('准备取消收藏:', {
+        userId: user.id,
+        favoriteId: recipe.id,
+        recipeId: recipe.recipeData.id,
+        recipeName: recipe.recipeData.name
+      });
+      
+      if (!recipe || !recipe.id) {
+        console.error('收藏记录不完整:', recipe);
+        showMessage('错误', '收藏记录不完整');
+        return;
+      }
+
+      // 使用收藏记录的id
+      const response = await fetch(`${API_URL}/favorites/${recipe.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      console.log('取消收藏响应:', data);
+
+      if (response.ok) {
+        // 从列表中移除该菜谱
+        setFavorites(prevFavorites => {
+          console.log('当前收藏列表:', prevFavorites);
+          const newFavorites = prevFavorites.filter(fav => fav.id !== recipe.id);
+          console.log('更新后的收藏列表:', newFavorites);
+          return newFavorites;
+        });
+        showMessage('成功', '已取消收藏');
+      } else {
+        showMessage('错误', data.message || '取消收藏失败');
+      }
+    } catch (error) {
+      console.error('取消收藏失败:', error);
+      showMessage('错误', error.message || '操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showMessage = (title, message) => {
+    if (Platform.OS === 'web') {
+      window.alert(message);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleRecipePress = (recipe) => {
     console.log('点击菜谱:', recipe);
-    console.log('食材列表:', recipe.ingredients);
+    console.log('菜谱数据:', recipe.recipeData);
+    console.log('食材列表:', recipe.recipeData.ingredients);
     console.log('冰箱物品:', refrigeratorItems);
 
     const quantities = {};
-    recipe.ingredients.forEach(ing => {
+    recipe.recipeData.ingredients.forEach(ing => {
       const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
       console.log('查找食材:', {
         name: ing.name,
@@ -127,7 +179,7 @@ export default function RecipeScreen({ navigation }) {
     
     console.log('计算后的数量:', quantities);
     setSelectedQuantities(quantities);
-    setSelectedRecipe(recipe);
+    setSelectedRecipe(recipe.recipeData);
     setIsModalVisible(true);
   };
 
@@ -149,14 +201,14 @@ export default function RecipeScreen({ navigation }) {
         }
       }
 
-      Alert.alert('成功', '食材使用已确认');
+      showMessage('成功', '食材使用已确认');
       setIsModalVisible(false);
       setSelectedRecipe(null);
       setSelectedQuantities({});
       loadRefrigeratorItems();
     } catch (error) {
       console.error('确认使用食材时出错:', error);
-      Alert.alert('错误', '确认使用食材失败');
+      showMessage('错误', '确认使用食材失败');
     }
   };
 
@@ -291,307 +343,113 @@ export default function RecipeScreen({ navigation }) {
     </Modal>
   );
 
-  const renderRecipe = ({ item }) => {
+  const renderRecipe = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.recipeCard}
+      onPress={() => handleRecipePress(item)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.recipeHeader}>
+        <View style={styles.recipeTitleRow}>
+          <Text style={styles.recipeName}>{item.recipeData.name}</Text>
+          <View style={styles.recipeActions}>
+            <View style={styles.caloriesBadge}>
+              <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
+              <Text style={styles.caloriesText}>{item.recipeData.nutrition.calories} 千卡</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.favoriteButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                toggleFavorite(item);
+              }}
+            >
+              <Ionicons 
+                name="heart" 
+                size={24} 
+                color={COLORS.DANGER} 
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <View style={styles.recipeInfo}>
+          <View style={styles.recipeDetailItem}>
+            <Ionicons name="speedometer-outline" size={14} color={COLORS.PRIMARY} />
+            <Text style={styles.recipeDetail}>难度: {item.recipeData.difficulty}</Text>
+          </View>
+          <View style={styles.recipeDetailItem}>
+            <Ionicons name="time-outline" size={14} color={COLORS.PRIMARY} />
+            <Text style={styles.recipeDetail}>时间: {item.recipeData.cookingTime}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.ingredientsSection}>
+        <Text style={styles.sectionTitle}>所需食材:</Text>
+        {item.recipeData.ingredients.map((ing, index) => (
+          <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
+            • {ing.name} ({ing.quantity})
+          </Text>
+        ))}
+      </View>
+
+      <View style={styles.nutritionSection}>
+        <Text style={styles.sectionTitle}>营养成分:</Text>
+        <View style={styles.nutritionGrid}>
+          <View key={`${item.id}-protein`} style={styles.nutritionItem}>
+            <Text style={styles.nutritionLabel}>蛋白质</Text>
+            <Text style={styles.nutritionValue}>{item.recipeData.nutrition.protein}</Text>
+          </View>
+          <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
+            <Text style={styles.nutritionLabel}>碳水</Text>
+            <Text style={styles.nutritionValue}>{item.recipeData.nutrition.carbs}</Text>
+          </View>
+          <View key={`${item.id}-fat`} style={styles.nutritionItem}>
+            <Text style={styles.nutritionLabel}>脂肪</Text>
+            <Text style={styles.nutritionValue}>{item.recipeData.nutrition.fat}</Text>
+          </View>
+          <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
+            <Text style={styles.nutritionLabel}>膳食纤维</Text>
+            <Text style={styles.nutritionValue}>{item.recipeData.nutrition.fiber}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
     return (
-      <TouchableOpacity 
-        style={styles.recipeCard}
-        onPress={() => handleRecipePress(item)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.recipeHeader}>
-          <View style={styles.recipeTitleRow}>
-            <Text style={styles.recipeName}>{item.name}</Text>
-            <View style={styles.recipeActions}>
-              <View style={styles.caloriesBadge}>
-                <Ionicons name="flame-outline" size={16} color={COLORS.PRIMARY} />
-                <Text style={styles.caloriesText}>{item.nutrition.calories} 千卡</Text>
-              </View>
-              <TouchableOpacity 
-                style={styles.favoriteButton}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  toggleFavorite(item);
-                }}
-              >
-                <Ionicons 
-                  name={favoriteStatus[item.id || item.name] ? "heart" : "heart-outline"} 
-                  size={24} 
-                  color={favoriteStatus[item.id || item.name] ? COLORS.DANGER : COLORS.TEXT_SECONDARY} 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-          
-          <View style={styles.recipeInfo}>
-            <View style={styles.recipeDetailItem}>
-              <Ionicons name="speedometer-outline" size={14} color={COLORS.PRIMARY} />
-              <Text style={styles.recipeDetail}>难度: {item.difficulty}</Text>
-            </View>
-            <View style={styles.recipeDetailItem}>
-              <Ionicons name="time-outline" size={14} color={COLORS.PRIMARY} />
-              <Text style={styles.recipeDetail}>时间: {item.cookingTime}</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.ingredientsSection}>
-          <Text style={styles.sectionTitle}>所需食材:</Text>
-          {item.ingredients.map((ing, index) => (
-            <Text key={`${item.id}-ingredient-${index}`} style={styles.ingredientText}>
-              • {ing.name} ({ing.quantity})
-            </Text>
-          ))}
-        </View>
-
-        <View style={styles.nutritionSection}>
-          <Text style={styles.sectionTitle}>营养成分:</Text>
-          <View style={styles.nutritionGrid}>
-            <View key={`${item.id}-protein`} style={styles.nutritionItem}>
-              <Text style={styles.nutritionLabel}>蛋白质</Text>
-              <Text style={styles.nutritionValue}>{item.nutrition.protein}</Text>
-            </View>
-            <View key={`${item.id}-carbs`} style={styles.nutritionItem}>
-              <Text style={styles.nutritionLabel}>碳水</Text>
-              <Text style={styles.nutritionValue}>{item.nutrition.carbs}</Text>
-            </View>
-            <View key={`${item.id}-fat`} style={styles.nutritionItem}>
-              <Text style={styles.nutritionLabel}>脂肪</Text>
-              <Text style={styles.nutritionValue}>{item.nutrition.fat}</Text>
-            </View>
-            <View key={`${item.id}-fiber`} style={styles.nutritionItem}>
-              <Text style={styles.nutritionLabel}>膳食纤维</Text>
-              <Text style={styles.nutritionValue}>{item.nutrition.fiber}</Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.PRIMARY} />
+      </View>
     );
-  };
-
-  const getFilteredRecipes = () => {
-    let filteredRecipes = recipes || [];
-
-    // 如果没有菜谱，使用空数组
-    if (!filteredRecipes || filteredRecipes.length === 0) {
-      return [];
-    }
-
-    // 根据搜索关键词过滤
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filteredRecipes = filteredRecipes.filter(
-        recipe =>
-          recipe.name.toLowerCase().includes(query) ||
-          recipe.ingredients.some(ing => ing.name.toLowerCase().includes(query))
-      );
-    }
-
-    return filteredRecipes;
-  };
-
-  // 添加/取消收藏
-  const toggleFavorite = async (recipe) => {
-    if (!user) {
-      showMessage('提示', '请先登录');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const token = await authService.getToken();
-      const recipeId = recipe.id || recipe.name;
-      const isCurrentlyFavorite = favoriteStatus[recipeId];
-
-      if (isCurrentlyFavorite) {
-        // 取消收藏
-        console.log('开始取消收藏:', recipeId);
-        // 先获取收藏记录
-        const checkResponse = await fetch(`${API_URL}/favorites/${recipeId}/check`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        const checkData = await checkResponse.json();
-        console.log('检查收藏状态响应:', checkData);
-
-        if (checkData.success && checkData.data.favoriteId) {
-          // 使用收藏记录的id来取消收藏
-          const response = await fetch(`${API_URL}/favorites/${checkData.data.favoriteId}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          const data = await response.json();
-          console.log('取消收藏响应:', data);
-          if (response.ok) {
-            setFavoriteStatus(prev => ({
-              ...prev,
-              [recipeId]: false
-            }));
-            showMessage('成功', '已取消收藏');
-          } else {
-            showMessage('错误', data.message || '取消收藏失败');
-          }
-        } else {
-          showMessage('错误', '未找到收藏记录');
-        }
-      } else {
-        // 添加收藏
-        console.log('开始添加收藏:', recipeId);
-        const recipeData = {
-          id: recipeId,
-          name: recipe.name,
-          difficulty: recipe.difficulty,
-          cookingTime: recipe.cookingTime,
-          nutrition: recipe.nutrition,
-          ingredients: recipe.ingredients,
-          instructions: recipe.instructions,
-          suitableFor: recipe.suitableFor || [],
-          healthConsiderations: recipe.healthConsiderations || []
-        };
-        console.log('收藏的菜谱数据:', recipeData);
-
-        const response = await fetch(`${API_URL}/favorites`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            recipeId: recipeId,
-            recipeData: recipeData
-          })
-        });
-        const data = await response.json();
-        console.log('添加收藏响应:', data);
-        if (response.ok) {
-          setFavoriteStatus(prev => ({
-            ...prev,
-            [recipeId]: true
-          }));
-          showMessage('成功', '已收藏菜谱');
-        } else {
-          showMessage('错误', data.message || '收藏失败');
-        }
-      }
-    } catch (error) {
-      console.error('收藏操作失败:', error);
-      showMessage('错误', error.message || '操作失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 检查是否已收藏
-  const checkFavorite = async (recipeId) => {
-    try {
-      // 如果recipeId是undefined，使用name作为id
-      if (!recipeId) {
-        console.log('recipeId为空，跳过检查');
-        return;
-      }
-      console.log('开始检查收藏状态:', recipeId);
-      const token = await authService.getToken();
-      const response = await fetch(`${API_URL}/favorites/${recipeId}/check`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
-      console.log('检查收藏状态响应:', data);
-      if (data.success) {
-        setFavoriteStatus(prev => ({
-          ...prev,
-          [recipeId]: data.data.isFavorite
-        }));
-      }
-    } catch (error) {
-      console.error('检查收藏状态失败:', error);
-    }
-  };
-
-  // 统一的提示方法
-  const showMessage = (title, message) => {
-    if (Platform.OS === 'web') {
-      window.alert(message);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
-
-  // 在 useEffect 中添加检查收藏状态的逻辑
-  useEffect(() => {
-    if (selectedRecipe && user) {
-      const recipeId = selectedRecipe.id || selectedRecipe.name;
-      console.log('检查选中菜谱的收藏状态:', recipeId);
-      checkFavorite(recipeId);
-    }
-  }, [selectedRecipe, user]);
-
-  // 在加载菜谱时检查所有菜谱的收藏状态
-  useEffect(() => {
-    if (recipes.length > 0 && user) {
-      console.log('开始检查所有菜谱的收藏状态');
-      recipes.forEach(recipe => {
-        const recipeId = recipe.id || recipe.name;
-        if (recipeId) {
-          checkFavorite(recipeId);
-        }
-      });
-    }
-  }, [recipes, user]);
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>菜谱推荐</Text>
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={COLORS.TEXT_SECONDARY} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="搜索菜谱..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
+        <Text style={styles.title}>收藏的菜谱</Text>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.PRIMARY} />
-        </View>
-      ) : getFilteredRecipes().length > 0 ? (
+      {favorites.length > 0 ? (
         <FlatList
-          data={getFilteredRecipes()}
+          data={favorites}
           renderItem={renderRecipe}
-          keyExtractor={(item, index) => item.id || `recipe-${index}`}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.recipeList}
           showsVerticalScrollIndicator={false}
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>
-            请添加食材到冰箱来生成菜谱推荐
-          </Text>
-          <TouchableOpacity 
-            style={styles.refreshButton}
-            onPress={loadRefrigeratorItems}
-          >
-            <Text style={styles.refreshButtonText}>刷新菜谱</Text>
-          </TouchableOpacity>
+          <Text style={styles.emptyText}>暂无收藏的菜谱</Text>
         </View>
       )}
 
       {renderConfirmationModal()}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -826,16 +684,10 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.SMALL,
     color: COLORS.TEXT_SECONDARY,
   },
-  errorContainer: {
-    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-    padding: SPACING.MEDIUM,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    marginBottom: SPACING.MEDIUM,
-  },
   errorText: {
     color: COLORS.DANGER,
     fontSize: FONT_SIZE.SMALL,
-    textAlign: 'center',
+    marginBottom: SPACING.SMALL,
   },
   summaryContainer: {
     marginTop: SPACING.MEDIUM,
@@ -885,88 +737,9 @@ const styles = StyleSheet.create({
     fontWeight: FONT_WEIGHT.SEMIBOLD,
     color: COLORS.TEXT_PRIMARY,
   },
-  recipeImageContainer: {
-    width: '100%',
-    height: 150,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    overflow: 'hidden',
-    marginBottom: SPACING.MEDIUM,
-    ...SHADOW_STYLE.SMALL,
-  },
-  recipeImage: {
-    width: '100%',
-    height: '100%',
-  },
-  refreshButton: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingVertical: SPACING.MEDIUM,
-    paddingHorizontal: SPACING.LARGE,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    marginTop: SPACING.LARGE,
-  },
-  refreshButtonText: {
-    color: COLORS.SECONDARY,
-    fontWeight: FONT_WEIGHT.BOLD,
-    fontSize: FONT_SIZE.MEDIUM,
-  },
-  suitableForContainer: {
-    marginTop: SPACING.MEDIUM,
-    paddingTop: SPACING.MEDIUM,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.DIVIDER,
-  },
-  suitableForTitle: {
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SMALL,
-  },
-  suitableForTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.SMALL,
-  },
-  suitableForTag: {
-    backgroundColor: 'rgba(255, 193, 7, 0.15)',
-    paddingVertical: SPACING.TINY,
-    paddingHorizontal: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.ROUNDED,
-  },
-  suitableForTagText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  healthConsiderationsContainer: {
-    marginTop: SPACING.MEDIUM,
-    paddingTop: SPACING.MEDIUM,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.DIVIDER,
-  },
-  healthConsiderationsTitle: {
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SMALL,
-  },
-  healthConsiderationsTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.SMALL,
-  },
-  healthConsiderationTag: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-    paddingVertical: SPACING.TINY,
-    paddingHorizontal: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.ROUNDED,
-  },
-  healthConsiderationTagText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  tabsContainer: {
-    display: 'none', // 隐藏标签容器
-  },
   favoriteButton: {
     padding: SPACING.SMALL,
   },
-}); 
+});
+
+export default FavoriteRecipesScreen; 

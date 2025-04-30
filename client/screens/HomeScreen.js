@@ -17,7 +17,7 @@ import { differenceInCalendarDays } from 'date-fns';
 import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -61,7 +61,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [user?.familyId]);
 
   // Listen for refresh parameter changes
   useEffect(() => {
@@ -73,7 +73,7 @@ const HomeScreen = ({ navigation, route }) => {
   useFocusEffect(
     useCallback(() => {
       loadItems();
-    }, [])
+    }, [user?.familyId])
   );
 
   const onRefresh = async () => {

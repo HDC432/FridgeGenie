@@ -78,11 +78,24 @@ const UserMenu = ({ visible, onClose }) => {
                   <Text style={styles.menuItemText}>我的家庭</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('FavoriteRecipes')}
+                >
                   <View style={styles.menuItemIcon}>
-                    <Ionicons name="notifications-outline" size={20} color="#1F2B40" />
+                    <Ionicons name="heart-outline" size={20} color="#1F2B40" />
                   </View>
-                  <Text style={styles.menuItemText}>通知设置</Text>
+                  <Text style={styles.menuItemText}>菜谱收藏</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleNavigation('RecommendedItems')}
+                >
+                  <View style={styles.menuItemIcon}>
+                    <Ionicons name="cart-outline" size={20} color="#1F2B40" />
+                  </View>
+                  <Text style={styles.menuItemText}>推荐购买</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 

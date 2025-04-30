@@ -15,6 +15,9 @@ router.post('/join', familyController.joinFamily);
 // 获取家庭信息
 router.get('/', familyController.getFamilyInfo);
 
+// 获取家庭成员
+router.get('/:familyId/members', familyController.getFamilyMembers);
+
 // 移除家庭成员
 router.delete('/:familyId/members/:userId', familyController.removeMember);
 

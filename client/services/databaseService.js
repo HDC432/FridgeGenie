@@ -1,5 +1,5 @@
 import { API_URL, DEBUG } from '../config/database';
-import authService from '../services/authService';
+import authService from './authService';
 
 // 获取所有物品
 export const getItems = async () => {
@@ -74,7 +74,23 @@ export const getFamilyItems = async (familyId) => {
         }
         
         const data = await response.json();
-        return { items: data.items || [] };
+        console.log('获取到的家庭物品数据:', data);
+
+        // 确保返回的数据格式正确
+        if (!data || !Array.isArray(data.items)) {
+            console.error('返回的数据格式不正确:', data);
+            throw new Error('返回的数据格式不正确');
+        }
+
+        // 过滤掉 Cosmos DB 的内部字段和零数量物品
+        const processedItems = data.items
+            .filter(item => item.quantity > 0) // 过滤掉零数量物品
+            .map(item => {
+                const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
+                return cleanItem;
+            });
+
+        return { items: processedItems };
     } catch (error) {
         console.error('Failed to get family items:', error);
         throw error;
@@ -93,6 +109,21 @@ export const addItem = async (item) => {
             throw new Error('Not authenticated');
         }
 
+        // 获取家庭所有物品
+        const familyItems = await getFamilyItems(item.familyId);
+        
+        // 查找同名的零数量物品
+        const zeroQuantityItem = familyItems.items.find(
+            existingItem => existingItem.name === item.name && existingItem.quantity === 0
+        );
+
+        // 如果找到同名的零数量物品，先删除它
+        if (zeroQuantityItem) {
+            console.log('找到同名的零数量物品，正在删除:', zeroQuantityItem);
+            await deleteItem(zeroQuantityItem.id);
+        }
+
+        // 添加新物品
         const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
             headers: {
@@ -201,6 +232,13 @@ export const getItemById = async (id) => {
 // 更新物品数量
 export const updateItemQuantity = async (id, newQuantity) => {
     try {
+        // 如果新数量为0，直接删除物品
+        if (newQuantity === 0) {
+            console.log('物品数量为0，正在删除物品:', id);
+            await deleteItem(id);
+            return null;
+        }
+
         // 首先获取当前物品
         const currentItem = await getItemById(id);
 
@@ -227,6 +265,46 @@ export const updateItemQuantity = async (id, newQuantity) => {
         return await updateResponse.json();
     } catch (error) {
         console.error('更新物品数量失败:', error);
+        throw error;
+    }
+};
+
+// 获取家庭成员
+export const getFamilyMembers = async (familyId) => {
+    try {
+        const url = `${API_URL}/families/${familyId}/members`;
+        if (DEBUG) {
+            console.log('请求URL:', url);
+        }
+        
+        const token = await authService.getToken();
+        console.log('获取到的token:', token);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('服务器响应错误:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText
+            });
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('获取到的家庭成员数据:', data);
+
+        return data.data || [];
+    } catch (error) {
+        console.error('获取家庭成员失败:', error);
         throw error;
     }
 }; 
