@@ -63,10 +63,18 @@ const FavoriteRecipesScreen = ({ navigation }) => {
 
   const loadRefrigeratorItems = async () => {
     try {
-      if (!user?.familyId) return;
+      if (!user?.familyId) {
+        console.log('用户未登录或无家庭ID');
+        return;
+      }
+      console.log('开始加载冰箱物品，家庭ID:', user.familyId);
       const response = await getFamilyItems(user.familyId);
+      console.log('冰箱物品响应:', response);
       if (response && response.items) {
+        console.log('成功加载冰箱物品:', response.items);
         setRefrigeratorItems(response.items);
+      } else {
+        console.log('未找到冰箱物品');
       }
     } catch (error) {
       console.error('获取冰箱物品失败:', error);
@@ -91,7 +99,7 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       console.log('准备取消收藏:', {
         userId: user.id,
         favoriteId: recipe.id,
-        recipeId: recipe.recipeId,
+        recipeId: recipe.recipeData.id,
         recipeName: recipe.recipeData.name
       });
       
@@ -140,14 +148,36 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   };
 
   const handleRecipePress = (recipe) => {
+    console.log('点击菜谱:', recipe);
+    console.log('菜谱数据:', recipe.recipeData);
+    console.log('食材列表:', recipe.recipeData.ingredients);
+    console.log('冰箱物品:', refrigeratorItems);
+
     const quantities = {};
     recipe.recipeData.ingredients.forEach(ing => {
       const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
+      console.log('查找食材:', {
+        name: ing.name,
+        required: ing.quantity,
+        found: fridgeItem ? true : false,
+        available: fridgeItem ? fridgeItem.quantity : 0
+      });
+      
       if (fridgeItem) {
-        const requiredAmount = parseInt(ing.quantity) || 1;
+        // 确保数量是数字类型
+        let requiredAmount = 1;
+        if (typeof ing.quantity === 'number') {
+          requiredAmount = ing.quantity;
+        } else if (typeof ing.quantity === 'string') {
+          // 尝试从字符串中提取数字
+          const match = ing.quantity.match(/\d+/);
+          requiredAmount = match ? parseInt(match[0]) : 1;
+        }
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
       }
     });
+    
+    console.log('计算后的数量:', quantities);
     setSelectedQuantities(quantities);
     setSelectedRecipe(recipe.recipeData);
     setIsModalVisible(true);
@@ -161,7 +191,13 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         const item = refrigeratorItems.find(i => i.name === name);
         if (item) {
           const newQuantity = item.quantity - quantity;
-          await updateItemQuantity(item.id, newQuantity);
+          const updatedItem = await updateItemQuantity(item.id, newQuantity);
+          if (updatedItem === null) {
+            // 物品已被删除，从本地状态中移除
+            setRefrigeratorItems(prevItems => 
+              prevItems.filter(i => i.id !== item.id)
+            );
+          }
         }
       }
 
@@ -177,7 +213,14 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   };
 
   const renderQuantityPicker = (ingredient) => {
+    console.log('渲染食材选择器:', {
+      ingredient,
+      refrigeratorItems
+    });
+    
     const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
+    console.log('找到的冰箱物品:', fridgeItem);
+    
     if (!fridgeItem) {
       return (
         <Text style={styles.errorText}>
@@ -188,6 +231,12 @@ const FavoriteRecipesScreen = ({ navigation }) => {
 
     const maxQuantity = fridgeItem.quantity;
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
+    
+    console.log('食材数量:', {
+      name: ingredient.name,
+      max: maxQuantity,
+      current: currentQuantity
+    });
 
     return (
       <View style={styles.pickerContainer} key={ingredient.name}>
@@ -231,6 +280,68 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       </View>
     );
   };
+
+  const renderConfirmationModal = () => (
+    <Modal
+      visible={isModalVisible}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setIsModalVisible(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>确认使用食材</Text>
+            <TouchableOpacity
+              onPress={() => setIsModalVisible(false)}
+              style={styles.closeButton}
+            >
+              <Ionicons name="close" size={24} color={COLORS.TEXT_PRIMARY} />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.modalRecipeName}>{selectedRecipe?.name}</Text>
+          
+          <ScrollView style={styles.ingredientsList}>
+            {selectedRecipe?.ingredients.map((ing, index) => (
+              <View key={`${selectedRecipe.id}-ingredient-${index}`}>
+                {renderQuantityPicker(ing)}
+              </View>
+            ))}
+          </ScrollView>
+
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryTitle}>使用食材汇总：</Text>
+            {Object.entries(selectedQuantities).map(([name, quantity]) => (
+              <Text key={`${selectedRecipe.id}-summary-${name}`} style={styles.summaryText}>
+                • {name}: {quantity}个
+              </Text>
+            ))}
+          </View>
+
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>取消</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                styles.confirmButton,
+                Object.keys(selectedQuantities).length === 0 && styles.disabledButton
+              ]}
+              onPress={handleConfirmConsumption}
+              disabled={Object.keys(selectedQuantities).length === 0}
+            >
+              <Text style={styles.confirmButtonText}>确认使用</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   const renderRecipe = ({ item }) => (
     <TouchableOpacity 
@@ -334,6 +445,8 @@ const FavoriteRecipesScreen = ({ navigation }) => {
           <Text style={styles.emptyText}>暂无收藏的菜谱</Text>
         </View>
       )}
+
+      {renderConfirmationModal()}
     </View>
   );
 };
@@ -571,16 +684,10 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.SMALL,
     color: COLORS.TEXT_SECONDARY,
   },
-  errorContainer: {
-    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-    padding: SPACING.MEDIUM,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    marginBottom: SPACING.MEDIUM,
-  },
   errorText: {
     color: COLORS.DANGER,
     fontSize: FONT_SIZE.SMALL,
-    textAlign: 'center',
+    marginBottom: SPACING.SMALL,
   },
   summaryContainer: {
     marginTop: SPACING.MEDIUM,
@@ -629,87 +736,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.MEDIUM,
     fontWeight: FONT_WEIGHT.SEMIBOLD,
     color: COLORS.TEXT_PRIMARY,
-  },
-  recipeImageContainer: {
-    width: '100%',
-    height: 150,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    overflow: 'hidden',
-    marginBottom: SPACING.MEDIUM,
-    ...SHADOW_STYLE.SMALL,
-  },
-  recipeImage: {
-    width: '100%',
-    height: '100%',
-  },
-  refreshButton: {
-    backgroundColor: COLORS.PRIMARY,
-    paddingVertical: SPACING.MEDIUM,
-    paddingHorizontal: SPACING.LARGE,
-    borderRadius: BORDER_RADIUS.MEDIUM,
-    marginTop: SPACING.LARGE,
-  },
-  refreshButtonText: {
-    color: COLORS.SECONDARY,
-    fontWeight: FONT_WEIGHT.BOLD,
-    fontSize: FONT_SIZE.MEDIUM,
-  },
-  suitableForContainer: {
-    marginTop: SPACING.MEDIUM,
-    paddingTop: SPACING.MEDIUM,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.DIVIDER,
-  },
-  suitableForTitle: {
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SMALL,
-  },
-  suitableForTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.SMALL,
-  },
-  suitableForTag: {
-    backgroundColor: 'rgba(255, 193, 7, 0.15)',
-    paddingVertical: SPACING.TINY,
-    paddingHorizontal: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.ROUNDED,
-  },
-  suitableForTagText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  healthConsiderationsContainer: {
-    marginTop: SPACING.MEDIUM,
-    paddingTop: SPACING.MEDIUM,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.DIVIDER,
-  },
-  healthConsiderationsTitle: {
-    fontSize: FONT_SIZE.MEDIUM,
-    fontWeight: FONT_WEIGHT.SEMIBOLD,
-    color: COLORS.TEXT_PRIMARY,
-    marginBottom: SPACING.SMALL,
-  },
-  healthConsiderationsTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.SMALL,
-  },
-  healthConsiderationTag: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
-    paddingVertical: SPACING.TINY,
-    paddingHorizontal: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.ROUNDED,
-  },
-  healthConsiderationTagText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.TEXT_PRIMARY,
-  },
-  tabsContainer: {
-    display: 'none',
   },
   favoriteButton: {
     padding: SPACING.SMALL,

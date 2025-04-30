@@ -97,14 +97,35 @@ export default function RecipeScreen({ navigation }) {
   }, [user?.familyId]);
 
   const handleRecipePress = (recipe) => {
+    console.log('点击菜谱:', recipe);
+    console.log('食材列表:', recipe.ingredients);
+    console.log('冰箱物品:', refrigeratorItems);
+
     const quantities = {};
     recipe.ingredients.forEach(ing => {
       const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
+      console.log('查找食材:', {
+        name: ing.name,
+        required: ing.quantity,
+        found: fridgeItem ? true : false,
+        available: fridgeItem ? fridgeItem.quantity : 0
+      });
+      
       if (fridgeItem) {
-        const requiredAmount = parseInt(ing.quantity) || 1;
+        // 确保数量是数字类型
+        let requiredAmount = 1;
+        if (typeof ing.quantity === 'number') {
+          requiredAmount = ing.quantity;
+        } else if (typeof ing.quantity === 'string') {
+          // 尝试从字符串中提取数字
+          const match = ing.quantity.match(/\d+/);
+          requiredAmount = match ? parseInt(match[0]) : 1;
+        }
         quantities[ing.name] = Math.min(requiredAmount, fridgeItem.quantity);
       }
     });
+    
+    console.log('计算后的数量:', quantities);
     setSelectedQuantities(quantities);
     setSelectedRecipe(recipe);
     setIsModalVisible(true);
@@ -118,7 +139,13 @@ export default function RecipeScreen({ navigation }) {
         const item = refrigeratorItems.find(i => i.name === name);
         if (item) {
           const newQuantity = item.quantity - quantity;
-          await updateItemQuantity(item.id, newQuantity);
+          const updatedItem = await updateItemQuantity(item.id, newQuantity);
+          if (updatedItem === null) {
+            // 物品已被删除，从本地状态中移除
+            setRefrigeratorItems(prevItems => 
+              prevItems.filter(i => i.id !== item.id)
+            );
+          }
         }
       }
 
@@ -134,7 +161,14 @@ export default function RecipeScreen({ navigation }) {
   };
 
   const renderQuantityPicker = (ingredient) => {
+    console.log('渲染食材选择器:', {
+      ingredient,
+      refrigeratorItems
+    });
+    
     const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
+    console.log('找到的冰箱物品:', fridgeItem);
+    
     if (!fridgeItem) {
       return (
         <Text style={styles.errorText}>
@@ -145,6 +179,12 @@ export default function RecipeScreen({ navigation }) {
 
     const maxQuantity = fridgeItem.quantity;
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
+    
+    console.log('食材数量:', {
+      name: ingredient.name,
+      max: maxQuantity,
+      current: currentQuantity
+    });
 
     return (
       <View style={styles.pickerContainer} key={ingredient.name}>

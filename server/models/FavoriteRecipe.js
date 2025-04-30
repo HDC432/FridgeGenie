@@ -69,14 +69,21 @@ class FavoriteRecipe {
                 throw new Error('已经收藏过该菜谱');
             }
 
+            // 确保食材数量是数字类型
+            const processedRecipeData = {
+                ...recipeData,
+                id: recipeId,
+                ingredients: recipeData.ingredients.map(ing => ({
+                    ...ing,
+                    quantity: parseInt(ing.quantity) || 1
+                }))
+            };
+
             const favorite = new FavoriteRecipe({
                 id: crypto.randomUUID(),
                 userId,
                 recipeId,
-                recipeData: {
-                    ...recipeData,
-                    id: recipeId
-                }
+                recipeData: processedRecipeData
             });
             const savedFavorite = await favorite.save();
             console.log('添加收藏 - 完成:', savedFavorite);

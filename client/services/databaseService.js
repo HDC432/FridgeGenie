@@ -90,11 +90,13 @@ export const getFamilyItems = async (familyId) => {
             throw new Error('返回的数据格式不正确');
         }
 
-        // 过滤掉 Cosmos DB 的内部字段
-        const processedItems = data.items.map(item => {
-            const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
-            return cleanItem;
-        });
+        // 过滤掉 Cosmos DB 的内部字段和零数量物品
+        const processedItems = data.items
+            .filter(item => item.quantity > 0) // 过滤掉零数量物品
+            .map(item => {
+                const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
+                return cleanItem;
+            });
 
         return { items: processedItems };
     } catch (error) {
@@ -110,6 +112,21 @@ export const addItem = async (item) => {
             throw new Error('familyId 是必填字段');
         }
 
+        // 获取家庭所有物品
+        const familyItems = await getFamilyItems(item.familyId);
+        
+        // 查找同名的零数量物品
+        const zeroQuantityItem = familyItems.items.find(
+            existingItem => existingItem.name === item.name && existingItem.quantity === 0
+        );
+
+        // 如果找到同名的零数量物品，先删除它
+        if (zeroQuantityItem) {
+            console.log('找到同名的零数量物品，正在删除:', zeroQuantityItem);
+            await deleteItem(zeroQuantityItem.id);
+        }
+
+        // 添加新物品
         const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
             headers: {
@@ -202,6 +219,13 @@ export const getItemById = async (id) => {
 // 更新物品数量
 export const updateItemQuantity = async (id, newQuantity) => {
     try {
+        // 如果新数量为0，直接删除物品
+        if (newQuantity === 0) {
+            console.log('物品数量为0，正在删除物品:', id);
+            await deleteItem(id);
+            return null;
+        }
+
         // 首先获取当前物品
         const currentItem = await getItemById(id);
 
