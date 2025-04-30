@@ -20,22 +20,68 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-// 简单的日期选择器实现
+// 改进的日期选择器实现
 const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
-  // 生成未来30天的日期选项
-  const generateDateOptions = () => {
-    const options = [];
-    const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // 生成当前月份的日历数据
+  const generateCalendarDays = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days = [];
     
-    for (let i = 0; i < 30; i++) {
-      const date = addDays(today, i);
-      options.push(date);
+    // 添加上个月的最后几天
+    const firstDayWeekday = firstDay.getDay();
+    for (let i = firstDayWeekday - 1; i >= 0; i--) {
+      const prevDate = new Date(year, month, -i);
+      days.push({
+        date: prevDate,
+        isCurrentMonth: false,
+        isToday: format(prevDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'),
+      });
     }
     
-    return options;
+    // 添加当前月的天数
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const currentDate = new Date(year, month, i);
+      days.push({
+        date: currentDate,
+        isCurrentMonth: true,
+        isToday: format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'),
+      });
+    }
+    
+    // 添加下个月的前几天
+    const remainingDays = 42 - days.length; // 6行7列
+    for (let i = 1; i <= remainingDays; i++) {
+      const nextDate = new Date(year, month + 1, i);
+      days.push({
+        date: nextDate,
+        isCurrentMonth: false,
+        isToday: format(nextDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd'),
+      });
+    }
+    
+    return days;
   };
 
-  const dateOptions = generateDateOptions();
+  const calendarDays = generateCalendarDays();
+  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+
+  const changeMonth = (offset) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + offset);
+    setCurrentMonth(newMonth);
+  };
+
+  const quickSelectOptions = [
+    { label: '今天', days: 0 },
+    { label: '明天', days: 1 },
+    { label: '一周后', days: 7 },
+    { label: '两周后', days: 14 },
+  ];
 
   return (
     <View style={styles.simpleDatePickerContainer}>
@@ -48,32 +94,71 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
           <Text style={styles.doneButton}>完成</Text>
         </TouchableOpacity>
       </View>
-      
-      <ScrollView style={styles.dateOptionsList}>
-        {dateOptions.map((option, index) => (
-          <TouchableOpacity 
+
+      {/* 月份导航 */}
+      <View style={styles.monthNavigator}>
+        <TouchableOpacity onPress={() => changeMonth(-1)}>
+          <Ionicons name="chevron-back" size={24} color={COLORS.SECONDARY} />
+        </TouchableOpacity>
+        <Text style={styles.monthText}>
+          {format(currentMonth, 'yyyy年MM月')}
+        </Text>
+        <TouchableOpacity onPress={() => changeMonth(1)}>
+          <Ionicons name="chevron-forward" size={24} color={COLORS.SECONDARY} />
+        </TouchableOpacity>
+      </View>
+
+      {/* 快速选择选项 */}
+      <View style={styles.quickSelectContainer}>
+        {quickSelectOptions.map((option, index) => (
+          <TouchableOpacity
             key={index}
-            style={[
-              styles.dateOption,
-              format(date, 'yyyy-MM-dd') === format(option, 'yyyy-MM-dd') ? styles.selectedDateOption : null
-            ]}
+            style={styles.quickSelectButton}
             onPress={() => {
-              onDateChange(option);
-              // 不要立即关闭，让用户确认选择
+              const newDate = addDays(new Date(), option.days);
+              onDateChange(newDate);
             }}
           >
-            <Text 
+            <Text style={styles.quickSelectText}>{option.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* 星期标题 */}
+      <View style={styles.weekDaysContainer}>
+        {weekDays.map((day, index) => (
+          <Text key={index} style={styles.weekDayText}>
+            {day}
+          </Text>
+        ))}
+      </View>
+
+      {/* 日历网格 */}
+      <View style={styles.calendarGrid}>
+        {calendarDays.map((day, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.calendarDay,
+              !day.isCurrentMonth && styles.otherMonthDay,
+              day.isToday && styles.today,
+              format(date, 'yyyy-MM-dd') === format(day.date, 'yyyy-MM-dd') && styles.selectedDay,
+            ]}
+            onPress={() => onDateChange(day.date)}
+          >
+            <Text
               style={[
-                styles.dateOptionText,
-                format(date, 'yyyy-MM-dd') === format(option, 'yyyy-MM-dd') ? styles.selectedDateOptionText : null
+                styles.calendarDayText,
+                !day.isCurrentMonth && styles.otherMonthDayText,
+                day.isToday && styles.todayText,
+                format(date, 'yyyy-MM-dd') === format(day.date, 'yyyy-MM-dd') && styles.selectedDayText,
               ]}
             >
-              {format(option, 'yyyy年MM月dd日')}
-              {index === 0 ? ' (今天)' : index === 1 ? ' (明天)' : ''}
+              {day.date.getDate()}
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -429,25 +514,83 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.MEDIUM,
     padding: SPACING.SMALL,
   },
-  dateOptionsList: {
-    maxHeight: 300,
-  },
-  dateOption: {
-    paddingVertical: SPACING.MEDIUM,
+  monthNavigator: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: SPACING.LARGE,
+    paddingVertical: SPACING.MEDIUM,
+  },
+  monthText: {
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.SECONDARY,
+  },
+  quickSelectContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: SPACING.MEDIUM,
     borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    borderBottomColor: '#EEEEEE',
   },
-  selectedDateOption: {
-    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+  quickSelectButton: {
+    paddingHorizontal: SPACING.MEDIUM,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.SMALL,
+    backgroundColor: COLORS.LIGHT_GRAY,
   },
-  dateOptionText: {
+  quickSelectText: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.SECONDARY,
+  },
+  weekDaysContainer: {
+    flexDirection: 'row',
+    paddingVertical: SPACING.SMALL,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  weekDayText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: SPACING.SMALL,
+  },
+  calendarDay: {
+    width: '14.28%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  calendarDayText: {
     fontSize: FONT_SIZE.MEDIUM,
     color: COLORS.SECONDARY,
   },
-  selectedDateOptionText: {
+  otherMonthDay: {
+    opacity: 0.5,
+  },
+  otherMonthDayText: {
+    color: COLORS.TEXT_SECONDARY,
+  },
+  today: {
+    backgroundColor: COLORS.LIGHT_GRAY,
+    borderRadius: BORDER_RADIUS.CIRCLE,
+  },
+  todayText: {
     fontWeight: FONT_WEIGHT.BOLD,
     color: COLORS.PRIMARY,
+  },
+  selectedDay: {
+    backgroundColor: COLORS.PRIMARY,
+    borderRadius: BORDER_RADIUS.CIRCLE,
+  },
+  selectedDayText: {
+    color: COLORS.SECONDARY,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
 });
 
