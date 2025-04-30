@@ -19,8 +19,13 @@ import { Audio } from 'expo-av';
 import { sendMessageToAI } from '../services/openai';
 import { recognizeSpeech, getAudioFormat } from '../services/speechService';
 import { API_URL, ERROR_MESSAGES } from '../config';
+import { useAuth } from '../../contexts/AuthContext';
+import authService from '../../services/authService';
+import { addItem } from '../../services/databaseService';
+import { useNavigation } from '@react-navigation/native';
 
 const AIAssistant = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -32,6 +37,7 @@ const AIAssistant = () => {
   const scrollViewRef = useRef();
   const recordingTimerRef = useRef(null);
   const windowHeight = Dimensions.get('window').height;
+  const navigation = useNavigation();
 
   useEffect(() => {
     return () => {
@@ -179,50 +185,151 @@ const AIAssistant = () => {
     }
   };
 
+  const executeAction = async (action) => {
+    try {
+      if (!user || !user.familyId) {
+        throw new Error('User or family information not found');
+      }
+
+      switch (action.type) {
+        case 'ADD_ITEM':
+          const newItem = {
+            name: action.item,
+            quantity: action.quantity,
+            familyId: user.familyId,
+            expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 7 days
+            category: 'Other',
+            location: 'Default',
+            notes: '',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          console.log('Adding new item:', newItem);
+          const result = await addItem(newItem);
+          console.log('Add item result:', result);
+          
+          if (result) {
+            setMessages(prev => [...prev, { type: 'assistant', content: `Successfully added ${action.quantity} ${action.item}(s) to your fridge.` }]);
+            // Trigger a refresh of the HomeScreen
+            navigation.setParams({ refresh: Date.now() });
+          }
+          break;
+
+        case 'DELETE_ITEM':
+          const deleteResponse = await fetch(`${API_URL}/items/name/${encodeURIComponent(action.item)}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          });
+
+          if (!deleteResponse.ok) {
+            throw new Error('删除物品失败');
+          }
+
+          const deleteConfirmation = `${action.item} 已成功删除`;
+          await speak(deleteConfirmation);
+          setMessages(prev => [
+            ...prev,
+            { text: deleteConfirmation, sender: 'assistant', timestamp: new Date().toISOString() },
+          ]);
+          break;
+
+        case 'UPDATE_ITEM':
+          const updateResponse = await fetch(`${API_URL}/items/name/${encodeURIComponent(action.item)}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              quantity: action.quantity,
+              familyId: currentUser.familyId
+            }),
+          });
+
+          if (!updateResponse.ok) {
+            throw new Error('更新物品失败');
+          }
+
+          const updateConfirmation = `${action.item} 数量已更新为 ${action.quantity}`;
+          await speak(updateConfirmation);
+          setMessages(prev => [
+            ...prev,
+            { text: updateConfirmation, sender: 'assistant', timestamp: new Date().toISOString() },
+          ]);
+          break;
+
+        case 'QUERY_ITEM':
+          const queryResponse = await fetch(`${API_URL}/items/name/${encodeURIComponent(action.item)}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          });
+
+          if (!queryResponse.ok) {
+            throw new Error('查询物品失败');
+          }
+
+          const itemData = await queryResponse.json();
+          const queryConfirmation = `${action.item} 当前数量为 ${itemData.quantity}`;
+          await speak(queryConfirmation);
+          setMessages(prev => [
+            ...prev,
+            { text: queryConfirmation, sender: 'assistant', timestamp: new Date().toISOString() },
+          ]);
+          break;
+
+        default:
+          console.log('未知操作类型:', action.type);
+      }
+    } catch (error) {
+      console.error('执行操作错误:', error);
+      setMessages(prev => [...prev, { type: 'assistant', content: `Sorry, I couldn't complete that action. Error: ${error.message}` }]);
+    }
+  };
+
   const parseAIResponse = (response) => {
-    // 解析 AI 的回复，提取操作信息
-    // 例如：添加物品、删除物品、查询物品等
-    const addItemMatch = response.match(/添加(\d+)个(.+)/);
+    // Match "ADD X Y" pattern
+    const addItemMatch = response.match(/ADD (\d+) (.+)/i);
     if (addItemMatch) {
       return {
         type: 'ADD_ITEM',
         quantity: parseInt(addItemMatch[1]),
-        item: addItemMatch[2],
+        item: addItemMatch[2].trim(),
       };
     }
-    return null;
-  };
 
-  const executeAction = async (action) => {
-    switch (action.type) {
-      case 'ADD_ITEM':
-        try {
-          const response = await fetch(`${API_URL}/api/items`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: action.item,
-              quantity: action.quantity,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('添加物品失败');
-          }
-
-          // 更新本地状态或刷新数据
-          // 这里可以添加更新本地状态的逻辑
-        } catch (error) {
-          console.error('执行操作错误:', error);
-          throw error;
-        }
-        break;
-      // 可以添加其他操作类型的处理
-      default:
-        console.log('未知操作类型:', action.type);
+    // Match "DELETE X" pattern
+    const deleteItemMatch = response.match(/DELETE (.+)/i);
+    if (deleteItemMatch) {
+      return {
+        type: 'DELETE_ITEM',
+        item: deleteItemMatch[1].trim(),
+      };
     }
+
+    // Match "UPDATE X TO Y" pattern
+    const updateItemMatch = response.match(/UPDATE (.+) TO (\d+)/i);
+    if (updateItemMatch) {
+      return {
+        type: 'UPDATE_ITEM',
+        item: updateItemMatch[1].trim(),
+        quantity: parseInt(updateItemMatch[2]),
+      };
+    }
+
+    // Match "QUERY X" pattern
+    const queryItemMatch = response.match(/QUERY (.+)/i);
+    if (queryItemMatch) {
+      return {
+        type: 'QUERY_ITEM',
+        item: queryItemMatch[1].trim(),
+      };
+    }
+
+    return null;
   };
 
   const sendMessage = async () => {

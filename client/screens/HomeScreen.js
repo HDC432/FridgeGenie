@@ -21,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
   const [items, setItems] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -62,6 +62,13 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     loadItems();
   }, []);
+
+  // Listen for refresh parameter changes
+  useEffect(() => {
+    if (route.params?.refresh) {
+      loadItems();
+    }
+  }, [route.params?.refresh]);
 
   useFocusEffect(
     useCallback(() => {

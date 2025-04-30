@@ -64,34 +64,41 @@ class ItemService {
 
     static async createItem(itemData) {
         try {
-            // 数据验证
-            if (!itemData.name || !itemData.quantity || !itemData.expiryDate) {
-                throw new Error('请提供所有必填字段');
+            // Validate required fields
+            if (!itemData.name || !itemData.quantity || !itemData.familyId) {
+                throw new Error('Name, quantity, and familyId are required');
             }
 
             const newItem = {
                 ...itemData,
+                id: Date.now().toString(), // Add unique ID
                 quantity: parseInt(itemData.quantity),
+                expiryDate: itemData.expiryDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Default to 7 days from now
                 createdAt: new Date().toISOString()
             };
 
-            return await ItemModel.create(newItem);
+            const result = await ItemModel.create(newItem);
+            if (!result) {
+                throw new Error('Failed to create item in database');
+            }
+            return result;
         } catch (error) {
-            throw new Error('创建物品失败');
+            console.error('Failed to create item:', error);
+            throw error;
         }
     }
 
     static async updateItem(id, itemData) {
         try {
-            // 检查物品是否存在
+            // Check if item exists
             const existingItem = await ItemModel.findById(id);
             if (!existingItem) {
-                throw new Error('物品不存在');
+                throw new Error('Item not found');
             }
 
-            // 数据验证
-            if (!itemData.name || !itemData.quantity || !itemData.expiryDate) {
-                throw new Error('请提供所有必填字段');
+            // Validate data
+            if (!itemData.name || !itemData.quantity || !itemData.familyId) {
+                throw new Error('Name, quantity, and familyId are required');
             }
 
             const updatedItem = {
@@ -101,9 +108,14 @@ class ItemService {
                 updatedAt: new Date().toISOString()
             };
 
-            return await ItemModel.update(id, updatedItem);
+            const result = await ItemModel.update(id, updatedItem);
+            if (!result) {
+                throw new Error('Failed to update item in database');
+            }
+            return result;
         } catch (error) {
-            throw new Error('更新物品失败');
+            console.error('Failed to update item:', error);
+            throw error;
         }
     }
 

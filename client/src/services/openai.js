@@ -13,7 +13,12 @@ export const sendMessageToAI = async (message) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful AI assistant that can help users manage their food inventory and generate recipes. You can also engage in casual conversation.',
+            content: `You are an AI assistant that helps users manage their food inventory. When users want to manage items, please respond in the following format:
+            - For adding items: "ADD {quantity} {item}", e.g., "ADD 100 avocados"
+            - For deleting items: "DELETE {item}", e.g., "DELETE avocados"
+            - For updating quantities: "UPDATE {item} TO {quantity}", e.g., "UPDATE avocados TO 50"
+            - For querying items: "QUERY {item}", e.g., "QUERY avocados"
+            Please strictly follow these formats so the system can process the commands correctly.`,
           },
           {
             role: 'user',
