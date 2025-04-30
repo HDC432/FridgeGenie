@@ -51,8 +51,15 @@ const RegisterScreen = ({ navigation }) => {
           '您已成功注册，现在可以登录了',
           [
             {
-              text: '去登录',
-              onPress: () => navigation.navigate('Login'),
+              text: '确定',
+              onPress: () => {
+                setName('');
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                setInviteCode('');
+                setAgreeTerms(false);
+              },
             },
           ]
         );
@@ -81,6 +88,10 @@ const RegisterScreen = ({ navigation }) => {
           placeholder="请输入您的姓名"
           value={name}
           onChangeText={setName}
+          autoComplete="off"
+          textContentType="none"
+          spellCheck={false}
+          autoCorrect={false}
         />
       </View>
 
@@ -93,6 +104,10 @@ const RegisterScreen = ({ navigation }) => {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoComplete="off"
+          textContentType="none"
+          spellCheck={false}
+          autoCorrect={false}
         />
       </View>
 
@@ -105,6 +120,11 @@ const RegisterScreen = ({ navigation }) => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
+            autoComplete="off"
+            textContentType="none"
+            passwordRules="none"
+            spellCheck={false}
+            autoCorrect={false}
           />
           <TouchableOpacity
             style={styles.passwordVisibilityBtn}
@@ -127,6 +147,11 @@ const RegisterScreen = ({ navigation }) => {
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry={!showPassword}
+          autoComplete="off"
+          textContentType="none"
+          passwordRules="none"
+          spellCheck={false}
+          autoCorrect={false}
         />
       </View>
 

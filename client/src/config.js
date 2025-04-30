@@ -1,5 +1,5 @@
 // API 配置
-export const API_URL = 'http://localhost:3000';
+export const API_URL = 'http://localhost:3001';
 
 // Azure Speech Services 配置
 export const AZURE_SPEECH = {
