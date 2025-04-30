@@ -1,163 +1,73 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Platform, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import theme from '../styles/theme';
 import axios from 'axios';
 import { API_URL } from '../config/constants';
 import { useAuth } from '../contexts/AuthContext';
 import authService from '../services/authService';
-// Temporarily comment out the env import to make UI work
-// import { OPENAI_API_KEY } from '@env';
-
-// Placeholder for development - replace with proper env setup later
-const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
-
-// Import the component-specific styles
-import styles from '../styles/screens/HealthProfileScreen';
+import HealthEditScreen from './HealthEditScreen';
 
 const HealthProfileScreen = ({ navigation }) => {
   const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    height: '163',
-    weight: '100',
-    age: '25',
-    gender: '女',
-    bloodType: 'AB型',
-    healthConditions: ['糖尿病', '高血压'],
-    allergies: '花粉, 小米',
-    dietPreferences: ['素食', '纯素'],
-    activityLevel: '轻度活动',
-    weightGoal: '维持体重',
-    calorieGoal: '',
-    proteinGoal: '',
-    carbGoal: '',
-    fatGoal: '',
+    basicInfo: {
+      height: '',
+      weight: '',
+      age: '',
+      gender: '',
+      bloodType: ''
+    },
+    healthConditions: {
+      hasDiabetes: false,
+      hasHypertension: false,
+      hasHeartDisease: false,
+      hasKidneyDisease: false,
+      hasAllergies: []
+    },
+    lifestyle: {
+      isVegetarian: false,
+      isVegan: false,
+      isGlutenFree: false,
+      isLactoseFree: false,
+      activityLevel: ''
+    },
+    dietaryGoals: {
+      weightGoal: '',
+      calorieGoal: '',
+      proteinGoal: '',
+      carbGoal: '',
+      fatGoal: ''
+    },
+    healthTags: []
   });
+  const [loading, setLoading] = useState(true);
   
-  // 模态框状态
+  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState('');
   
-  // 选项数据
-  const genderOptions = ['男', '女', '其他'];
-  const bloodTypeOptions = ['A型', 'B型', 'AB型', 'O型', '不确定'];
-  const activityOptions = ['轻度活动', '中度活动', '重度活动', '久坐不动'];
-  const weightGoalOptions = ['减重', '增重', '维持体重'];
+  // Options data
+  const genderOptions = ['Male', 'Female', 'Other'];
+  const bloodTypeOptions = ['A', 'B', 'AB', 'O', 'Unknown'];
+  const activityOptions = ['Light Activity', 'Moderate Activity', 'Heavy Activity', 'Sedentary'];
+  const weightGoalOptions = ['Lose Weight', 'Gain Weight', 'Maintain Weight'];
 
-  // 健康状况选项
-  const healthConditions = [
-    { id: 'diabetes', label: '糖尿病' },
-    { id: 'hypertension', label: '高血压' },
-    { id: 'heart', label: '心脏病' },
-    { id: 'kidney', label: '肾病' },
-  ];
+  useEffect(() => {
+    fetchHealthProfile();
+  }, []);
 
-  // 饮食偏好选项
-  const dietOptions = [
-    { id: 'vegetarian', label: '素食' },
-    { id: 'vegan', label: '纯素' },
-    { id: 'glutenFree', label: '无麸质' },
-    { id: 'lactoseFree', label: '无乳糖' },
-  ];
-  
-  // 打开选项模态框
-  const openModal = (type) => {
-    setModalType(type);
-    setModalVisible(true);
-  };
-  
-  // 选择选项
-  const selectOption = (option) => {
-    if (modalType === 'gender') {
-      setProfile({...profile, gender: option});
-    } else if (modalType === 'bloodType') {
-      setProfile({...profile, bloodType: option});
-    } else if (modalType === 'activity') {
-      setProfile({...profile, activityLevel: option});
-    } else if (modalType === 'weightGoal') {
-      setProfile({...profile, weightGoal: option});
-    }
-    setModalVisible(false);
-  };
-
-  // 选项切换函数
-  const toggleOption = (optionId, category) => {
-    let currentOptions = [...profile[category]];
-    
-    if (currentOptions.includes(optionId)) {
-      currentOptions = currentOptions.filter(id => id !== optionId);
-    } else {
-      currentOptions.push(optionId);
-    }
-    
-    setProfile({
-      ...profile,
-      [category]: currentOptions
-    });
-  };
-
-  // 检查选项是否被选中
-  const isOptionSelected = (option, category) => {
-    return profile[category].includes(option);
-  };
-  
-  // 显示提示信息
-  const showMessage = (title, message) => {
-    if (Platform.OS === 'web') {
-      // Web 端使用 window.alert
-      window.alert(`${title}\n${message}`);
-    } else {
-      // 移动端使用 Alert
-      Alert.alert(title, message);
-    }
-  };
-
-  // 保存个人信息
-  const saveProfile = async () => {
+  const fetchHealthProfile = async () => {
     try {
-      // 获取 token
       const token = await authService.getToken();
       if (!token) {
-        showMessage('错误', '请先登录');
+        showMessage('Error', 'Please log in first');
         return;
       }
 
-      // 转换数据格式以匹配后端 API
-      const healthData = {
-        basicInfo: {
-          height: parseFloat(profile.height),
-          weight: parseFloat(profile.weight),
-          age: parseInt(profile.age),
-          gender: profile.gender,
-          bloodType: profile.bloodType
-        },
-        healthConditions: {
-          hasDiabetes: profile.healthConditions.includes('糖尿病'),
-          hasHypertension: profile.healthConditions.includes('高血压'),
-          hasHeartDisease: profile.healthConditions.includes('心脏病'),
-          hasKidneyDisease: profile.healthConditions.includes('肾病'),
-          hasAllergies: profile.allergies.split(',').map(item => item.trim())
-        },
-        lifestyle: {
-          isVegetarian: profile.dietPreferences.includes('素食'),
-          isVegan: profile.dietPreferences.includes('纯素'),
-          isGlutenFree: profile.dietPreferences.includes('无麸质'),
-          isLactoseFree: profile.dietPreferences.includes('无乳糖'),
-          activityLevel: profile.activityLevel
-        },
-        dietaryGoals: {
-          weightGoal: profile.weightGoal === '减重' ? 'lose' : 
-                     profile.weightGoal === '增重' ? 'gain' : 'maintain',
-          calorieGoal: profile.calorieGoal ? parseInt(profile.calorieGoal) : null,
-          proteinGoal: profile.proteinGoal ? parseInt(profile.proteinGoal) : null,
-          carbGoal: profile.carbGoal ? parseInt(profile.carbGoal) : null,
-          fatGoal: profile.fatGoal ? parseInt(profile.fatGoal) : null
-        }
-      };
-
-      const response = await axios.put(
+      const response = await axios.get(
         `${API_URL}/health/profile`,
-        healthData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -167,200 +77,346 @@ const HealthProfileScreen = ({ navigation }) => {
       );
 
       if (response.data.success) {
-        showMessage('成功', '健康档案已保存');
-      } else {
-        showMessage('错误', response.data.message || '保存失败');
+        setProfile(response.data.data);
       }
     } catch (error) {
-      console.error('保存健康档案失败:', error);
-      showMessage('错误', error.response?.data?.message || '保存失败，请稍后重试');
+      console.error('Fetch health profile failed:', error);
+      showMessage('Error', error.response?.data?.message || 'Failed to fetch health profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Open option modal
+  const openModal = (type) => {
+    setModalType(type);
+    setModalVisible(true);
+  };
+  
+  // Select option
+  const selectOption = (option) => {
+    if (modalType === 'gender') {
+      setProfile({...profile, basicInfo: {...profile.basicInfo, gender: option}});
+    } else if (modalType === 'bloodType') {
+      setProfile({...profile, basicInfo: {...profile.basicInfo, bloodType: option}});
+    } else if (modalType === 'activity') {
+      setProfile({...profile, lifestyle: {...profile.lifestyle, activityLevel: option}});
+    } else if (modalType === 'weightGoal') {
+      setProfile({...profile, dietaryGoals: {...profile.dietaryGoals, weightGoal: option}});
+    }
+    setModalVisible(false);
+  };
+
+  // Show message
+  const showMessage = (title, message) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n${message}`);
+    } else {
+      Alert.alert(title, message);
     }
   };
 
+  // Save personal information
+  const saveProfile = async () => {
+    try {
+      const token = await authService.getToken();
+      if (!token) {
+        showMessage('Error', 'Please log in first');
+        return;
+      }
+
+      const response = await axios.put(
+        `${API_URL}/health/profile`,
+        profile,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        showMessage('Success', 'Health profile saved');
+        setIsEditing(false);
+        fetchHealthProfile(); // Refresh the profile data
+      } else {
+        showMessage('Error', response.data.message || 'Save failed');
+      }
+    } catch (error) {
+      console.error('Save health profile failed:', error);
+      showMessage('Error', error.response?.data?.message || 'Save failed, please try again later');
+    }
+  };
+
+  const styles = StyleSheet.create({
+    rootContainer: {
+      flex: 1,
+      backgroundColor: theme.COLORS.BACKGROUND,
+      ...(Platform.OS === 'web' ? {
+        height: '100vh',
+        overflow: 'hidden'
+      } : {})
+    },
+    container: {
+      flex: 1,
+      ...(Platform.OS === 'web' ? {
+        height: 'calc(100vh - 80px)', // 减去底部按钮的高度
+        overflow: 'auto'
+      } : {})
+    },
+    contentContainer: {
+      padding: theme.SPACING.MEDIUM,
+      paddingBottom: Platform.OS === 'web' ? 100 : 80,
+    },
+    section: {
+      marginBottom: theme.SPACING.LARGE,
+      backgroundColor: theme.COLORS.WHITE,
+      borderRadius: theme.BORDER_RADIUS.MEDIUM,
+      padding: theme.SPACING.MEDIUM,
+      shadowColor: theme.COLORS.BLACK,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    sectionTitle: {
+      fontSize: theme.FONT_SIZE.LARGE,
+      fontWeight: 'bold',
+      marginBottom: theme.SPACING.MEDIUM,
+      color: theme.COLORS.TEXT_PRIMARY,
+    },
+    sectionDescription: {
+      fontSize: theme.FONT_SIZE.SMALL,
+      color: theme.COLORS.TEXT_SECONDARY,
+      marginBottom: theme.SPACING.MEDIUM,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: theme.SPACING.SMALL,
+    },
+    infoLabel: {
+      fontSize: theme.FONT_SIZE.MEDIUM,
+      color: theme.COLORS.TEXT_SECONDARY,
+    },
+    infoValue: {
+      fontSize: theme.FONT_SIZE.MEDIUM,
+      color: theme.COLORS.TEXT_PRIMARY,
+      fontWeight: '500',
+    },
+    tagsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: theme.SPACING.SMALL,
+    },
+    tag: {
+      backgroundColor: theme.COLORS.PRIMARY_LIGHT,
+      paddingHorizontal: theme.SPACING.MEDIUM,
+      paddingVertical: theme.SPACING.SMALL,
+      borderRadius: theme.BORDER_RADIUS.SMALL,
+      fontSize: theme.FONT_SIZE.SMALL,
+      color: theme.COLORS.PRIMARY,
+    },
+    editButton: {
+      backgroundColor: theme.COLORS.PRIMARY,
+      padding: theme.SPACING.MEDIUM,
+      borderRadius: theme.BORDER_RADIUS.SMALL,
+      marginTop: theme.SPACING.LARGE,
+      marginBottom: theme.SPACING.LARGE,
+      width: '100%',
+      ...(Platform.OS === 'web' ? {
+        position: 'fixed',
+        bottom: theme.SPACING.MEDIUM,
+        left: theme.SPACING.MEDIUM,
+        right: theme.SPACING.MEDIUM,
+        zIndex: 1000,
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        height: '60px'
+      } : {})
+    },
+    editButtonText: {
+      color: theme.COLORS.WHITE,
+      textAlign: 'center',
+      fontSize: theme.FONT_SIZE.MEDIUM,
+      fontWeight: '500',
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      width: '80%',
+      maxWidth: 400,
+      backgroundColor: theme.COLORS.BACKGROUND,
+      borderRadius: theme.BORDER_RADIUS.MEDIUM,
+      padding: theme.SPACING.LARGE,
+      ...(Platform.OS === 'web' ? {
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+      } : {})
+    },
+    modalTitle: {
+      fontSize: theme.FONT_SIZE.LARGE,
+      fontWeight: 'bold',
+      color: theme.COLORS.SECONDARY,
+      marginBottom: theme.SPACING.LARGE,
+      textAlign: 'center',
+    },
+    modalOption: {
+      paddingVertical: theme.SPACING.MEDIUM,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.COLORS.DIVIDER,
+      ...(Platform.OS === 'web' ? {
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        ':hover': {
+          backgroundColor: theme.COLORS.PRIMARY_LIGHT,
+        }
+      } : {})
+    },
+    modalOptionText: {
+      fontSize: theme.FONT_SIZE.MEDIUM,
+      color: theme.COLORS.SECONDARY,
+      textAlign: 'center',
+    },
+    modalCancel: {
+      marginTop: theme.SPACING.LARGE,
+      padding: theme.SPACING.MEDIUM,
+      backgroundColor: theme.COLORS.LIGHT_GRAY,
+      borderRadius: theme.BORDER_RADIUS.SMALL,
+      alignItems: 'center',
+      ...(Platform.OS === 'web' ? {
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        ':hover': {
+          opacity: 0.9,
+        }
+      } : {})
+    },
+    modalCancelText: {
+      color: theme.COLORS.SECONDARY,
+      fontWeight: '500',
+    },
+  });
+
+  const renderViewMode = () => (
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {/* Basic Information Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Basic Information</Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Height:</Text>
+          <Text style={styles.infoValue}>{profile?.basicInfo?.height ? `${profile.basicInfo.height} cm` : 'Not set'}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Weight:</Text>
+          <Text style={styles.infoValue}>{profile?.basicInfo?.weight ? `${profile.basicInfo.weight} kg` : 'Not set'}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Age:</Text>
+          <Text style={styles.infoValue}>{profile?.basicInfo?.age || 'Not set'}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Gender:</Text>
+          <Text style={styles.infoValue}>{profile?.basicInfo?.gender || 'Not set'}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Blood Type:</Text>
+          <Text style={styles.infoValue}>{profile?.basicInfo?.bloodType || 'Not set'}</Text>
+        </View>
+      </View>
+
+      {/* Health Conditions Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Health Conditions</Text>
+        <View style={styles.tagsContainer}>
+          {profile?.healthConditions?.hasDiabetes && <Text style={styles.tag}>Diabetes</Text>}
+          {profile?.healthConditions?.hasHypertension && <Text style={styles.tag}>Hypertension</Text>}
+          {profile?.healthConditions?.hasHeartDisease && <Text style={styles.tag}>Heart Disease</Text>}
+          {profile?.healthConditions?.hasKidneyDisease && <Text style={styles.tag}>Kidney Disease</Text>}
+        </View>
+      </View>
+
+      {/* Lifestyle Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Lifestyle</Text>
+        <View style={styles.tagsContainer}>
+          {profile?.lifestyle?.isVegetarian && <Text style={styles.tag}>Vegetarian</Text>}
+          {profile?.lifestyle?.isVegan && <Text style={styles.tag}>Vegan</Text>}
+          {profile?.lifestyle?.isGlutenFree && <Text style={styles.tag}>Gluten-Free</Text>}
+          {profile?.lifestyle?.isLactoseFree && <Text style={styles.tag}>Lactose-Free</Text>}
+          {profile?.lifestyle?.activityLevel && <Text style={styles.tag}>{profile.lifestyle.activityLevel}</Text>}
+        </View>
+      </View>
+
+      {/* Diet Goals Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dietary Goals</Text>
+        <View style={styles.tagsContainer}>
+          {profile?.dietaryGoals?.weightGoal && <Text style={styles.tag}>{profile.dietaryGoals.weightGoal}</Text>}
+          {profile?.dietaryGoals?.calorieGoal && <Text style={styles.tag}>{profile.dietaryGoals.calorieGoal} kcal</Text>}
+          {profile?.dietaryGoals?.proteinGoal && <Text style={styles.tag}>{profile.dietaryGoals.proteinGoal}g Protein</Text>}
+          {profile?.dietaryGoals?.carbGoal && <Text style={styles.tag}>{profile.dietaryGoals.carbGoal}g Carbs</Text>}
+          {profile?.dietaryGoals?.fatGoal && <Text style={styles.tag}>{profile.dietaryGoals.fatGoal}g Fat</Text>}
+        </View>
+      </View>
+
+      {/* Health Tags Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Health Tags</Text>
+        <Text style={styles.sectionDescription}>Based on your health profile, we've generated these tags to personalize your experience:</Text>
+        <View style={styles.tagsContainer}>
+          {profile?.healthConditions?.hasAllergies?.length > 0 && (
+            <Text style={styles.tag}>Allergies: {profile.healthConditions.hasAllergies.join(', ')}</Text>
+          )}
+          {profile?.healthTags?.map((tag, index) => (
+            <Text key={index} style={styles.tag}>{tag}</Text>
+          ))}
+        </View>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.editButton}
+        onPress={() => setIsEditing(true)}
+      >
+        <Text style={styles.editButtonText}>Edit Profile</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.rootContainer}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* 基本信息部分 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>基本信息</Text>
-          
-          {/* 身高 */}
-          <TextInput
-            style={styles.input}
-            value={profile.height}
-            onChangeText={(text) => setProfile({...profile, height: text})}
-            keyboardType="numeric"
-            placeholder="身高 (cm)"
-          />
-          
-          {/* 体重 */}
-          <TextInput
-            style={styles.input}
-            value={profile.weight}
-            onChangeText={(text) => setProfile({...profile, weight: text})}
-            keyboardType="numeric"
-            placeholder="体重 (kg)"
-          />
-          
-          {/* 年龄 */}
-          <TextInput
-            style={styles.input}
-            value={profile.age}
-            onChangeText={(text) => setProfile({...profile, age: text})}
-            keyboardType="numeric"
-            placeholder="年龄"
-          />
-          
-          {/* 性别下拉框 */}
-          <TouchableOpacity 
-            style={styles.selectInput}
-            onPress={() => openModal('gender')}
-          >
-            <Text style={styles.selectText}>{profile.gender}</Text>
-            <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
-          </TouchableOpacity>
-          
-          {/* 血型下拉框 */}
-          <TouchableOpacity 
-            style={styles.selectInput}
-            onPress={() => openModal('bloodType')}
-          >
-            <Text style={styles.selectText}>{profile.bloodType}</Text>
-            <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 健康状况部分 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>健康状况</Text>
-          <View style={styles.optionsGrid}>
-            {healthConditions.map((condition) => (
-              <TouchableOpacity
-                key={condition.id}
-                style={[
-                  styles.conditionItem,
-                  isOptionSelected(condition.label, 'healthConditions') ? styles.selectedOption : null
-                ]}
-                onPress={() => toggleOption(condition.label, 'healthConditions')}
-                activeOpacity={0.7}
-              >
-                <Text 
-                  style={[
-                    styles.conditionText,
-                    isOptionSelected(condition.label, 'healthConditions') ? styles.selectedOptionText : null
-                  ]}
-                >
-                  {condition.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          
-          {/* 过敏原 */}
-          <TextInput
-            style={[styles.input, { marginTop: theme.SPACING.MEDIUM }]}
-            value={profile.allergies}
-            onChangeText={(text) => setProfile({...profile, allergies: text})}
-            placeholder="过敏原 (逗号分隔)"
-          />
-        </View>
-
-        {/* 生活方式部分 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>生活方式</Text>
-          <View style={styles.optionsGrid}>
-            {dietOptions.map((option) => (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.dietItem,
-                  isOptionSelected(option.label, 'dietPreferences') ? styles.selectedOption : null
-                ]}
-                onPress={() => toggleOption(option.label, 'dietPreferences')}
-                activeOpacity={0.7}
-              >
-                <Text 
-                  style={[
-                    styles.optionText,
-                    isOptionSelected(option.label, 'dietPreferences') ? styles.selectedOptionText : null
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          
-          {/* 活动水平下拉框 */}
-          <TouchableOpacity 
-            style={[styles.selectInput, { marginTop: theme.SPACING.MEDIUM }]}
-            onPress={() => openModal('activity')}
-          >
-            <Text style={styles.selectText}>{profile.activityLevel}</Text>
-            <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 饮食目标部分 - 新增 */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>饮食目标</Text>
-          
-          {/* 体重目标 */}
-          <TouchableOpacity 
-            style={styles.selectInput}
-            onPress={() => openModal('weightGoal')}
-          >
-            <Text style={styles.selectText}>{profile.weightGoal}</Text>
-            <Ionicons name="chevron-down" size={20} color={theme.COLORS.TEXT_SECONDARY} />
-          </TouchableOpacity>
-          
-          {/* 卡路里目标 */}
-          <TextInput
-            style={styles.input}
-            value={profile.calorieGoal}
-            onChangeText={(text) => setProfile({...profile, calorieGoal: text})}
-            keyboardType="numeric"
-            placeholder="每日卡路里目标 (kcal)"
-          />
-          
-          {/* 蛋白质目标 */}
-          <TextInput
-            style={styles.input}
-            value={profile.proteinGoal}
-            onChangeText={(text) => setProfile({...profile, proteinGoal: text})}
-            keyboardType="numeric"
-            placeholder="每日蛋白质目标 (g)"
-          />
-          
-          {/* 碳水化合物目标 */}
-          <TextInput
-            style={styles.input}
-            value={profile.carbGoal}
-            onChangeText={(text) => setProfile({...profile, carbGoal: text})}
-            keyboardType="numeric"
-            placeholder="每日碳水化合物目标 (g)"
-          />
-          
-          {/* 脂肪目标 */}
-          <TextInput
-            style={styles.input}
-            value={profile.fatGoal}
-            onChangeText={(text) => setProfile({...profile, fatGoal: text})}
-            keyboardType="numeric"
-            placeholder="每日脂肪目标 (g)"
-          />
-        </View>
-
-        {/* 保存按钮 */}
-        <TouchableOpacity 
-          style={styles.saveButton}
-          onPress={saveProfile}
-        >
-          <Text style={styles.saveButtonText}>保存健康档案</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      {isEditing ? (
+        <HealthEditScreen
+          profile={profile}
+          setProfile={setProfile}
+          onSave={saveProfile}
+          onCancel={() => {
+            setIsEditing(false);
+            fetchHealthProfile();
+          }}
+          openModal={openModal}
+        />
+      ) : (
+        renderViewMode()
+      )}
       
-      {/* 选项选择模态框 */}
+      {/* Option Selection Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -370,10 +426,10 @@ const HealthProfileScreen = ({ navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {modalType === 'gender' ? '选择性别' :
-               modalType === 'bloodType' ? '选择血型' :
-               modalType === 'activity' ? '选择活动水平' :
-               modalType === 'weightGoal' ? '选择体重目标' : ''}
+              {modalType === 'gender' ? 'Select Gender' :
+               modalType === 'bloodType' ? 'Select Blood Type' :
+               modalType === 'activity' ? 'Select Activity Level' :
+               modalType === 'weightGoal' ? 'Select Weight Goal' : ''}
             </Text>
             
             {(modalType === 'gender' ? genderOptions :
@@ -393,7 +449,7 @@ const HealthProfileScreen = ({ navigation }) => {
               style={styles.modalCancel}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.modalCancelText}>取消</Text>
+              <Text style={styles.modalCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
