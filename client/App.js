@@ -15,6 +15,7 @@ import RecipeScreen from './screens/RecipeScreen';
 import UserAvatar from './components/UserAvatar';
 import UserMenu from './components/UserMenu';
 import HealthProfileScreen from './screens/HealthProfileScreen';
+import AIAssistant from './src/components/AIAssistant';
 import theme from './styles/theme';
 
 const Stack = createStackNavigator();
@@ -135,6 +136,7 @@ export default function App() {
         <View style={styles.container}>
           <StatusBar style="auto" />
           <Navigation />
+          <AIAssistant />
         </View>
       </NavigationContainer>
     </AuthProvider>
