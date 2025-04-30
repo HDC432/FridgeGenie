@@ -249,37 +249,43 @@ const FamilyScreen = () => {
   };
 
   const handleLeaveFamily = async () => {
+    if (!family || !user.familyId) {
+      showAlert('错误', '您当前没有加入任何家庭');
+      return;
+    }
+
     try {
+      setLoading(true);
       const token = await authService.getToken();
-      const response = await axios.post(
-        `${API_URL}/families/${user.familyId}/leave`,
-        {},
+      const response = await fetch(
+        `${API_URL}/families/${family.id}/leave`,
         {
+          method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
           }
         }
       );
 
-      if (response.data.success) {
+      const data = await response.json();
+      console.log('退出家庭响应:', data);
+
+      if (response.ok && data.success) {
         // 更新用户状态
-        await authService.updateUser({ familyId: null });
+        const updatedUser = { ...user, familyId: null };
+        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        setFamily(null);
         // 显示成功消息
-        if (Platform.OS === 'web') {
-          window.alert('已成功退出家庭');
-        } else {
-          Alert.alert('成功', '已成功退出家庭');
-        }
-        // 刷新页面
-        loadFamilyInfo();
+        showAlert('成功', '已成功退出家庭');
+      } else {
+        throw new Error(data.message || '退出家庭失败');
       }
     } catch (error) {
       console.error('退出家庭失败:', error);
-      if (Platform.OS === 'web') {
-        window.alert('退出家庭失败，请重试');
-      } else {
-        Alert.alert('错误', '退出家庭失败，请重试');
-      }
+      showAlert('错误', error.message || '退出家庭失败，请重试');
+    } finally {
+      setLoading(false);
     }
   };
 

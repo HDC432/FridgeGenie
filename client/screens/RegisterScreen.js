@@ -121,10 +121,11 @@ const RegisterScreen = ({ navigation }) => {
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
             autoComplete="off"
-            textContentType="none"
-            passwordRules="none"
+            textContentType="oneTimeCode"
+            passwordRules="minlength: 8;"
             spellCheck={false}
             autoCorrect={false}
+            keyboardType="default"
           />
           <TouchableOpacity
             style={styles.passwordVisibilityBtn}
@@ -148,10 +149,11 @@ const RegisterScreen = ({ navigation }) => {
           onChangeText={setConfirmPassword}
           secureTextEntry={!showPassword}
           autoComplete="off"
-          textContentType="none"
-          passwordRules="none"
+          textContentType="oneTimeCode"
+          passwordRules="minlength: 8;"
           spellCheck={false}
           autoCorrect={false}
+          keyboardType="default"
         />
       </View>
 

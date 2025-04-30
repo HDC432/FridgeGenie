@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
@@ -51,7 +52,11 @@ const LoginScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <View style={styles.logoCircle}>
-          <Ionicons name="snow-outline" size={64} color={COLORS.SECONDARY} />
+          <Image 
+            source={require('../assets/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         <Text style={styles.appName}>FridgeGenie</Text>
         <Text style={styles.tagline}>智能管理你的冰箱，减少食物浪费</Text>
@@ -137,13 +142,17 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.XXXLARGE,
   },
   logoCircle: {
-    width: 120,
-    height: 120,
-    backgroundColor: COLORS.PRIMARY,
-    borderRadius: BORDER_RADIUS.CIRCLE,
+    width: 150,
+    height: 150,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 75,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: SPACING.LARGE,
+  },
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   appName: {
     fontSize: FONT_SIZE.XXXLARGE,

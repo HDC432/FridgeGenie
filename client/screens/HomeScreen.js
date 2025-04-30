@@ -288,7 +288,7 @@ const HomeScreen = ({ navigation, route }) => {
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="refrigerator-outline" size={120} color={COLORS.TEXT_SECONDARY} />
+            <Ionicons name="cube-outline" size={120} color={COLORS.TEXT_SECONDARY} />
           </View>
           <Text style={styles.emptyText}>冰箱是空的</Text>
           <TouchableOpacity
