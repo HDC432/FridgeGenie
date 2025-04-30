@@ -1,7 +1,7 @@
 const FavoriteRecipe = require('../models/FavoriteRecipe');
 
 class FavoriteRecipeController {
-    // 获取用户收藏的菜谱
+    // Get user's favorite recipes
     async getFavorites(req, res) {
         try {
             const userId = req.user.id;
@@ -18,7 +18,7 @@ class FavoriteRecipeController {
         }
     }
 
-    // 添加收藏
+    // Add favorite
     async addFavorite(req, res) {
         try {
             const userId = req.user.id;
@@ -27,7 +27,7 @@ class FavoriteRecipeController {
             if (!recipeId || !recipeData) {
                 return res.status(400).json({
                     success: false,
-                    message: '请提供菜谱ID和数据'
+                    message: 'Please provide recipe ID and data'
                 });
             }
 
@@ -44,7 +44,7 @@ class FavoriteRecipeController {
         }
     }
 
-    // 取消收藏
+    // Remove favorite
     async removeFavorite(req, res) {
         try {
             const userId = req.user.id;
@@ -53,7 +53,7 @@ class FavoriteRecipeController {
             await FavoriteRecipe.removeFavorite(userId, favoriteId);
             res.json({
                 success: true,
-                message: '取消收藏成功'
+                message: 'Successfully removed from favorites'
             });
         } catch (error) {
             res.status(500).json({
@@ -63,7 +63,7 @@ class FavoriteRecipeController {
         }
     }
 
-    // 检查是否已收藏
+    // Check if recipe is favorited
     async checkFavorite(req, res) {
         try {
             const userId = req.user.id;

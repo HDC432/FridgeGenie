@@ -7,7 +7,7 @@ class HealthController {
             if (!userId) {
                 return res.status(400).json({ 
                     success: false,
-                    message: '用户ID不能为空' 
+                    message: 'User ID cannot be empty' 
                 });
             }
 
@@ -15,11 +15,11 @@ class HealthController {
             const updatedProfile = await HealthProfile.update(userId, data);
             res.json({
                 success: true,
-                message: '健康档案更新成功',
+                message: 'Health profile updated successfully',
                 data: updatedProfile
             });
         } catch (error) {
-            console.error('更新健康档案失败:', error);
+            console.error('Failed to update health profile:', error);
             res.status(500).json({ 
                 success: false,
                 message: error.message 
@@ -33,7 +33,7 @@ class HealthController {
             if (!userId) {
                 return res.status(400).json({ 
                     success: false,
-                    message: '用户ID不能为空' 
+                    message: 'User ID cannot be empty' 
                 });
             }
 
@@ -41,7 +41,7 @@ class HealthController {
             if (!profile) {
                 return res.status(404).json({ 
                     success: false,
-                    message: '健康档案不存在' 
+                    message: 'Health profile not found' 
                 });
             }
 
@@ -50,7 +50,7 @@ class HealthController {
                 data: profile
             });
         } catch (error) {
-            console.error('获取健康档案失败:', error);
+            console.error('Failed to get health profile:', error);
             res.status(500).json({ 
                 success: false,
                 message: error.message 
@@ -64,7 +64,7 @@ class HealthController {
             if (!userId) {
                 return res.status(400).json({ 
                     success: false,
-                    message: '用户ID不能为空' 
+                    message: 'User ID cannot be empty' 
                 });
             }
 
@@ -72,11 +72,11 @@ class HealthController {
             const profile = await HealthProfile.create(data);
             res.status(201).json({
                 success: true,
-                message: '健康档案创建成功',
+                message: 'Health profile created successfully',
                 data: profile
             });
         } catch (error) {
-            console.error('创建健康档案失败:', error);
+            console.error('Failed to create health profile:', error);
             res.status(500).json({ 
                 success: false,
                 message: error.message 
@@ -90,14 +90,14 @@ class HealthController {
             if (!userId) {
                 return res.status(400).json({ 
                     success: false,
-                    message: '用户ID不能为空' 
+                    message: 'User ID cannot be empty' 
                 });
             }
 
             await HealthProfile.delete(userId);
             res.status(204).send();
         } catch (error) {
-            console.error('删除健康档案失败:', error);
+            console.error('Failed to delete health profile:', error);
             res.status(500).json({ 
                 success: false,
                 message: error.message 

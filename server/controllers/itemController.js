@@ -6,12 +6,12 @@ class ItemController {
             const page = Math.max(1, parseInt(req.query.page) || 1);
             const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 5));
             
-            console.log('请求分页参数:', { page, limit });
+            console.log('Pagination parameters:', { page, limit });
             
             const result = await ItemService.getAllItems(page, limit);
             res.json(result);
         } catch (error) {
-            console.error('获取物品列表失败:', error);
+            console.error('Failed to get item list:', error);
             res.status(500).json({ error: error.message });
         }
     }
@@ -48,17 +48,17 @@ class ItemController {
     static async deleteItem(req, res) {
         try {
             const { id } = req.params;
-            console.log('开始删除物品，ID:', id);
+            console.log('Starting item deletion, ID:', id);
             
             const result = await ItemService.deleteItem(id);
-            console.log('删除成功，结果:', result);
+            console.log('Deletion successful, result:', result);
             
             res.status(204).send();
         } catch (error) {
-            console.error('删除物品失败:', error);
+            console.error('Failed to delete item:', error);
             res.status(500).json({ 
                 success: false, 
-                error: error.message || '删除物品失败',
+                error: error.message || 'Failed to delete item',
                 details: error.stack
             });
         }

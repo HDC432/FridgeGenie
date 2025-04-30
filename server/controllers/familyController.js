@@ -4,33 +4,33 @@ const User = require('../models/User');
 const HealthProfile = require('../models/healthModel');
 
 class FamilyController {
-    // 创建家庭
+    // Create family
     async createFamily(req, res) {
         try {
-            console.log('创建家庭 - 请求体:', req.body);
-            console.log('创建家庭 - 用户ID:', req.user.id);
+            console.log('Create family - Request body:', req.body);
+            console.log('Create family - User ID:', req.user.id);
             
             const { name } = req.body;
             const userId = req.user.id;
 
             if (!name) {
-                console.log('创建家庭 - 错误: 缺少家庭名称');
+                console.log('Create family - Error: Missing family name');
                 return res.status(400).json({
                     success: false,
-                    message: '请提供家庭名称'
+                    message: 'Please provide family name'
                 });
             }
 
-            console.log('创建家庭 - 开始调用服务');
+            console.log('Create family - Starting service call');
             const family = await familyService.createFamily(name, userId);
-            console.log('创建家庭 - 服务返回结果:', family);
+            console.log('Create family - Service response:', family);
             
             res.status(201).json({
                 success: true,
                 data: family
             });
         } catch (error) {
-            console.error('创建家庭 - 错误:', error);
+            console.error('Create family - Error:', error);
             res.status(400).json({
                 success: false,
                 message: error.message
@@ -38,7 +38,7 @@ class FamilyController {
         }
     }
 
-    // 加入家庭
+    // Join family
     async joinFamily(req, res) {
         try {
             const { inviteCode } = req.body;
@@ -47,7 +47,7 @@ class FamilyController {
             if (!inviteCode) {
                 return res.status(400).json({
                     success: false,
-                    message: '请提供邀请码'
+                    message: 'Please provide invite code'
                 });
             }
 
@@ -65,22 +65,22 @@ class FamilyController {
         }
     }
 
-    // 获取家庭信息
+    // Get family information
     async getFamilyInfo(req, res) {
         try {
-            console.log('获取家庭信息 - 开始处理请求');
+            console.log('Get family info - Starting request processing');
             const userId = req.user.id;
-            console.log('获取家庭信息 - 用户ID:', userId);
+            console.log('Get family info - User ID:', userId);
             
             const family = await familyService.getFamilyInfo(userId);
-            console.log('获取家庭信息 - 查询结果:', family);
+            console.log('Get family info - Query result:', family);
             
             res.status(200).json({
                 success: true,
                 data: family
             });
         } catch (error) {
-            console.error('获取家庭信息 - 错误:', error);
+            console.error('Get family info - Error:', error);
             res.status(400).json({
                 success: false,
                 message: error.message
@@ -88,7 +88,7 @@ class FamilyController {
         }
     }
 
-    // 移除家庭成员
+    // Remove family member
     async removeMember(req, res) {
         try {
             const { familyId, userId } = req.params;
@@ -108,7 +108,7 @@ class FamilyController {
         }
     }
 
-    // 更新成员角色
+    // Update member role
     async updateMemberRole(req, res) {
         try {
             const { familyId, userId } = req.params;
@@ -118,7 +118,7 @@ class FamilyController {
             if (!role) {
                 return res.status(400).json({
                     success: false,
-                    message: '请提供新的角色'
+                    message: 'Please provide new role'
                 });
             }
 
@@ -141,96 +141,96 @@ class FamilyController {
             const { familyId } = req.params;
             const userId = req.user.id;
             
-            console.log('FamilyController - leaveFamily - 开始处理请求');
-            console.log('FamilyController - leaveFamily - 请求参数:', { familyId, userId });
-            console.log('FamilyController - leaveFamily - 用户信息:', req.user);
+            console.log('FamilyController - leaveFamily - Starting request processing');
+            console.log('FamilyController - leaveFamily - Request parameters:', { familyId, userId });
+            console.log('FamilyController - leaveFamily - User info:', req.user);
             
-            console.log('FamilyController - leaveFamily - 开始调用 familyService.removeMember');
+            console.log('FamilyController - leaveFamily - Starting familyService.removeMember call');
             const result = await familyService.removeMember(familyId, userId);
-            console.log('FamilyController - leaveFamily - 服务返回结果:', result);
+            console.log('FamilyController - leaveFamily - Service response:', result);
             
             if (!result.success) {
-                console.log('FamilyController - leaveFamily - 操作失败:', result.message);
+                console.log('FamilyController - leaveFamily - Operation failed:', result.message);
                 return res.status(400).json({
                     success: false,
                     message: result.message
                 });
             }
             
-            console.log('FamilyController - leaveFamily - 操作成功');
+            console.log('FamilyController - leaveFamily - Operation successful');
             res.status(200).json({
                 success: true,
                 data: null,
                 message: result.message
             });
         } catch (error) {
-            console.error('FamilyController - leaveFamily - 错误:', error);
+            console.error('FamilyController - leaveFamily - Error:', error);
             res.status(500).json({
                 success: false,
-                message: '退出家庭失败'
+                message: 'Failed to leave family'
             });
         }
     }
 
-    // 获取家庭成员的健康标签
+    // Get family members' health tags
     async getFamilyHealthTags(req, res) {
         try {
             const { familyId } = req.params;
-            console.log('获取家庭成员健康标签 - 开始:', familyId);
+            console.log('Get family health tags - Starting:', familyId);
 
             const healthTags = await familyService.getFamilyHealthTags(familyId);
 
-            console.log('获取家庭成员健康标签 - 成功:', healthTags);
+            console.log('Get family health tags - Success:', healthTags);
             res.json({
                 success: true,
-                message: '获取家庭成员健康标签成功',
+                message: 'Successfully retrieved family health tags',
                 data: healthTags
             });
         } catch (error) {
-            console.error('获取家庭成员健康标签失败:', error);
+            console.error('Failed to get family health tags:', error);
             res.status(500).json({
                 success: false,
-                message: '获取家庭成员健康标签失败',
+                message: 'Failed to get family health tags',
                 error: error.message
             });
         }
     }
 
-    // 获取家庭成员
+    // Get family members
     async getFamilyMembers(req, res) {
         try {
             const { familyId } = req.params;
-            console.log('获取家庭成员 - 开始:', familyId);
+            console.log('Get family members - Starting:', familyId);
 
-            // 获取家庭信息
+            // Get family information
             const family = await Family.findById(familyId);
             if (!family) {
-                throw new Error('家庭不存在');
+                throw new Error('Family not found');
             }
 
-            // 获取所有成员的用户信息
+            // Get user information for all members
             const membersWithInfo = await Promise.all(
                 family.members.map(async (member) => {
                     const user = await User.findById(member.userId);
                     return {
                         ...member,
-                        username: user ? user.username : '未知用户',
-                        email: user ? user.email : '未知邮箱'
+                        username: user ? user.username : 'Unknown user',
+                        email: user ? user.email : 'Unknown email'
                     };
                 })
             );
 
-            console.log('获取家庭成员 - 成功:', membersWithInfo);
+            console.log('Get family members - Success:', membersWithInfo);
             res.json({
                 success: true,
-                message: '获取家庭成员成功',
+                message: 'Successfully retrieved family members',
                 data: membersWithInfo
             });
         } catch (error) {
-            console.error('获取家庭成员失败:', error);
+            console.error('Failed to get family members:', error);
             res.status(500).json({
                 success: false,
-                message: '获取家庭成员失败',
+                message: 'Failed to get family members',
                 error: error.message
             });
         }
