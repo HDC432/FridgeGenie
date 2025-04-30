@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Modal,
   TextInput,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +18,6 @@ import { differenceInCalendarDays } from 'date-fns';
 import { getFamilyItems, deleteItem, updateItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
-
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -248,11 +248,48 @@ const HomeScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Hi, {user?.username}</Text>
+        <View style={styles.headerTop}>
+          <View style={styles.welcomeContainer}>
+            <Text style={styles.welcomeText}>
+              <Text style={styles.greeting}>Hi, </Text>
+              <Text style={styles.username}>{user?.username}</Text>
+            </Text>
+          </View>
+        </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Ionicons name="cube-outline" size={24} color={COLORS.PRIMARY} />
+            <Text style={styles.statNumber}>{items.length}</Text>
+            <Text style={styles.statLabel}>总物品</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Ionicons name="alert-circle-outline" size={24} color={COLORS.ALERT} />
+            <Text style={styles.statNumber}>
+              {items.filter(item => {
+                const daysLeft = differenceInCalendarDays(new Date(item.expiryDate), new Date());
+                return daysLeft <= 3;
+              }).length}
+            </Text>
+            <Text style={styles.statLabel}>即将过期</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Ionicons name="time-outline" size={24} color={COLORS.SUCCESS} />
+            <Text style={styles.statNumber}>
+              {items.filter(item => {
+                const daysLeft = differenceInCalendarDays(new Date(item.expiryDate), new Date());
+                return daysLeft > 7;
+              }).length}
+            </Text>
+            <Text style={styles.statLabel}>状态良好</Text>
+          </View>
+        </View>
       </View>
 
       {items.length === 0 ? (
         <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Ionicons name="refrigerator-outline" size={120} color={COLORS.TEXT_SECONDARY} />
+          </View>
           <Text style={styles.emptyText}>冰箱是空的</Text>
           <TouchableOpacity
             style={styles.addFirstButton}
@@ -270,6 +307,7 @@ const HomeScreen = ({ navigation, route }) => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.PRIMARY]} />
           }
           contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
         />
       )}
       {renderQuantityModal()}
@@ -279,23 +317,98 @@ const HomeScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   container: {
-    ...COMMON_STYLES.CONTAINER,
+    flex: 1,
+    backgroundColor: COLORS.BACKGROUND,
   },
   header: {
+    backgroundColor: COLORS.BACKGROUND,
+    paddingTop: SPACING.LARGE,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.LIGHT_GRAY,
+    ...SHADOW_STYLE.SMALL,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: SPACING.LARGE,
-    backgroundColor: COLORS.BACKGROUND,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.LIGHT_GRAY,
+    paddingHorizontal: SPACING.LARGE,
+    marginBottom: SPACING.MEDIUM,
   },
-  title: {
-    ...COMMON_STYLES.HEADER_TITLE,
+  welcomeContainer: {
+    flex: 1,
+  },
+  welcomeText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  greeting: {
+    fontSize: FONT_SIZE.XXLARGE,
+    color: COLORS.TEXT_PRIMARY,
+    fontWeight: FONT_WEIGHT.BOLD,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+  },
+  username: {
+    fontSize: FONT_SIZE.XLARGE,
+    color: COLORS.TEXT_SECONDARY,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: SPACING.LARGE,
+    paddingHorizontal: SPACING.MEDIUM,
+    backgroundColor: COLORS.BACKGROUND,
+  },
+  statCard: {
+    alignItems: 'center',
+    backgroundColor: COLORS.LIGHT_GRAY,
+    padding: SPACING.MEDIUM,
+    borderRadius: BORDER_RADIUS.MEDIUM,
+    minWidth: 100,
+    ...SHADOW_STYLE.TINY,
+  },
+  statNumber: {
+    fontSize: FONT_SIZE.XLARGE,
+    fontWeight: FONT_WEIGHT.BOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginVertical: SPACING.TINY,
+  },
+  statLabel: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_SECONDARY,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.LARGE,
+  },
+  emptyIconContainer: {
+    marginBottom: SPACING.LARGE,
+    padding: SPACING.XLARGE,
+    backgroundColor: COLORS.LIGHT_GRAY,
+    borderRadius: BORDER_RADIUS.XLARGE,
+    ...SHADOW_STYLE.MEDIUM,
+  },
+  emptyText: {
+    fontSize: FONT_SIZE.LARGE,
+    color: COLORS.TEXT_SECONDARY,
+    marginBottom: SPACING.LARGE,
+  },
+  addFirstButton: {
+    backgroundColor: COLORS.PRIMARY,
+    paddingVertical: SPACING.MEDIUM,
+    paddingHorizontal: SPACING.XLARGE,
+    borderRadius: BORDER_RADIUS.LARGE,
+    ...SHADOW_STYLE.MEDIUM,
+  },
+  addFirstButtonText: {
+    color: COLORS.TEXT_PRIMARY,
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.BOLD,
   },
   listContainer: {
     padding: SPACING.LARGE,
-    flexGrow: 1,
   },
   itemWrapper: {
     flexDirection: 'row',
@@ -339,24 +452,6 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.MEDIUM,
     backgroundColor: COLORS.BACKGROUND,
     ...SHADOW_STYLE.SMALL,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: SPACING.LARGE,
-  },
-  emptyText: {
-    fontSize: FONT_SIZE.LARGE,
-    color: COLORS.TEXT_SECONDARY,
-    marginBottom: SPACING.LARGE,
-  },
-  addFirstButton: {
-    ...COMMON_STYLES.BUTTON,
-    paddingHorizontal: SPACING.XLARGE,
-  },
-  addFirstButtonText: {
-    ...COMMON_STYLES.BUTTON_TEXT,
   },
   modalOverlay: {
     flex: 1,

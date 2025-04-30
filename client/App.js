@@ -65,14 +65,6 @@ const TabNavigator = () => {
         component={HomeScreen}
         options={{ 
           title: '首页',
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <UserAvatar
-                user={user}
-                onPress={() => {}}
-              />
-            </View>
-          ),
         }}
       />
       <Tab.Screen 
