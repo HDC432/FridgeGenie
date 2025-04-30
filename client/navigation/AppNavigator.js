@@ -11,6 +11,10 @@ import RecipeScreen from '../screens/RecipeScreen';
 import FamilyScreen from '../screens/FamilyScreen';
 import HealthProfileScreen from '../screens/HealthProfileScreen';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { Alert, TouchableOpacity } from 'react-native';
+import InventoryScreen from '../screens/InventoryScreen';
+import RecipesScreen from '../screens/RecipesScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -39,6 +43,28 @@ const HomeStack = () => {
  */
 const AppNavigator = () => {
     const { theme } = useTheme();
+    const { user } = useAuth();
+
+    const checkFamilyAccess = (navigation) => {
+        if (!user.familyId) {
+            Alert.alert(
+                'No Family Access',
+                'You need to join or create a family to access this feature.',
+                [
+                    {
+                        text: 'Go to Family',
+                        onPress: () => navigation.navigate('Family')
+                    },
+                    {
+                        text: 'Cancel',
+                        style: 'cancel'
+                    }
+                ]
+            );
+            return false;
+        }
+        return true;
+    };
 
     return (
         <Tab.Navigator
@@ -92,6 +118,42 @@ const AppNavigator = () => {
                 name="Health" 
                 component={HealthProfileScreen}
                 options={{ title: 'Health Profile' }}
+            />
+            <Tab.Screen 
+                name="Inventory" 
+                component={InventoryScreen}
+                options={{
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (checkFamilyAccess(navigation)) {
+                                    navigation.navigate('Inventory');
+                                }
+                            }}
+                            style={{ marginRight: 15 }}
+                        >
+                            <Ionicons name="cart-outline" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                }}
+            />
+            <Tab.Screen 
+                name="Recipes" 
+                component={RecipesScreen}
+                options={{
+                    headerRight: () => (
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (checkFamilyAccess(navigation)) {
+                                    navigation.navigate('Recipes');
+                                }
+                            }}
+                            style={{ marginRight: 15 }}
+                        >
+                            <Ionicons name="book-outline" size={24} color="black" />
+                        </TouchableOpacity>
+                    ),
+                }}
             />
         </Tab.Navigator>
     );
