@@ -1,4 +1,7 @@
 const familyService = require('../services/familyService');
+const Family = require('../models/Family');
+const User = require('../models/User');
+const HealthProfile = require('../models/healthModel');
 
 class FamilyController {
     // 创建家庭
@@ -165,6 +168,30 @@ class FamilyController {
             res.status(500).json({
                 success: false,
                 message: '退出家庭失败'
+            });
+        }
+    }
+
+    // 获取家庭成员的健康标签
+    async getFamilyHealthTags(req, res) {
+        try {
+            const { familyId } = req.params;
+            console.log('获取家庭成员健康标签 - 开始:', familyId);
+
+            const healthTags = await familyService.getFamilyHealthTags(familyId);
+
+            console.log('获取家庭成员健康标签 - 成功:', healthTags);
+            res.json({
+                success: true,
+                message: '获取家庭成员健康标签成功',
+                data: healthTags
+            });
+        } catch (error) {
+            console.error('获取家庭成员健康标签失败:', error);
+            res.status(500).json({
+                success: false,
+                message: '获取家庭成员健康标签失败',
+                error: error.message
             });
         }
     }

@@ -62,7 +62,7 @@ export default function RecipeScreen({ navigation }) {
             setRecipes([]);
           } else {
             console.log('开始生成食谱，基于食材:', ingredients);
-            const generatedRecipes = await generateRecipes(ingredients);
+            const generatedRecipes = await generateRecipes(ingredients, user.familyId);
             
             if (Array.isArray(generatedRecipes) && generatedRecipes.length > 0) {
               console.log('成功生成食谱', generatedRecipes.length);
@@ -275,6 +275,32 @@ export default function RecipeScreen({ navigation }) {
               <Text style={styles.recipeDetail}>时间: {item.cookingTime}</Text>
             </View>
           </View>
+
+          {item.suitableFor && item.suitableFor.length > 0 && (
+            <View style={styles.suitableForContainer}>
+              <Text style={styles.suitableForTitle}>适合人群：</Text>
+              <View style={styles.suitableForTags}>
+                {item.suitableFor.map((tag, index) => (
+                  <View key={`${item.id}-tag-${index}`} style={styles.suitableForTag}>
+                    <Text style={styles.suitableForTagText}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {item.healthConsiderations && item.healthConsiderations.length > 0 && (
+            <View style={styles.healthConsiderationsContainer}>
+              <Text style={styles.healthConsiderationsTitle}>健康考虑：</Text>
+              <View style={styles.healthConsiderationsTags}>
+                {item.healthConsiderations.map((consideration, index) => (
+                  <View key={`${item.id}-consideration-${index}`} style={styles.healthConsiderationTag}>
+                    <Text style={styles.healthConsiderationTagText}>{consideration}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.ingredientsSection}>
@@ -771,5 +797,59 @@ const styles = StyleSheet.create({
     color: COLORS.SECONDARY,
     fontWeight: FONT_WEIGHT.BOLD,
     fontSize: FONT_SIZE.MEDIUM,
+  },
+  suitableForContainer: {
+    marginTop: SPACING.MEDIUM,
+    paddingTop: SPACING.MEDIUM,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.DIVIDER,
+  },
+  suitableForTitle: {
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
+  },
+  suitableForTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.SMALL,
+  },
+  suitableForTag: {
+    backgroundColor: 'rgba(255, 193, 7, 0.15)',
+    paddingVertical: SPACING.TINY,
+    paddingHorizontal: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.ROUNDED,
+  },
+  suitableForTagText: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_PRIMARY,
+  },
+  healthConsiderationsContainer: {
+    marginTop: SPACING.MEDIUM,
+    paddingTop: SPACING.MEDIUM,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.DIVIDER,
+  },
+  healthConsiderationsTitle: {
+    fontSize: FONT_SIZE.MEDIUM,
+    fontWeight: FONT_WEIGHT.SEMIBOLD,
+    color: COLORS.TEXT_PRIMARY,
+    marginBottom: SPACING.SMALL,
+  },
+  healthConsiderationsTags: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.SMALL,
+  },
+  healthConsiderationTag: {
+    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    paddingVertical: SPACING.TINY,
+    paddingHorizontal: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.ROUNDED,
+  },
+  healthConsiderationTagText: {
+    fontSize: FONT_SIZE.SMALL,
+    color: COLORS.TEXT_PRIMARY,
   },
 }); 

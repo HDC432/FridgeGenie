@@ -1,6 +1,8 @@
 import axios from 'axios';
 // Temporarily comment out the env import to make UI work
 import { OPENAI_API_KEY } from '@env';
+import { API_URL } from '../config/constants';
+import authService from '../services/authService';
 
 // 使用环境变量中的API密钥
 // const OPENAI_API_KEY = 'sk-placeholder-api-key-for-ui-development';
@@ -12,20 +14,46 @@ const RETRY_DELAY = 1000; // 1秒
 // 延迟函数
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-export const generateRecipes = async (ingredients) => {
+export const generateRecipes = async (ingredients, familyId) => {
   let retries = 0;
   
   while (retries < MAX_RETRIES) {
     try {
-      const prompt = `基于以下食材生成3个健康食谱，每个食谱需要包含：
+      // 获取家庭成员的健康标签
+      const familyHealthTags = await getFamilyHealthTags(familyId);
+      
+      // 生成健康提示词
+      const healthPrompt = generateHealthPrompt(familyHealthTags);
+      
+      const prompt = `基于以下食材和健康考虑生成3个健康食谱，每个食谱需要包含：
 1. 食谱名称
 2. 所需食材及用量
 3. 详细步骤
 4. 烹饪时间
 5. 难度级别
 6. 营养成分分析（包括卡路里、蛋白质、碳水化合物、脂肪、膳食纤维）
+7. 适合人群（根据以下健康标签判断）：
+   - 减脂人群：低热量、高蛋白、低脂肪
+   - 增肌人群：高蛋白、适量碳水
+   - 控制血糖人群：低GI、高纤维
+   - 控制血压人群：低钠、高钾
+   - 素食人群：不含肉类
+   - 纯素人群：不含任何动物制品
+   - 无麸质人群：不含小麦制品
+   - 无乳糖人群：不含乳制品
 
 可用食材：${ingredients.join(', ')}
+
+家庭成员健康标签：${healthPrompt}
+
+请确保食谱：
+- 使用提供的食材
+- 优先考虑家庭成员的健康标签需求
+- 如果无法完全满足所有健康标签，至少满足最重要的标签
+- 营养均衡
+- 适合家庭制作
+- 步骤清晰易懂
+- 明确标注适合的人群
 
 请以JSON格式返回，格式如下：
 {
@@ -44,7 +72,9 @@ export const generateRecipes = async (ingredients) => {
         "carbs": "碳水化合物含量",
         "fat": "脂肪含量",
         "fiber": "膳食纤维含量"
-      }
+      },
+      "suitableFor": ["适合人群1", "适合人群2"],
+      "healthConsiderations": ["考虑的健康因素1", "考虑的健康因素2"]
     }
   ]
 }`;
@@ -60,7 +90,7 @@ export const generateRecipes = async (ingredients) => {
         messages: [
           {
             role: "system",
-            content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的食谱。"
+            content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的家常菜食谱，并考虑家庭成员的健康需求"
           },
           {
             role: "user",
@@ -78,7 +108,7 @@ export const generateRecipes = async (ingredients) => {
           messages: [
             {
               role: "system",
-              content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的食谱。"
+              content: "你是一个专业的营养师和厨师，擅长根据现有食材创造健康美味的家常菜食谱，并考虑家庭成员的健康需求"
             },
             {
               role: "user",
@@ -289,4 +319,107 @@ export const generateExpiryReminder = async (foodItem) => {
     console.error('生成提醒错误:', error);
     throw error;
   }
+};
+
+// 获取家庭成员的健康标签
+const getFamilyHealthTags = async (familyId) => {
+    try {
+        const token = await authService.getToken();
+        const response = await axios.get(`${API_URL}/families/${familyId}/health-tags`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return response.data.data;
+    } catch (error) {
+        console.error('获取家庭成员健康标签失败:', error);
+        return [];
+    }
+};
+
+// 生成健康标签提示词
+const generateHealthPrompt = (healthTags) => {
+    if (!healthTags || healthTags.length === 0) return '';
+
+    // 确保所有标签都是字符串
+    const tags = healthTags.flat().map(tag => {
+        if (typeof tag === 'string') return tag;
+        if (tag && typeof tag === 'object') return tag.name || tag.tag || '';
+        return '';
+    }).filter(tag => tag !== '');
+
+    const uniqueTags = [...new Set(tags)];
+    
+    // 分类处理健康标签
+    const dietaryRestrictions = uniqueTags.filter(tag => 
+        ['素食', '纯素', '无麸质', '无乳糖', '过敏'].some(keyword => tag.includes(keyword))
+    );
+    
+    const healthConditions = uniqueTags.filter(tag => 
+        ['注意血糖', '注意血压', '注意心脏健康', '注意肾脏健康'].some(keyword => tag.includes(keyword))
+    );
+    
+    const weightGoals = uniqueTags.filter(tag => 
+        ['减脂', '增肌', '维持体重', '超重', '肥胖', '偏瘦'].some(keyword => tag.includes(keyword))
+    );
+
+    let prompt = '请考虑以下健康因素：\n';
+    
+    if (dietaryRestrictions.length > 0) {
+        prompt += `- 饮食限制：${dietaryRestrictions.join('，')}\n`;
+    }
+    
+    if (healthConditions.length > 0) {
+        prompt += `- 健康状况：${healthConditions.join('，')}\n`;
+    }
+    
+    if (weightGoals.length > 0) {
+        prompt += `- 体重目标：${weightGoals.join('，')}\n`;
+    }
+
+    return prompt;
+};
+
+
+// 生成饮食建议
+export const generateDietaryAdvice = async (familyId) => {
+    try {
+        // 获取家庭成员的健康标签
+        const familyHealthTags = await getFamilyHealthTags(familyId);
+        
+        // 生成健康提示词
+        const healthPrompt = generateHealthPrompt(familyHealthTags);
+        
+        // 构建提示词
+        const prompt = `
+你是一个专业的营养师。请根据以下健康信息为这个家庭提供饮食建议：
+
+${healthPrompt}
+
+请提供：
+1. 每日饮食建议
+2. 营养搭配原则
+3. 需要避免的食物
+4. 推荐的食物
+5. 饮食时间建议
+6. 特殊注意事项
+
+请确保建议：
+- 科学合理
+- 实用可行
+- 考虑所有健康因素
+- 适合家庭执行
+`;
+
+        const response = await axios.post(`${API_URL}/api/ai/generate`, {
+            prompt,
+            max_tokens: 800,
+            temperature: 0.7
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('生成饮食建议失败:', error);
+        throw error;
+    }
 }; 

@@ -32,4 +32,7 @@ router.delete('/:familyId/leave', (req, res, next) => {
   next();
 }, familyController.leaveFamily.bind(familyController));
 
+// 获取家庭成员健康标签
+router.get('/:familyId/health-tags', familyController.getFamilyHealthTags);
+
 module.exports = router; 

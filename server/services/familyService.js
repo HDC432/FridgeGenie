@@ -1,5 +1,6 @@
 const Family = require('../models/Family');
 const User = require('../models/User');
+const HealthProfile = require('../models/healthModel');
 
 class FamilyService {
     // 创建家庭
@@ -161,6 +162,39 @@ class FamilyService {
             const updatedFamily = await Family.updateMemberRole(familyId, userId, newRole);
             return updatedFamily;
         } catch (error) {
+            throw error;
+        }
+    }
+
+    // 获取家庭成员健康标签
+    async getFamilyHealthTags(familyId) {
+        try {
+            console.log('获取家庭成员健康标签 - 开始:', familyId);
+
+            // 获取家庭信息
+            const family = await Family.findById(familyId);
+            if (!family) {
+                throw new Error('家庭不存在');
+            }
+
+            // 获取所有成员的用户信息
+            const membersWithInfo = await Promise.all(
+                family.members.map(async (member) => {
+                    const user = await User.findById(member.userId);
+                    const healthProfile = await HealthProfile.findByUserId(member.userId);
+                    
+                    return {
+                        userId: member.userId,
+                        username: user ? user.username : '未知用户',
+                        healthTags: healthProfile ? healthProfile.healthTags : []
+                    };
+                })
+            );
+
+            console.log('获取家庭成员健康标签 - 成功:', membersWithInfo);
+            return membersWithInfo;
+        } catch (error) {
+            console.error('获取家庭成员健康标签失败:', error);
             throw error;
         }
     }
