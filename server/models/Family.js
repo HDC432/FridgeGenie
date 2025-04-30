@@ -79,19 +79,6 @@ class Family {
         }
     }
 
-    // 更新家庭
-    static async update(id, updateData) {
-        try {
-            console.log('更新家庭 - 开始:', { id, updateData });
-            const { resource } = await familiesContainer.item(id, id).replace(updateData);
-            console.log('更新家庭 - 完成:', resource);
-            return resource;
-        } catch (error) {
-            console.error('更新家庭错误:', error);
-            throw error;
-        }
-    }
-
     // 删除家庭
     static async delete(id) {
         try {
@@ -101,6 +88,19 @@ class Family {
             return true;
         } catch (error) {
             console.error('删除家庭错误:', error);
+            throw error;
+        }
+    }
+
+    // 更新家庭信息
+    static async update(id, data) {
+        try {
+            console.log('更新家庭 - 开始:', { id, data });
+            const { resource } = await familiesContainer.item(id, id).replace(data);
+            console.log('更新家庭 - 完成:', resource);
+            return resource;
+        } catch (error) {
+            console.error('更新家庭错误:', error);
             throw error;
         }
     }
