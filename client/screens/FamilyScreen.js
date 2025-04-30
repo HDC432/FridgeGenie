@@ -191,35 +191,60 @@ const FamilyScreen = () => {
   const handleRemoveMember = async (memberId) => {
     if (!family) return;
 
-    try {
-      console.log('FamilyScreen - 开始移除成员:', memberId);
-      setLoading(true);
-      const token = await authService.getToken();
-      console.log('FamilyScreen - 移除成员使用的token:', token);
+    // 找到要移除的成员
+    const memberToRemove = family.members.find(m => m.userId === memberId);
+    if (!memberToRemove) return;
 
-      const response = await fetch(`${API_URL}/families/${family.id}/members/${memberId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+    showConfirm('确认移除', `确定要移除成员 ${memberToRemove.username} 吗？`, async () => {
+      try {
+        console.log('FamilyScreen - 开始移除成员:', memberId);
+        setLoading(true);
+        const token = await authService.getToken();
+        console.log('FamilyScreen - 移除成员使用的token:', token);
 
-      console.log('FamilyScreen - 移除成员响应状态:', response.status);
-      const data = await response.json();
-      console.log('FamilyScreen - 移除成员响应数据:', data);
+        const response = await fetch(`${API_URL}/families/${family.id}/members/${memberId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-      if (response.ok) {
-        setFamily(data.data);
-        Alert.alert('成功', '成员已移除');
-      } else {
-        Alert.alert('错误', data.message || '移除成员失败');
+        console.log('FamilyScreen - 移除成员响应状态:', response.status);
+        const data = await response.json();
+        console.log('FamilyScreen - 移除成员响应数据:', data);
+
+        if (response.ok) {
+          // 重新获取家庭信息
+          const familyResponse = await fetch(`${API_URL}/families`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          const familyData = await familyResponse.json();
+          console.log('FamilyScreen - 重新获取家庭信息:', familyData);
+
+          if (familyResponse.ok && familyData.data) {
+            setFamily(familyData.data);
+            showAlert('成功', '成员已移除');
+          } else {
+            // 如果没有获取到家庭信息，说明家庭已被删除
+            setFamily(null);
+            const updatedUser = { ...user, familyId: null };
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+            setUser(updatedUser);
+            showAlert('成功', '家庭已删除');
+          }
+        } else {
+          showAlert('错误', data.message || '移除成员失败');
+        }
+      } catch (error) {
+        console.error('FamilyScreen - 移除成员失败:', error);
+        showAlert('错误', '移除成员失败');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('FamilyScreen - 移除成员失败:', error);
-      Alert.alert('错误', '移除成员失败');
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleLeaveFamily = async () => {
@@ -298,7 +323,7 @@ const FamilyScreen = () => {
 
           <View style={styles.membersSection}>
             <Text style={styles.membersTitle}>家庭成员</Text>
-            {family.members.map((member) => (
+            {family?.members?.map((member) => (
               <View key={member.userId} style={styles.memberItem}>
                 <View style={styles.memberInfo}>
                   <View style={[styles.avatar, { backgroundColor: generateAvatarColor(member.username) }]}>
@@ -314,7 +339,7 @@ const FamilyScreen = () => {
                     </Text>
                   </View>
                 </View>
-                {member.userId !== user.id && family.members.find(m => m.userId === user.id)?.role === 'admin' && (
+                {member.userId !== user.id && family.members.some(m => m.userId === user.id && m.role === 'admin') && (
                   <TouchableOpacity
                     style={styles.removeButton}
                     onPress={() => handleRemoveMember(member.userId)}
@@ -490,7 +515,7 @@ const styles = StyleSheet.create({
   },
   leaveButton: {
     ...COMMON_STYLES.BUTTON,
-    backgroundColor: COLORS.DANGER,
+    backgroundColor: COLORS.PRIMARY,
     marginTop: SPACING.LARGE,
   },
   leaveButtonText: {

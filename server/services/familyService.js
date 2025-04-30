@@ -96,15 +96,22 @@ class FamilyService {
     }
 
     // 移除家庭成员
-    async removeMember(familyId, userId) {
+    async removeMember(familyId, userId, adminId) {
         try {
-            console.log('FamilyService - removeMember - 开始:', { familyId, userId });
+            console.log('FamilyService - removeMember - 开始:', { familyId, userId, adminId });
             
             // 查找家庭
             const family = await Family.findById(familyId);
             if (!family) {
                 console.log('FamilyService - removeMember - 家庭不存在');
                 return { success: false, message: '家庭不存在' };
+            }
+
+            // 检查操作者是否是管理员
+            const admin = family.members.find(m => m.userId === adminId);
+            if (!admin || admin.role !== 'admin') {
+                console.log('FamilyService - removeMember - 操作者不是管理员');
+                return { success: false, message: '只有管理员可以移除成员' };
             }
 
             // 检查用户是否是家庭成员
@@ -137,7 +144,7 @@ class FamilyService {
             // 更新家庭信息
             await Family.update(familyId, family);
             console.log('FamilyService - removeMember - 完成');
-            return { success: true, message: '成功退出家庭' };
+            return { success: true, message: '成功移除成员' };
         } catch (error) {
             console.error('FamilyService - removeMember - 错误:', error);
             throw error;
