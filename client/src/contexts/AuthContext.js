@@ -13,7 +13,7 @@ const checkAuth = async () => {
     });
 
     if (!response.ok) {
-      // 只有在明确是认证错误时才清除存储
+      // Only clear storage if it's definitely an authentication error
       if (response.status === 401) {
         await authService.logout();
         setUser(null);
@@ -25,6 +25,6 @@ const checkAuth = async () => {
     setUser(data);
   } catch (error) {
     console.error('Auth check failed:', error);
-    // 不要在这里自动登出，让用户自己决定是否要重新登录
+    // Don't automatically logout here, let the user decide whether to login again
   }
 }; 
