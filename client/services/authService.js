@@ -42,9 +42,10 @@ class AuthService {
         throw new Error(data.message || '登录失败');
       }
 
-      // 保存 token
-      await this.setToken(data.data.token);
-      return data.data;
+      // 保存 token 和用户信息
+      await this.setToken(data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+      return data.user;
     } catch (error) {
       throw error;
     }

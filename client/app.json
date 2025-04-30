@@ -40,6 +40,9 @@
         "origin": false,
         "root": "./app"
       }
+    },
+    "env": {
+      "EXPO_OS": "ios"
     }
   }
 }

@@ -1,22 +1,28 @@
 import { API_URL, DEBUG } from '../config/database';
+import authService from '../services/authService';
 
 // 获取所有物品
 export const getItems = async () => {
     try {
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+
         const url = `${API_URL}/items`;
         if (DEBUG) {
-            console.log('请求URL:', url);
+            console.log('Request URL:', url);
         }
         
-        // 添加超时设置
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             signal: controller.signal
         });
@@ -25,38 +31,16 @@ export const getItems = async () => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('服务器响应错误:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
             throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
-        const items = await response.json();
-        if (DEBUG) {
-            console.log('API响应数据:', items);
-        }
-        
-        // 检查返回的数据格式
-        if (!Array.isArray(items)) {
-            console.error('返回的数据格式不正确:', items);
-            throw new Error('返回的数据格式不正确');
-        }
-
-        // 过滤掉 Cosmos DB 的内部字段
-        const processedItems = items.map(item => {
-            const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
-            return cleanItem;
-        });
-
-        return { items: processedItems };
+        const data = await response.json();
+        return { items: data.items || [] };
     } catch (error) {
         if (error.name === 'AbortError') {
-            console.error('请求超时');
-            throw new Error('请求超时，请检查网络连接');
+            throw new Error('Request timeout, please check your connection');
         }
-        console.error('获取物品列表失败:', error);
+        console.error('Failed to get items:', error);
         throw error;
     }
 };
@@ -64,41 +48,35 @@ export const getItems = async () => {
 // 获取家庭物品
 export const getFamilyItems = async (familyId) => {
     try {
-        const url = `${API_URL}/items/family/${familyId}`;
-        if (DEBUG) {
-            console.log('请求URL:', url);
+        if (!familyId) {
+            throw new Error('familyId is required');
         }
+
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+
+        const url = `${API_URL}/items/family/${familyId}`;
         
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         const data = await response.json();
-        console.log('获取到的家庭物品数据:', data);
-
-        // 确保返回的数据格式正确
-        if (!data || !Array.isArray(data.items)) {
-            console.error('返回的数据格式不正确:', data);
-            throw new Error('返回的数据格式不正确');
-        }
-
-        // 过滤掉 Cosmos DB 的内部字段
-        const processedItems = data.items.map(item => {
-            const { _rid, _self, _etag, _attachments, _ts, ...cleanItem } = item;
-            return cleanItem;
-        });
-
-        return { items: processedItems };
+        return { items: data.items || [] };
     } catch (error) {
-        console.error('获取家庭物品失败:', error);
+        console.error('Failed to get family items:', error);
         throw error;
     }
 };
@@ -107,24 +85,31 @@ export const getFamilyItems = async (familyId) => {
 export const addItem = async (item) => {
     try {
         if (!item.familyId) {
-            throw new Error('familyId 是必填字段');
+            throw new Error('familyId is required');
+        }
+
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
         }
 
         const response = await fetch(`${API_URL}/items`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(item),
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         return await response.json();
     } catch (error) {
-        console.error('添加物品失败:', error);
+        console.error('Failed to add item:', error);
         throw error;
     }
 };
@@ -133,24 +118,31 @@ export const addItem = async (item) => {
 export const updateItem = async (id, item) => {
     try {
         if (!item.familyId) {
-            throw new Error('familyId 是必填字段');
+            throw new Error('familyId is required');
+        }
+
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
         }
 
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(item),
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         return await response.json();
     } catch (error) {
-        console.error('更新物品失败:', error);
+        console.error('Failed to update item:', error);
         throw error;
     }
 };
@@ -158,20 +150,27 @@ export const updateItem = async (id, item) => {
 // 删除物品
 export const deleteItem = async (id) => {
     try {
+        const token = await authService.getToken();
+        if (!token) {
+            throw new Error('Not authenticated');
+        }
+
         const response = await fetch(`${API_URL}/items/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
         
         return true;
     } catch (error) {
-        console.error('删除物品失败:', error);
+        console.error('Failed to delete item:', error);
         throw error;
     }
 };
