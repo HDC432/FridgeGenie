@@ -1,0 +1,287 @@
+/* 根容器 */
+.root-container {
+  flex: 1;
+  background-color: var(--background-color);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 头部 */
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--white);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.edit-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: var(--primary-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.edit-button-text {
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 主容器 */
+.container {
+  flex: 1;
+  height: calc(100vh - 60px);
+  overflow: auto;
+}
+
+.content-container {
+  padding: 16px;
+  padding-bottom: 32px;
+}
+
+/* 内容区块 */
+.section {
+  margin-bottom: 24px;
+  background-color: var(--white);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.info-label {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.info-value {
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+  max-width: 60%;
+  text-align: right;
+}
+
+/* 输入框 */
+.input {
+  height: 48px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  font-size: 16px;
+  color: var(--text-primary);
+  background-color: var(--white);
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 选择器 */
+.select-input {
+  height: 48px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--white);
+  width: 100%;
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.select-text {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* 选项网格 */
+.options-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px;
+}
+
+/* 条件项 */
+.condition-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  margin: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.condition-item:hover {
+  background-color: var(--primary-light);
+}
+
+/* 饮食项 */
+.diet-item {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background-color: var(--background-color);
+  margin: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.diet-item:hover {
+  background-color: var(--primary-light);
+}
+
+.condition-text,
+.option-text {
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+/* 选中状态 */
+.selected-option {
+  background-color: var(--primary-color);
+}
+
+.selected-option-text {
+  color: var(--white);
+}
+
+/* 保存按钮 */
+.save-button {
+  background-color: var(--primary-color);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  margin-top: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.save-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.save-button-text {
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 模态框 */
+.modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 24px;
+  width: 80%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.modal-option {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-option:hover {
+  background-color: var(--background-color);
+}
+
+.modal-option-text {
+  font-size: 16px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.modal-cancel {
+  margin-top: 16px;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-cancel:hover {
+  background-color: var(--background-color);
+}
+
+.modal-cancel-text {
+  font-size: 16px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .section {
+    margin: 16px;
+    max-width: none;
+  }
+
+  .save-button {
+    margin: 16px;
+    max-width: none;
+  }
+
+  .modal-content {
+    width: 90%;
+  }
+} 
