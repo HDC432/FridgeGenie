@@ -2,51 +2,50 @@ const User = require('../models/User');
 const Family = require('../models/Family');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { usersContainer } = require('../config/database');
 
 class UserService {
-  // 用户注册
+  // User registration
   async register(userData) {
     try {
       const { username, email, password, inviteCode } = userData;
       
-      // 检查用户是否已存在
+      // Check if user already exists
       const existingUser = await User.findByEmail(email) || await User.findByUsername(username);
       
       if (existingUser) {
-        throw new Error('用户名或邮箱已被注册');
+        throw new Error('Username or email is already registered');
       }
 
       let familyId = null;
 
-      // 如果有邀请码，查找对应的家庭
+      // If invite code exists, find corresponding family
       if (inviteCode) {
         const family = await Family.findByInviteCode(inviteCode);
         if (!family) {
-          throw new Error('邀请码无效');
+          throw new Error('Invalid invite code');
         }
         familyId = family.id;
       }
 
-      // 创建新用户
+      // Create new user
       const user = new User(username, email, password, familyId);
       const savedUser = await user.save();
       
-      // 如果没有邀请码，创建新家庭并将用户设置为管理员
+      // If no invite code, create new family and set user as admin
       if (!inviteCode) {
-        console.log('UserService - 开始创建新家庭');
-        const family = new Family(username + '的家庭', savedUser.id);
-        console.log('UserService - 新家庭对象:', family);
+        console.log('UserService - Starting to create new family');
+        const family = new Family(username + '\'s Family', savedUser.id);
+        console.log('UserService - New family object:', family);
         const savedFamily = await family.save();
-        console.log('UserService - 保存家庭结果:', savedFamily);
+        console.log('UserService - Family save result:', savedFamily);
         await User.updateFamilyId(savedUser.id, savedFamily.id);
         familyId = savedFamily.id;
       } else {
-        // 如果有邀请码，将用户添加为普通成员
+        // If invite code exists, add user as regular member
         await Family.addMember(familyId, savedUser.id);
       }
       
-      // 生成 JWT token
+      // Generate JWT token
       const token = this.generateToken(savedUser);
       
       return {
@@ -59,32 +58,32 @@ class UserService {
         token
       };
     } catch (error) {
-      console.error('注册服务错误:', error);
+      console.error('Registration service error:', error);
       throw error;
     }
   }
 
-  // 用户登录
+  // User login
   async login(credentials) {
     try {
       const { email, password } = credentials;
-      console.log('登录服务 - 查找用户:', email);
+      console.log('Login service - Finding user:', email);
       
-      // 添加虚拟测试用户功能 - 如果是测试账户，直接返回登录成功
+      // Add virtual test user feature - if test account, return login success directly
       if (email === 'test@example.com' && password === 'password123') {
-        console.log('登录服务 - 使用测试账户登录');
+        console.log('Login service - Using test account login');
         const testUser = {
           id: 'test-user-id-12345',
-          username: '测试用户',
+          username: 'Test User',
           email: 'test@example.com',
           familyId: 'test-family-id-12345',
           createdAt: new Date(),
           lastLogin: new Date()
         };
         
-        // 生成 JWT token
+        // Generate JWT token
         const token = this.generateToken(testUser);
-        console.log('登录服务 - 生成测试用户 token 成功');
+        console.log('Login service - Test user token generated successfully');
         
         return {
           user: testUser,
@@ -92,29 +91,29 @@ class UserService {
         };
       }
       
-      // 正常用户登录流程 - 原有代码保持不变
+      // Normal user login flow - original code remains unchanged
       const user = await User.findByEmail(email);
-      console.log('登录服务 - 用户查询结果:', user);
+      console.log('Login service - User query result:', user);
       
       if (!user) {
-        throw new Error('用户不存在');
+        throw new Error('User does not exist');
       }
 
-      // 验证密码
-      console.log('登录服务 - 开始验证密码');
+      // Verify password
+      console.log('Login service - Starting password verification');
       const isMatch = await bcrypt.compare(password, user.password);
-      console.log('登录服务 - 密码验证结果:', isMatch);
+      console.log('Login service - Password verification result:', isMatch);
       
       if (!isMatch) {
-        throw new Error('密码错误');
+        throw new Error('Incorrect password');
       }
 
-      // 更新最后登录时间
+      // Update last login time
       await User.updateLastLogin(user.id);
 
-      // 生成 JWT token
+      // Generate JWT token
       const token = this.generateToken(user);
-      console.log('登录服务 - 生成 token 成功');
+      console.log('Login service - Token generated successfully');
 
       return {
         user: {
@@ -128,12 +127,12 @@ class UserService {
         token
       };
     } catch (error) {
-      console.error('登录服务错误:', error);
+      console.error('Login service error:', error);
       throw error;
     }
   }
 
-  // 生成 JWT token
+  // Generate JWT token
   generateToken(user) {
     return jwt.sign(
       { 
@@ -168,12 +167,12 @@ class UserService {
 
   async getUserById(id) {
     try {
-      // 如果是测试用户ID，返回测试用户信息
+      // If test user ID, return test user information
       if (id === 'test-user-id-12345') {
-        console.log('获取用户信息 - 返回测试用户信息');
+        console.log('Getting user info - Returning test user information');
         return {
           id: 'test-user-id-12345',
-          username: '测试用户',
+          username: 'Test User',
           email: 'test@example.com',
           familyId: 'test-family-id-12345',
           createdAt: new Date(),
@@ -183,7 +182,7 @@ class UserService {
       
       return await User.findById(id);
     } catch (error) {
-      console.error('获取用户信息失败:', error);
+      console.error('Failed to get user information:', error);
       throw error;
     }
   }
