@@ -4,13 +4,7 @@
  */
 
 import axios from 'axios';
-import env from '../../config/env';
-
-/**
- * OpenAI API key from environment variables
- * @constant {string}
- */
-const OPENAI_API_KEY = env.OPENAI_API_KEY;
+import { OPENAI_API_KEY } from '@env';
 
 /**
  * OpenAI API endpoint for chat completions
