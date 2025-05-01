@@ -1,6 +1,40 @@
 const { healthProfilesContainer } = require('../config/database');
 
+/**
+ * Model class for managing user health profiles and related operations
+ * @class HealthProfile
+ */
 class HealthProfile {
+    /**
+     * Creates a new HealthProfile instance
+     * @param {Object} data - The health profile data
+     * @param {string} [data.id] - Optional unique identifier
+     * @param {string} data.userId - The ID of the user
+     * @param {Object} [data.basicInfo] - Basic health information
+     * @param {number} [data.basicInfo.height] - Height in centimeters
+     * @param {number} [data.basicInfo.weight] - Weight in kilograms
+     * @param {number} [data.basicInfo.age] - Age in years
+     * @param {string} [data.basicInfo.gender] - Gender
+     * @param {string} [data.basicInfo.bloodType] - Blood type
+     * @param {Object} [data.healthConditions] - Health conditions
+     * @param {boolean} [data.healthConditions.hasDiabetes] - Whether user has diabetes
+     * @param {boolean} [data.healthConditions.hasHypertension] - Whether user has hypertension
+     * @param {boolean} [data.healthConditions.hasHeartDisease] - Whether user has heart disease
+     * @param {boolean} [data.healthConditions.hasKidneyDisease] - Whether user has kidney disease
+     * @param {Array<string>} [data.healthConditions.hasAllergies] - List of allergies
+     * @param {Object} [data.lifestyle] - Lifestyle information
+     * @param {boolean} [data.lifestyle.isVegetarian] - Whether user is vegetarian
+     * @param {boolean} [data.lifestyle.isVegan] - Whether user is vegan
+     * @param {boolean} [data.lifestyle.isGlutenFree] - Whether user is gluten-free
+     * @param {boolean} [data.lifestyle.isLactoseFree] - Whether user is lactose-free
+     * @param {string} [data.lifestyle.activityLevel] - Activity level
+     * @param {Object} [data.dietaryGoals] - Dietary goals
+     * @param {string} [data.dietaryGoals.weightGoal] - Weight goal
+     * @param {number} [data.dietaryGoals.calorieGoal] - Calorie goal
+     * @param {number} [data.dietaryGoals.proteinGoal] - Protein goal
+     * @param {number} [data.dietaryGoals.carbGoal] - Carb goal
+     * @param {number} [data.dietaryGoals.fatGoal] - Fat goal
+     */
     constructor(data) {
         this.id = data.id || crypto.randomUUID();
         this.userId = data.userId;
@@ -37,7 +71,10 @@ class HealthProfile {
         this.updatedAt = new Date().toISOString();
     }
 
-    // Generate health tags
+    /**
+     * Generates health tags based on the user's health profile
+     * @returns {Array<string>} Array of health-related tags
+     */
     generateHealthTags() {
         const tags = [];
         

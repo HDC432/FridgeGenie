@@ -1,6 +1,19 @@
 const { favoriteRecipesContainer } = require('../config/database');
 
+/**
+ * Model class for managing user's favorite recipes
+ * @class FavoriteRecipe
+ */
 class FavoriteRecipe {
+    /**
+     * Creates a new FavoriteRecipe instance
+     * @param {Object} data - The favorite recipe data
+     * @param {string} data.id - Unique identifier
+     * @param {string} data.userId - The ID of the user
+     * @param {string} data.recipeId - The ID of the recipe
+     * @param {Object} data.recipeData - The recipe data
+     * @param {Date} [data.createdAt] - Creation timestamp
+     */
     constructor(data) {
         this.id = data.id;
         this.userId = data.userId;
@@ -9,7 +22,12 @@ class FavoriteRecipe {
         this.createdAt = new Date();
     }
 
-    // Save favorite recipe
+    /**
+     * Saves the favorite recipe to the database
+     * @async
+     * @returns {Promise<Object>} The saved favorite recipe
+     * @throws {Error} If saving fails
+     */
     async save() {
         try {
             console.log('Saving favorite recipe - Starting:', this);
@@ -22,7 +40,14 @@ class FavoriteRecipe {
         }
     }
 
-    // Find user's favorite recipes
+    /**
+     * Finds all favorite recipes for a user
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user
+     * @returns {Promise<Array<Object>>} Array of favorite recipes
+     * @throws {Error} If query fails
+     */
     static async findByUserId(userId) {
         try {
             console.log('Finding user favorite recipes - Starting:', userId);
@@ -38,7 +63,15 @@ class FavoriteRecipe {
         }
     }
 
-    // Check if recipe is already favorited
+    /**
+     * Checks if a recipe is already favorited by a user
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user
+     * @param {string} recipeId - The ID of the recipe
+     * @returns {Promise<Object>} Object containing isFavorite status and favoriteId
+     * @throws {Error} If query fails
+     */
     static async isFavorite(userId, recipeId) {
         try {
             console.log('Checking if recipe is favorited - Starting:', { userId, recipeId });
@@ -60,7 +93,16 @@ class FavoriteRecipe {
         }
     }
 
-    // Add favorite
+    /**
+     * Adds a recipe to user's favorites
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user
+     * @param {string} recipeId - The ID of the recipe
+     * @param {Object} recipeData - The recipe data
+     * @returns {Promise<Object>} The saved favorite recipe
+     * @throws {Error} If recipe is already favorited or saving fails
+     */
     static async addFavorite(userId, recipeId, recipeData) {
         try {
             console.log('Adding favorite - Starting:', { userId, recipeId });
@@ -105,7 +147,15 @@ class FavoriteRecipe {
         }
     }
 
-    // Remove favorite
+    /**
+     * Removes a recipe from user's favorites
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user
+     * @param {string} favoriteId - The ID of the favorite record
+     * @returns {Promise<boolean>} True if removal was successful
+     * @throws {Error} If favorite record not found or deletion fails
+     */
     static async removeFavorite(userId, favoriteId) {
         try {
             console.log('Removing favorite - Starting:', { userId, favoriteId });

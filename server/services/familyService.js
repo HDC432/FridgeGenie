@@ -2,8 +2,19 @@ const Family = require('../models/Family');
 const User = require('../models/User');
 const HealthProfile = require('../models/healthModel');
 
+/**
+ * Service class for managing family-related operations and member management
+ * @class FamilyService
+ */
 class FamilyService {
-    // Create family
+    /**
+     * Creates a new family with the specified creator as admin
+     * @async
+     * @param {string} name - The name of the family
+     * @param {string} creatorId - The ID of the user creating the family
+     * @returns {Promise<Object>} The created family object
+     * @throws {Error} If user already belongs to a family or creation fails
+     */
     async createFamily(name, creatorId) {
         try {
             console.log('Create family service - Starting to check if user has joined other families');
@@ -31,7 +42,14 @@ class FamilyService {
         }
     }
 
-    // Join family
+    /**
+     * Adds a user to an existing family using an invite code
+     * @async
+     * @param {string} inviteCode - The family's invite code
+     * @param {string} userId - The ID of the user joining the family
+     * @returns {Promise<Object>} The updated family object
+     * @throws {Error} If user already belongs to a family, invite code is invalid, or join fails
+     */
     async joinFamily(inviteCode, userId) {
         try {
             // Check if user has already joined another family
@@ -58,7 +76,13 @@ class FamilyService {
         }
     }
 
-    // Get family information
+    /**
+     * Retrieves detailed information about a user's family
+     * @async
+     * @param {string} userId - The ID of the user
+     * @returns {Promise<Object|null>} The family information with member details, or null if user has no family
+     * @throws {Error} If retrieval fails
+     */
     async getFamilyInfo(userId) {
         try {
             console.log('Get family info - Starting to find user\'s family');
@@ -99,7 +123,15 @@ class FamilyService {
         }
     }
 
-    // Remove family member
+    /**
+     * Removes a member from the family
+     * @async
+     * @param {string} familyId - The ID of the family
+     * @param {string} userId - The ID of the user to remove
+     * @param {string} adminId - The ID of the admin performing the removal
+     * @returns {Promise<Object>} Object containing success status and message
+     * @throws {Error} If removal fails or permission is denied
+     */
     async removeMember(familyId, userId, adminId) {
         try {
             console.log('FamilyService - removeMember - Starting:', { familyId, userId, adminId });
@@ -165,7 +197,16 @@ class FamilyService {
         }
     }
 
-    // Update member role
+    /**
+     * Updates a member's role in the family
+     * @async
+     * @param {string} familyId - The ID of the family
+     * @param {string} userId - The ID of the user whose role is being updated
+     * @param {string} newRole - The new role to assign
+     * @param {string} adminId - The ID of the admin performing the update
+     * @returns {Promise<Object>} The updated family object
+     * @throws {Error} If update fails or permission is denied
+     */
     async updateMemberRole(familyId, userId, newRole, adminId) {
         try {
             // Check if operator is admin
@@ -187,7 +228,13 @@ class FamilyService {
         }
     }
 
-    // Get family members health tags
+    /**
+     * Retrieves health tags for all family members
+     * @async
+     * @param {string} familyId - The ID of the family
+     * @returns {Promise<Array<Object>>} Array of objects containing member information and health tags
+     * @throws {Error} If family doesn't exist or retrieval fails
+     */
     async getFamilyHealthTags(familyId) {
         try {
             console.log('Get family members health tags - Starting:', familyId);

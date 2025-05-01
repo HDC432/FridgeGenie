@@ -1,7 +1,23 @@
 const HealthProfile = require('../models/HealthProfile');
 
+/**
+ * Service class for managing user health profiles and related operations
+ * @class HealthService
+ */
 class HealthService {
-    // Create or update health profile
+    /**
+     * Creates or updates a user's health profile
+     * @async
+     * @param {string} userId - The unique identifier of the user
+     * @param {Object} healthData - The health profile data to be saved
+     * @param {number} healthData.height - User's height in centimeters
+     * @param {number} healthData.weight - User's weight in kilograms
+     * @param {string} healthData.bloodType - User's blood type
+     * @param {Array<string>} healthData.allergies - List of user's allergies
+     * @param {Array<string>} healthData.dietaryRestrictions - List of user's dietary restrictions
+     * @returns {Promise<Object>} Object containing success status and health profile data
+     * @throws {Error} If the operation fails
+     */
     async updateHealthProfile(userId, healthData) {
         try {
             console.log('HealthService - Starting to update health profile:', { userId, healthData });
@@ -20,7 +36,13 @@ class HealthService {
         }
     }
 
-    // Get health profile
+    /**
+     * Retrieves a user's health profile
+     * @async
+     * @param {string} userId - The unique identifier of the user
+     * @returns {Promise<Object>} Object containing success status and health profile data
+     * @throws {Error} If the operation fails
+     */
     async getHealthProfile(userId) {
         try {
             console.log('HealthService - Starting to get health profile:', userId);

@@ -2,7 +2,18 @@ const { usersContainer } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const HealthProfile = require('./healthModel');
 
+/**
+ * User model class for managing user data and operations
+ * @class User
+ */
 class User {
+    /**
+     * Creates a new User instance
+     * @param {string} username - The username of the user
+     * @param {string} email - The email address of the user
+     * @param {string} password - The password of the user
+     * @param {string} [familyId=null] - The ID of the family the user belongs to
+     */
     constructor(username, email, password, familyId = null) {
         this.username = username;
         this.email = email;
@@ -12,6 +23,18 @@ class User {
         this.lastLogin = null;
     }
 
+    /**
+     * Creates a new user in the database
+     * @static
+     * @async
+     * @param {Object} data - The user data
+     * @param {string} data.username - The username for the new user
+     * @param {string} data.email - The email address for the new user
+     * @param {string} data.password - The password for the new user
+     * @param {string} [data.familyId] - Optional family ID
+     * @returns {Promise<Object>} The created user object
+     * @throws {Error} If user creation fails
+     */
     static async create(data) {
         try {
             console.log('Creating user - Starting:', data);
@@ -68,7 +91,12 @@ class User {
         }
     }
 
-    // Save user
+    /**
+     * Saves the current user instance to the database
+     * @async
+     * @returns {Promise<Object>} The saved user object
+     * @throws {Error} If save operation fails
+     */
     async save() {
         try {
             console.log('Saving user - Starting:', this);
@@ -85,12 +113,24 @@ class User {
         }
     }
 
-    // Verify password
+    /**
+     * Compares a candidate password with the user's hashed password
+     * @async
+     * @param {string} candidatePassword - The password to compare
+     * @returns {Promise<boolean>} True if passwords match, false otherwise
+     */
     async comparePassword(candidatePassword) {
         return bcrypt.compare(candidatePassword, this.password);
     }
 
-    // Find user (by ID)
+    /**
+     * Finds a user by their ID
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user to find
+     * @returns {Promise<Object>} The found user object
+     * @throws {Error} If user not found or query fails
+     */
     static async findById(userId) {
         try {
             console.log('Finding user - By user ID:', userId);
@@ -106,7 +146,14 @@ class User {
         }
     }
 
-    // Find user (by email)
+    /**
+     * Finds a user by their email address
+     * @static
+     * @async
+     * @param {string} email - The email address to search for
+     * @returns {Promise<Object>} The found user object
+     * @throws {Error} If user not found or query fails
+     */
     static async findByEmail(email) {
         try {
             console.log('Finding user - By email:', email);
@@ -122,7 +169,14 @@ class User {
         }
     }
 
-    // Find user (by username)
+    /**
+     * Finds a user by their username
+     * @static
+     * @async
+     * @param {string} username - The username to search for
+     * @returns {Promise<Object>} The found user object
+     * @throws {Error} If user not found or query fails
+     */
     static async findByUsername(username) {
         try {
             console.log('Finding user - By username:', username);
@@ -138,7 +192,14 @@ class User {
         }
     }
 
-    // Update last login time
+    /**
+     * Updates the last login time for a user
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user to update
+     * @returns {Promise<Object>} The updated user object
+     * @throws {Error} If user not found or update fails
+     */
     static async updateLastLogin(userId) {
         try {
             console.log('Updating last login time - User ID:', userId);
@@ -164,7 +225,15 @@ class User {
         }
     }
 
-    // Update user family ID
+    /**
+     * Updates the family ID for a user
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user to update
+     * @param {string} familyId - The new family ID
+     * @returns {Promise<Object>} The updated user object
+     * @throws {Error} If user not found or update fails
+     */
     static async updateFamilyId(userId, familyId) {
         try {
             console.log('Updating user family ID - User ID:', userId, 'Family ID:', familyId);

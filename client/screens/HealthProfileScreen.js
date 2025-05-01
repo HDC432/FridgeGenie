@@ -498,9 +498,4 @@ const HealthProfileScreen = ({ navigation }) => {
   );
 };
 
-/**
- * Renders health tag section
- * @returns {JSX.Element} Health tag component
- */
-
 export default HealthProfileScreen; 

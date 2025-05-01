@@ -1,6 +1,15 @@
 const { familiesContainer } = require('../config/database');
 
+/**
+ * Family model class for managing family data and operations
+ * @class Family
+ */
 class Family {
+    /**
+     * Creates a new Family instance
+     * @param {string} name - The name of the family
+     * @param {string} creatorId - The ID of the user creating the family
+     */
     constructor(name, creatorId) {
         console.log('Family constructor - Parameters:', { name, creatorId });
         this.name = name;
@@ -16,12 +25,20 @@ class Family {
         console.log('Family constructor - Created object:', this);
     }
 
-    // Generate invite code
+    /**
+     * Generates a unique invite code for the family
+     * @returns {string} A 6-character uppercase alphanumeric code
+     */
     generateInviteCode() {
         return Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    // Save family
+    /**
+     * Saves the current family instance to the database
+     * @async
+     * @returns {Promise<Object>} The saved family object
+     * @throws {Error} If save operation fails
+     */
     async save() {
         try {
             console.log('Saving family - Starting:', this);
@@ -34,7 +51,14 @@ class Family {
         }
     }
 
-    // Find family (by ID)
+    /**
+     * Finds a family by its ID
+     * @static
+     * @async
+     * @param {string} id - The ID of the family to find
+     * @returns {Promise<Object>} The found family object
+     * @throws {Error} If family not found or query fails
+     */
     static async findById(id) {
         try {
             console.log('Finding family - By ID:', id);
@@ -47,7 +71,14 @@ class Family {
         }
     }
 
-    // Find family (by user ID)
+    /**
+     * Finds a family by a user's ID
+     * @static
+     * @async
+     * @param {string} userId - The ID of the user to search for
+     * @returns {Promise<Object>} The found family object
+     * @throws {Error} If family not found or query fails
+     */
     static async findByUserId(userId) {
         try {
             console.log('Finding family - By user ID:', userId);
@@ -63,7 +94,14 @@ class Family {
         }
     }
 
-    // Find family (by invite code)
+    /**
+     * Finds a family by its invite code
+     * @static
+     * @async
+     * @param {string} inviteCode - The invite code to search for
+     * @returns {Promise<Object>} The found family object
+     * @throws {Error} If family not found or query fails
+     */
     static async findByInviteCode(inviteCode) {
         try {
             console.log('Finding family - By invite code:', inviteCode);
@@ -79,7 +117,14 @@ class Family {
         }
     }
 
-    // Delete family
+    /**
+     * Deletes a family from the database
+     * @static
+     * @async
+     * @param {string} id - The ID of the family to delete
+     * @returns {Promise<boolean>} True if deletion was successful
+     * @throws {Error} If deletion fails
+     */
     static async delete(id) {
         try {
             console.log('Deleting family - Starting:', id);
@@ -92,7 +137,15 @@ class Family {
         }
     }
 
-    // Update family information
+    /**
+     * Updates a family's information
+     * @static
+     * @async
+     * @param {string} id - The ID of the family to update
+     * @param {Object} data - The updated family data
+     * @returns {Promise<Object>} The updated family object
+     * @throws {Error} If update fails
+     */
     static async update(id, data) {
         try {
             console.log('Updating family - Starting:', { id, data });
@@ -105,7 +158,15 @@ class Family {
         }
     }
 
-    // Add member
+    /**
+     * Adds a new member to the family
+     * @static
+     * @async
+     * @param {string} familyId - The ID of the family
+     * @param {string} userId - The ID of the user to add
+     * @returns {Promise<Object>} The updated family object
+     * @throws {Error} If family doesn't exist, user is already a member, or update fails
+     */
     static async addMember(familyId, userId) {
         try {
             console.log('Adding member - Starting:', { familyId, userId });

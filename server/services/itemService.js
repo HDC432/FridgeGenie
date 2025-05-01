@@ -1,6 +1,18 @@
 const ItemModel = require('../models/itemModel');
 
+/**
+ * Service class for managing refrigerator items and related operations
+ * @class ItemService
+ */
 class ItemService {
+    /**
+     * Retrieves all items with pagination and sorting by expiry date
+     * @async
+     * @param {number} [page=1] - The page number for pagination
+     * @param {number} [limit=5] - The number of items per page
+     * @returns {Promise<Object>} Object containing items and pagination details
+     * @throws {Error} If retrieval fails
+     */
     static async getAllItems(page = 1, limit = 5) {
         try {
             console.log('Starting to get all items...');
@@ -50,6 +62,13 @@ class ItemService {
         }
     }
 
+    /**
+     * Retrieves a specific item by its ID
+     * @async
+     * @param {string} id - The unique identifier of the item
+     * @returns {Promise<Object>} The item details
+     * @throws {Error} If item not found or retrieval fails
+     */
     static async getItemById(id) {
         try {
             const item = await ItemModel.findById(id);
@@ -62,7 +81,11 @@ class ItemService {
         }
     }
 
-    // Add date utility function
+    /**
+     * Converts a Date object to a local date string in YYYY-MM-DD format
+     * @param {Date} date - The date to convert
+     * @returns {string} The formatted date string
+     */
     static getLocalDateString(date) {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -70,6 +93,17 @@ class ItemService {
         return `${year}-${month}-${day}`;
     }
 
+    /**
+     * Creates a new item in the refrigerator
+     * @async
+     * @param {Object} itemData - The item data
+     * @param {string} itemData.name - The name of the item
+     * @param {number} itemData.quantity - The quantity of the item
+     * @param {string} itemData.familyId - The ID of the family the item belongs to
+     * @param {string} [itemData.expiryDate] - Optional expiry date (defaults to 7 days from now)
+     * @returns {Promise<Object>} The created item
+     * @throws {Error} If creation fails or required fields are missing
+     */
     static async createItem(itemData) {
         try {
             // Validate required fields
@@ -105,6 +139,17 @@ class ItemService {
         }
     }
 
+    /**
+     * Updates an existing item
+     * @async
+     * @param {string} id - The unique identifier of the item to update
+     * @param {Object} itemData - The updated item data
+     * @param {string} itemData.name - The name of the item
+     * @param {number} itemData.quantity - The quantity of the item
+     * @param {string} itemData.familyId - The ID of the family the item belongs to
+     * @returns {Promise<Object>} The updated item
+     * @throws {Error} If update fails, item not found, or required fields are missing
+     */
     static async updateItem(id, itemData) {
         try {
             // Check if item exists
@@ -136,6 +181,13 @@ class ItemService {
         }
     }
 
+    /**
+     * Deletes an item from the refrigerator
+     * @async
+     * @param {string} id - The unique identifier of the item to delete
+     * @returns {Promise<Object>} The result of the deletion operation
+     * @throws {Error} If deletion fails
+     */
     static async deleteItem(id) {
         try {
             console.log('Starting to delete item, ID:', id);

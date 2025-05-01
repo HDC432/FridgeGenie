@@ -3,8 +3,22 @@ const Family = require('../models/Family');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+/**
+ * Service class for managing user authentication and user-related operations
+ * @class UserService
+ */
 class UserService {
-  // User registration
+  /**
+   * Registers a new user and handles family association
+   * @async
+   * @param {Object} userData - The user registration data
+   * @param {string} userData.username - The username for the new user
+   * @param {string} userData.email - The email address for the new user
+   * @param {string} userData.password - The password for the new user
+   * @param {string} [userData.inviteCode] - Optional family invite code
+   * @returns {Promise<Object>} Object containing user data and JWT token
+   * @throws {Error} If registration fails or user already exists
+   */
   async register(userData) {
     try {
       const { username, email, password, inviteCode } = userData;
@@ -63,7 +77,15 @@ class UserService {
     }
   }
 
-  // User login
+  /**
+   * Authenticates a user and generates a JWT token
+   * @async
+   * @param {Object} credentials - The login credentials
+   * @param {string} credentials.email - The user's email address
+   * @param {string} credentials.password - The user's password
+   * @returns {Promise<Object>} Object containing user data and JWT token
+   * @throws {Error} If authentication fails
+   */
   async login(credentials) {
     try {
       const { email, password } = credentials;
@@ -132,7 +154,13 @@ class UserService {
     }
   }
 
-  // Generate JWT token
+  /**
+   * Generates a JWT token for a user
+   * @param {Object} user - The user object
+   * @param {string} user.id - The user's unique identifier
+   * @param {string} user.email - The user's email address
+   * @returns {string} The generated JWT token
+   */
   generateToken(user) {
     return jwt.sign(
       { 
@@ -144,7 +172,12 @@ class UserService {
     );
   }
 
-  // Verify token
+  /**
+   * Verifies a JWT token and returns the decoded user information
+   * @param {string} token - The JWT token to verify
+   * @returns {Object} The decoded user information
+   * @throws {Error} If token is invalid
+   */
   verifyToken(token) {
     try {
       // Check if it's a test user token
@@ -165,6 +198,13 @@ class UserService {
     }
   }
 
+  /**
+   * Retrieves user information by ID
+   * @async
+   * @param {string} id - The user's unique identifier
+   * @returns {Promise<Object>} The user information
+   * @throws {Error} If user retrieval fails
+   */
   async getUserById(id) {
     try {
       // If test user ID, return test user information

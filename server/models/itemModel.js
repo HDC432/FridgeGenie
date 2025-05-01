@@ -1,6 +1,17 @@
 const { itemsContainer } = require('../config/database');
 
+/**
+ * Model class for managing refrigerator items in the database
+ * @class ItemModel
+ */
 class ItemModel {
+    /**
+     * Retrieves all items from the database
+     * @static
+     * @async
+     * @returns {Promise<Array<Object>>} Array of all items
+     * @throws {Error} If query fails
+     */
     static async findAll() {
         console.log('ItemModel - findAll - Starting to query all items');
         const { resources } = await itemsContainer.items.readAll().fetchAll();
@@ -8,6 +19,14 @@ class ItemModel {
         return resources;
     }
 
+    /**
+     * Finds all items belonging to a specific family
+     * @static
+     * @async
+     * @param {string} familyId - The ID of the family
+     * @returns {Promise<Array<Object>>} Array of items belonging to the family
+     * @throws {Error} If query fails
+     */
     static async findByFamilyId(familyId) {
         console.log('ItemModel - findByFamilyId - Starting to query family items:', familyId);
         try {
@@ -23,6 +42,14 @@ class ItemModel {
         }
     }
 
+    /**
+     * Finds an item by its name
+     * @static
+     * @async
+     * @param {string} name - The name of the item to find
+     * @returns {Promise<Object>} The found item object
+     * @throws {Error} If query fails
+     */
     static async findByName(name) {
         console.log('ItemModel - findByName - Starting to query item:', name);
         try {
@@ -38,6 +65,14 @@ class ItemModel {
         }
     }
 
+    /**
+     * Finds an item by its ID
+     * @static
+     * @async
+     * @param {string} id - The ID of the item to find
+     * @returns {Promise<Object>} The found item object
+     * @throws {Error} If query fails
+     */
     static async findById(id) {
         console.log('ItemModel - findById - Starting to query item:', id);
         const { resources } = await itemsContainer.items.query({
@@ -48,6 +83,18 @@ class ItemModel {
         return resources[0];
     }
 
+    /**
+     * Creates a new item in the database
+     * @static
+     * @async
+     * @param {Object} item - The item data to create
+     * @param {string} item.name - The name of the item
+     * @param {number} item.quantity - The quantity of the item
+     * @param {string} item.familyId - The ID of the family the item belongs to
+     * @param {string} [item.expiryDate] - Optional expiry date
+     * @returns {Promise<Object>} The created item object
+     * @throws {Error} If creation fails or required fields are missing
+     */
     static async create(item) {
         console.log('ItemModel - create - Starting to create item:', item);
         if (!item.familyId) {
@@ -58,6 +105,15 @@ class ItemModel {
         return resource;
     }
 
+    /**
+     * Updates an item by its name
+     * @static
+     * @async
+     * @param {string} name - The name of the item to update
+     * @param {Object} updates - The updates to apply to the item
+     * @returns {Promise<Object>} The updated item object
+     * @throws {Error} If update fails
+     */
     static async updateByName(name, updates) {
         console.log('ItemModel - updateByName - Starting to update item:', { name, updates });
         try {
@@ -75,6 +131,15 @@ class ItemModel {
         }
     }
 
+    /**
+     * Updates an item by its ID
+     * @static
+     * @async
+     * @param {string} id - The ID of the item to update
+     * @param {Object} item - The updated item data
+     * @returns {Promise<Object>} The updated item object
+     * @throws {Error} If update fails or required fields are missing
+     */
     static async update(id, item) {
         console.log('ItemModel - update - Starting to update item:', { id, item });
         if (!item.familyId) {
@@ -85,6 +150,14 @@ class ItemModel {
         return resource;
     }
 
+    /**
+     * Deletes an item by its name
+     * @static
+     * @async
+     * @param {string} name - The name of the item to delete
+     * @returns {Promise<boolean>} True if deletion was successful
+     * @throws {Error} If deletion fails
+     */
     static async deleteByName(name) {
         try {
             console.log('ItemModel - deleteByName - Starting to delete item, name:', name);
@@ -126,6 +199,14 @@ class ItemModel {
         }
     }
 
+    /**
+     * Deletes an item by its ID
+     * @static
+     * @async
+     * @param {string} id - The ID of the item to delete
+     * @returns {Promise<boolean>} True if deletion was successful
+     * @throws {Error} If deletion fails
+     */
     static async delete(id) {
         try {
             console.log('ItemModel - delete - Starting to delete item, ID:', id);
