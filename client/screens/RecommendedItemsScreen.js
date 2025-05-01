@@ -20,8 +20,8 @@ const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, CO
 
 /**
  * RecommendedItemsScreen Component
- * Displays a list of recommended items to purchase based on family needs and preferences.
- * Allows users to view recommendations and refresh the list.
+ * Displays recommended items based on user's health profile and family preferences.
+ * Provides functionality to view item details and add items to refrigerator.
  * 
  * @component
  * @param {Object} props - Component props
@@ -36,22 +36,24 @@ const RecommendedItemsScreen = ({ navigation }) => {
   const { user } = useAuth();
 
   /**
-   * Shows a message to the user based on platform
-   * @param {string} message - Message to display
+   * Shows a message to the user
+   * @param {string} title - Message title
+   * @param {string} message - Message content
    */
-  const showMessage = (message) => {
+  const showMessage = (title, message) => {
     if (Platform.OS === 'web') {
       // Use alert for web platform
       window.alert(message);
     } else {
       // Use Alert for mobile platform
-      Alert.alert('Notice', message);
+      Alert.alert(title, message);
     }
   };
 
   /**
-   * Loads recommended items for the family
+   * Loads recommended items from the server
    * @async
+   * @function loadRecommendedItems
    */
   const loadRecommendedItems = async () => {
     try {
@@ -59,7 +61,7 @@ const RecommendedItemsScreen = ({ navigation }) => {
       setError(null);
       
       if (!user?.familyId) {
-        showMessage('Please join or create a family first');
+        showMessage('Notice', 'Please join or create a family first');
         return;
       }
 
@@ -72,7 +74,7 @@ const RecommendedItemsScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Failed to get recommended items:', error);
       setError('Failed to get recommended items, please try again');
-      showMessage('Failed to get recommended items, please try again');
+      showMessage('Notice', 'Failed to get recommended items, please try again');
     } finally {
       setLoading(false);
     }
@@ -93,9 +95,19 @@ const RecommendedItemsScreen = ({ navigation }) => {
   };
 
   /**
-   * Renders a recommended item card
-   * @param {Object} param0 - Item data
-   * @param {Object} param0.item - Item object containing name, reason, quantity and priority
+   * Handles item selection and navigation to details
+   * @param {Object} item - Selected item object
+   * @param {string} item.id - Item unique identifier
+   * @param {string} item.name - Item name
+   */
+  const handleItemSelection = (item) => {
+    // Implement item selection logic here
+  };
+
+  /**
+   * Renders individual item card
+   * @param {Object} param0 - Render item parameters
+   * @param {Object} param0.item - Item to render
    * @returns {JSX.Element} Item card component
    */
   const renderItem = ({ item }) => (
@@ -110,6 +122,14 @@ const RecommendedItemsScreen = ({ navigation }) => {
       </View>
     </View>
   );
+
+  /**
+   * Filters items based on search query
+   * @returns {Array<Object>} Filtered list of items
+   */
+  const filterItems = () => {
+    // Implement filtering logic here
+  };
 
   if (loading && !refreshing) {
     return (

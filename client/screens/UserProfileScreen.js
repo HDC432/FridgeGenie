@@ -15,16 +15,29 @@ import theme from '../styles/theme';
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 /**
- * UserProfileScreen component displays the user's profile information and provides navigation
- * to various user-related features like family management, health profile, and favorite recipes.
+ * UserProfileScreen Component
+ * Displays and manages user profile information.
+ * Provides functionality to view and edit user details, health profile, and family information.
  * 
  * @component
  * @param {Object} props - Component props
  * @param {Object} props.navigation - Navigation object from React Navigation
- * @returns {React.ReactElement} Rendered component
+ * @returns {JSX.Element} UserProfileScreen component
  */
 const UserProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
+
+  /**
+   * Loads user profile data from the server
+   * @async
+   * @function loadUserProfile
+   */
+
+  /**
+   * Handles user logout
+   * @async
+   * @function handleLogout
+   */
 
   /**
    * Handles the logout confirmation process
@@ -101,6 +114,32 @@ const UserProfileScreen = ({ navigation }) => {
       onPress: () => navigation.navigate('FavoriteRecipes'),
     },
   ];
+
+  /**
+   * Renders user information section
+   * @returns {JSX.Element} User info component
+   */
+
+  /**
+   * Renders health profile section
+   * @returns {JSX.Element} Health profile component
+   */
+
+  /**
+   * Renders family information section
+   * @returns {JSX.Element} Family info component
+   */
+
+  /**
+   * Renders action buttons section
+   * @returns {JSX.Element} Action buttons component
+   */
+
+  /**
+   * Shows a message to the user
+   * @param {string} title - Message title
+   * @param {string} message - Message content
+   */
 
   return (
     <ScrollView style={styles.container}>

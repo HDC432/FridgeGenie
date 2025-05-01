@@ -223,10 +223,14 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
 };
 
 /**
- * Screen component for adding new items to the fridge
+ * AddItemScreen Component
+ * Provides interface for adding new items to the refrigerator.
+ * Includes form validation, image upload, and category selection functionality.
+ * 
+ * @component
  * @param {Object} props - Component props
- * @param {Object} props.navigation - Navigation object
- * @returns {JSX.Element} Add item screen component
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} AddItemScreen component
  */
 const AddItemScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -255,7 +259,9 @@ const AddItemScreen = ({ navigation }) => {
   };
 
   /**
-   * Handles form submission to add a new item
+   * Handles form submission and item creation
+   * @async
+   * @function handleSubmit
    */
   const handleSubmit = async () => {
     try {

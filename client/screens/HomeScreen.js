@@ -28,11 +28,15 @@ import theme from '../styles/theme';
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
 /**
- * HomeScreen component that displays and manages food items in the fridge
+ * HomeScreen Component
+ * Main dashboard screen displaying refrigerator contents and quick actions.
+ * Shows item categories, expiry alerts, and provides navigation to key features.
+ * 
+ * @component
  * @param {Object} props - Component props
  * @param {Object} props.navigation - Navigation object from React Navigation
  * @param {Object} props.route - Route object containing navigation parameters
- * @returns {React.Component} Rendered component
+ * @returns {JSX.Element} HomeScreen component
  */
 const HomeScreen = ({ navigation, route }) => {
   const [items, setItems] = useState([]);
@@ -42,6 +46,11 @@ const HomeScreen = ({ navigation, route }) => {
   const [newQuantity, setNewQuantity] = useState('');
   const { user } = useAuth();
 
+  /**
+   * Loads refrigerator items and categories
+   * @async
+   * @function loadRefrigeratorItems
+   */
   const loadItems = async () => {
     try {
       console.log('Loading items list...');

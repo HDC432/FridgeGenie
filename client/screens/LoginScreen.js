@@ -25,6 +25,7 @@ const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, COMMON_STYLES } 
  * @param {Object} props.navigation - Navigation object for screen navigation
  * @returns {JSX.Element} Rendered component
  */
+
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,6 +63,11 @@ const LoginScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+
+  /**
+   * Validates form input fields
+   * @returns {boolean} True if form is valid, false otherwise
+   */
 
   return (
     <View style={styles.container}>
@@ -145,6 +151,18 @@ const LoginScreen = ({ navigation }) => {
     </View>
   );
 };
+
+/**
+ * Renders form input field
+ * @param {Object} param0 - Input field parameters
+ * @param {string} param0.label - Field label
+ * @param {string} param0.value - Field value
+ * @param {Function} param0.onChangeText - Change handler
+ * @param {string} param0.placeholder - Placeholder text
+ * @param {string} param0.error - Error message
+ * @param {boolean} param0.secureTextEntry - Whether to hide input text
+ * @returns {JSX.Element} Form input component
+ */
 
 const styles = StyleSheet.create({
   container: {

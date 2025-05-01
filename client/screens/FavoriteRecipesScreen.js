@@ -20,6 +20,17 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
+/**
+ * FavoriteRecipesScreen Component
+ * Displays a list of user's favorite recipes and allows management of favorites.
+ * Provides functionality to view recipe details, remove favorites, and track ingredient consumption.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} FavoriteRecipesScreen component
+ */
+
 const FavoriteRecipesScreen = ({ navigation }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +40,12 @@ const FavoriteRecipesScreen = ({ navigation }) => {
   const [refrigeratorItems, setRefrigeratorItems] = useState([]);
   const [localQuantities, setLocalQuantities] = useState({});
   const { user } = useAuth();
+
+  /**
+   * Loads user's favorite recipes from the server
+   * @async
+   * @function loadFavoriteRecipes
+   */
 
   const loadFavorites = async () => {
     try {
@@ -148,6 +165,15 @@ const FavoriteRecipesScreen = ({ navigation }) => {
     }
   };
 
+  /**
+   * Handles recipe selection and opens confirmation modal
+   * @param {Object} recipe - Selected recipe object
+   * @param {string} recipe.id - Recipe unique identifier
+   * @param {string} recipe.name - Recipe name
+   * @param {Array<Object>} recipe.ingredients - List of ingredients required
+   * @param {Object} recipe.nutrition - Nutritional information
+   */
+
   const handleRecipePress = (recipe) => {
     console.log('点击菜谱:', recipe);
     console.log('菜谱数据:', recipe.recipeData);
@@ -202,6 +228,12 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       [itemId]: newQuantity
     }));
   };
+
+  /**
+   * Confirms ingredient consumption and updates quantities
+   * @async
+   * @function handleConfirmConsumption
+   */
 
   const handleConfirmConsumption = async () => {
     if (!selectedRecipe) {
@@ -258,6 +290,14 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       showMessage('Error', 'Failed to confirm ingredient usage: ' + error.message);
     }
   };
+
+  /**
+   * Renders quantity picker for ingredient selection
+   * @param {Object} ingredient - Ingredient object
+   * @param {string} ingredient.name - Ingredient name
+   * @param {number|string} ingredient.quantity - Required quantity
+   * @returns {JSX.Element} Quantity picker component
+   */
 
   const renderQuantityPicker = (ingredient) => {
     const normalizedIngredientName = ingredient.name.toLowerCase().trim();
@@ -318,6 +358,11 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       </View>
     );
   };
+
+  /**
+   * Renders confirmation modal for ingredient usage
+   * @returns {JSX.Element} Modal component
+   */
 
   const renderConfirmationModal = () => (
     <Modal
@@ -380,6 +425,13 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       </View>
     </Modal>
   );
+
+  /**
+   * Renders individual recipe card
+   * @param {Object} param0 - Render item parameters
+   * @param {Object} param0.item - Recipe item to render
+   * @returns {JSX.Element} Recipe card component
+   */
 
   const renderRecipe = ({ item }) => (
     <TouchableOpacity 
