@@ -1,38 +1,26 @@
-/**
- * FridgeGenie 应用主题配置
- * 此文件包含应用全局使用的主题变量，如颜色、尺寸、字体等
- */
-
-// 颜色方案
 export const COLORS = {
-  // 主要颜色
-  PRIMARY: '#FFC107', // 黄色强调色
-  SECONDARY: '#1F2B40', // 深蓝色辅助色
-  BACKGROUND: '#FFFFFF', // 白色背景
-  LIGHT_GRAY: '#F5F7FA', // 浅灰色背景/输入框
+  PRIMARY: '#FFC107', 
+  SECONDARY: '#1F2B40', 
+  BACKGROUND: '#FFFFFF', 
+  LIGHT_GRAY: '#F5F7FA', 
   
-  // 文字颜色
-  TEXT_PRIMARY: '#1F2B40', // 主要文字颜色
-  TEXT_SECONDARY: '#666666', // 次要文字颜色
-  TEXT_LIGHT: '#999999', // 轻文字颜色
+  TEXT_PRIMARY: '#1F2B40', 
+  TEXT_SECONDARY: '#666666', 
+  TEXT_LIGHT: '#999999',
   
-  // 状态颜色
-  SUCCESS: '#4CAF50', // 绿色 - 保质期 > 7 天
-  WARNING: '#FFEB3B', // 黄色 - 保质期 ≤ 7 天
-  ALERT: '#FF9800', // 橙色 - 保质期 ≤ 3 天
-  DANGER: '#F44336', // 红色 - 保质期 ≤ 1 天
+  SUCCESS: '#4CAF50', 
+  WARNING: '#FFEB3B', 
+  ALERT: '#FF9800', 
+  DANGER: '#F44336', 
   
-  // 互动颜色
-  ACCENT: '#2196F3', // 蓝色强调
-  DISABLED: '#E0E0E0', // 禁用状态
+  ACCENT: '#2196F3', 
+  DISABLED: '#E0E0E0', 
   
-  // 其他
-  DIVIDER: '#EEEEEE', // 分隔线
-  TRANSPARENT: 'transparent', // 透明
-  SHADOW: 'rgba(0, 0, 0, 0.1)', // 阴影颜色
+  DIVIDER: '#EEEEEE', 
+  TRANSPARENT: 'transparent', 
+  SHADOW: 'rgba(0, 0, 0, 0.1)', 
 };
 
-// 字体大小
 export const FONT_SIZE = {
   TINY: 12,
   SMALL: 14,

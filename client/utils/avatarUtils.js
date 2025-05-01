@@ -9,7 +9,6 @@ export const generateAvatarText = (username, maxLength = 2) => {
     .slice(0, maxLength);
 };
 
-// 生成随机背景颜色
 export const generateAvatarColor = (username) => {
   if (!username) return '#666';
   const colors = [

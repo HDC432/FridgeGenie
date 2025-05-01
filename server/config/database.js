@@ -4,11 +4,12 @@
  */
 
 const { CosmosClient } = require('@azure/cosmos');
+require('dotenv').config();
 
 // Cosmos DB Configuration
 const cosmosClient = new CosmosClient({
-    endpoint: 'https://fridgegenie-db.documents.azure.com:443/',
-    key: 'WOKhsjYMsn4pDid4n9tqZwKV2foZdqbZRPSaKIX68vsI5TtbEy70OqPZgvDn1fh85PL8gVgOjzW8ACDbQO8xHQ=='
+    endpoint: process.env.COSMOS_ENDPOINT,
+    key: process.env.COSMOS_KEY
 });
 
 // Initialize database connection
