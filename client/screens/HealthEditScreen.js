@@ -124,6 +124,17 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * HealthEditScreen Component
+ * Provides interface for editing user's health profile.
+ * Includes form validation and health tag selection functionality.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} HealthEditScreen component
+ */
+
 const HealthEditScreen = ({ profile, setProfile, onSave, onCancel, openModal }) => {
   // Health conditions options
   const healthConditions = [
@@ -387,5 +398,44 @@ const HealthEditScreen = ({ profile, setProfile, onSave, onCancel, openModal }) 
     </View>
   );
 };
+
+/**
+ * Loads user's health profile data
+ * @async
+ * @function loadHealthProfile
+ */
+
+/**
+ * Handles form submission and profile update
+ * @async
+ * @function handleSubmit
+ */
+
+/**
+ * Validates form input fields
+ * @returns {boolean} True if form is valid, false otherwise
+ */
+
+/**
+ * Renders form input field
+ * @param {Object} param0 - Input field parameters
+ * @param {string} param0.label - Field label
+ * @param {string} param0.value - Field value
+ * @param {Function} param0.onChangeText - Change handler
+ * @param {string} param0.placeholder - Placeholder text
+ * @param {string} param0.error - Error message
+ * @returns {JSX.Element} Form input component
+ */
+
+/**
+ * Renders health tag selection section
+ * @returns {JSX.Element} Health tag selection component
+ */
+
+/**
+ * Shows a message to the user
+ * @param {string} title - Message title
+ * @param {string} message - Message content
+ */
 
 export default HealthEditScreen;

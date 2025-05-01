@@ -12,6 +12,17 @@ import { Ionicons } from '@expo/vector-icons';
 import authService from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
 
+/**
+ * RegisterScreen Component
+ * Provides user registration interface with form validation.
+ * Handles user registration, family creation, and invite code validation.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} RegisterScreen component
+ */
+
 const RegisterScreen = ({ navigation }) => {
   const { register } = useAuth();
   const [name, setName] = useState('');
@@ -23,6 +34,12 @@ const RegisterScreen = ({ navigation }) => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  /**
+   * Handles form submission and user registration
+   * @async
+   * @function handleSubmit
+   */
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -73,6 +90,11 @@ const RegisterScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+
+  /**
+   * Validates form input fields
+   * @returns {boolean} True if form is valid, false otherwise
+   */
 
   return (
     <View style={styles.container}>
@@ -206,6 +228,18 @@ const RegisterScreen = ({ navigation }) => {
     </View>
   );
 };
+
+/**
+ * Renders form input field
+ * @param {Object} param0 - Input field parameters
+ * @param {string} param0.label - Field label
+ * @param {string} param0.value - Field value
+ * @param {Function} param0.onChangeText - Change handler
+ * @param {string} param0.placeholder - Placeholder text
+ * @param {string} param0.error - Error message
+ * @param {boolean} param0.secureTextEntry - Whether to hide input text
+ * @returns {JSX.Element} Form input component
+ */
 
 const styles = StyleSheet.create({
   container: {

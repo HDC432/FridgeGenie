@@ -8,6 +8,17 @@ import { useAuth } from '../contexts/AuthContext';
 import authService from '../services/authService';
 import HealthEditScreen from './HealthEditScreen';
 
+/**
+ * HealthProfileScreen Component
+ * Displays user's health profile information and provides editing functionality.
+ * Shows health conditions, dietary restrictions, and other health-related preferences.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} HealthProfileScreen component
+ */
+
 const HealthProfileScreen = ({ navigation }) => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -58,6 +69,12 @@ const HealthProfileScreen = ({ navigation }) => {
     fetchHealthProfile();
   }, []);
 
+  /**
+   * Loads user's health profile data
+   * @async
+   * @function loadHealthProfile
+   */
+
   const fetchHealthProfile = async () => {
     try {
       const token = await authService.getToken();
@@ -107,6 +124,12 @@ const HealthProfileScreen = ({ navigation }) => {
     setModalVisible(false);
   };
 
+  /**
+   * Shows a message to the user
+   * @param {string} title - Message title
+   * @param {string} message - Message content
+   */
+
   // Show message
   const showMessage = (title, message) => {
     if (Platform.OS === 'web') {
@@ -115,6 +138,13 @@ const HealthProfileScreen = ({ navigation }) => {
       Alert.alert(title, message);
     }
   };
+
+  /**
+   * Handles profile update
+   * @async
+   * @param {Object} updatedProfile - Updated profile data
+   * @function handleProfileUpdate
+   */
 
   // Save personal information
   const saveProfile = async () => {
@@ -306,6 +336,11 @@ const HealthProfileScreen = ({ navigation }) => {
     },
   });
 
+  /**
+   * Renders health condition section
+   * @returns {JSX.Element} Health condition component
+   */
+
   const renderViewMode = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Basic Information Section */}
@@ -391,6 +426,11 @@ const HealthProfileScreen = ({ navigation }) => {
     </ScrollView>
   );
 
+  /**
+   * Renders dietary restriction section
+   * @returns {JSX.Element} Dietary restriction component
+   */
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -457,5 +497,10 @@ const HealthProfileScreen = ({ navigation }) => {
     </View>
   );
 };
+
+/**
+ * Renders health tag section
+ * @returns {JSX.Element} Health tag component
+ */
 
 export default HealthProfileScreen; 

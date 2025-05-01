@@ -29,6 +29,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  * @param {Object} props.navigation - Navigation object for screen navigation
  * @returns {JSX.Element} Rendered component
  */
+
 export default function ItemDetailsScreen({ route, navigation }) {
   const { item } = route.params;
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +46,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
    * Loads AI-generated food suggestions for the current item
    * @async
    */
+
   const loadSuggestions = async () => {
     setIsLoading(true);
     try {
@@ -115,6 +117,16 @@ export default function ItemDetailsScreen({ route, navigation }) {
   };
 
   const expiryStatus = getExpiryStatus();
+
+  /**
+   * Renders item image section
+   * @returns {JSX.Element} Item image component
+   */
+
+  /**
+   * Renders item details section
+   * @returns {JSX.Element} Item details component
+   */
 
   return (
     <ScrollView style={styles.container}>

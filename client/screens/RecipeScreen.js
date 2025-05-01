@@ -114,6 +114,10 @@ export default function RecipeScreen({ navigation }) {
   /**
    * Handles recipe selection and opens confirmation modal
    * @param {Object} recipe - Selected recipe object
+   * @param {string} recipe.id - Recipe unique identifier
+   * @param {string} recipe.name - Recipe name
+   * @param {Array<Object>} recipe.ingredients - List of ingredients required
+   * @param {Object} recipe.nutrition - Nutritional information
    */
   const handleRecipePress = (recipe) => {
     console.log('Recipe clicked:', recipe);
@@ -161,6 +165,7 @@ export default function RecipeScreen({ navigation }) {
   /**
    * Confirms ingredient consumption and updates quantities
    * @async
+   * @function handleConfirmConsumption
    */
   const handleConfirmConsumption = async () => {
     if (!selectedRecipe) return;
@@ -221,6 +226,8 @@ export default function RecipeScreen({ navigation }) {
   /**
    * Renders quantity picker for ingredient selection
    * @param {Object} ingredient - Ingredient object
+   * @param {string} ingredient.name - Ingredient name
+   * @param {number|string} ingredient.quantity - Required quantity
    * @returns {JSX.Element} Quantity picker component
    */
   const renderQuantityPicker = (ingredient) => {
@@ -358,6 +365,12 @@ export default function RecipeScreen({ navigation }) {
     </Modal>
   );
 
+  /**
+   * Renders individual recipe card
+   * @param {Object} param0 - Render item parameters
+   * @param {Object} param0.item - Recipe item to render
+   * @returns {JSX.Element} Recipe card component
+   */
   const renderRecipe = ({ item }) => {
     return (
       <TouchableOpacity 
@@ -435,6 +448,10 @@ export default function RecipeScreen({ navigation }) {
     );
   };
 
+  /**
+   * Filters recipes based on search query
+   * @returns {Array<Object>} Filtered list of recipes
+   */
   const getFilteredRecipes = () => {
     let filteredRecipes = recipes || [];
 
@@ -460,6 +477,8 @@ export default function RecipeScreen({ navigation }) {
    * Toggles favorite status for a recipe
    * @async
    * @param {Object} recipe - Recipe object to toggle favorite status
+   * @param {string} recipe.id - Recipe unique identifier
+   * @param {string} recipe.name - Recipe name
    */
   const toggleFavorite = async (recipe) => {
     if (!user) {

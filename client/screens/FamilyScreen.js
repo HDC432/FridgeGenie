@@ -64,8 +64,13 @@ const showConfirm = (title, message, onConfirm) => {
 
 /**
  * FamilyScreen Component
- * Manages family creation, joining, and member management
- * @returns {JSX.Element} The rendered FamilyScreen component
+ * Manages family information and member management.
+ * Provides functionality to view family details, manage members, and handle invitations.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {JSX.Element} FamilyScreen component
  */
 const FamilyScreen = () => {
   const { user, setUser } = useAuth();
@@ -233,11 +238,17 @@ const FamilyScreen = () => {
   };
 
   /**
-   * Removes a member from the family
+   * Handles member role update
    * @async
-   * @param {string} memberId - The ID of the member to remove
-   * @returns {Promise<void>}
+   * @param {string} memberId - Member's unique identifier
+   * @param {string} newRole - New role to assign
+   * @function handleRoleUpdate
    */
+  const handleRoleUpdate = async (memberId, newRole) => {
+    // Implementation of handleRoleUpdate function
+  };
+
+
   const handleRemoveMember = async (memberId) => {
     if (!family) return;
 
@@ -345,6 +356,15 @@ const FamilyScreen = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Generates new family invite code
+   * @async
+   * @function generateInviteCode
+   */
+  const generateInviteCode = async () => {
+    // Implementation of generateInviteCode function
   };
 
   /**
