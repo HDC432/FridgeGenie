@@ -3,16 +3,16 @@ const router = express.Router();
 const favoriteRecipeController = require('../controllers/favoriteRecipeController');
 const auth = require('../middleware/auth');
 
-// 获取用户收藏的菜谱
+// Get user's favorite recipes
 router.get('/', auth, favoriteRecipeController.getFavorites);
 
-// 添加收藏
+// Add favorite
 router.post('/', auth, favoriteRecipeController.addFavorite);
 
-// 取消收藏
+// Remove favorite
 router.delete('/:favoriteId', auth, favoriteRecipeController.removeFavorite);
 
-// 检查是否已收藏
+// Check if recipe is favorited
 router.get('/:recipeId/check', auth, favoriteRecipeController.checkFavorite);
 
 module.exports = router; 

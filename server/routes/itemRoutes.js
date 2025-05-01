@@ -3,7 +3,7 @@ const router = express.Router();
 const ItemModel = require('../models/itemModel');
 const ItemService = require('../services/itemService');
 
-// 获取所有物品
+// Get all items
 router.get('/', async (req, res) => {
     try {
         const items = await ItemModel.findAll();
@@ -14,50 +14,50 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 获取家庭物品
+// Get family items
 router.get('/family/:familyId', async (req, res) => {
     try {
         const { familyId } = req.params;
-        console.log('获取家庭物品，familyId:', familyId);
+        console.log('Getting family items, familyId:', familyId);
         const items = await ItemModel.findByFamilyId(familyId);
-        console.log('查询结果:', items);
+        console.log('Query results:', items);
         res.json({ items });
     } catch (error) {
-        console.error('获取家庭物品时出错:', error);
-        res.status(500).json({ error: '获取家庭物品失败' });
+        console.error('Error getting family items:', error);
+        res.status(500).json({ error: 'Failed to get family items' });
     }
 });
 
-// 按名称获取物品
+// Get item by name
 router.get('/name/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const item = await ItemModel.findByName(name);
         if (!item) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.json(item);
     } catch (error) {
-        console.error('获取物品时出错:', error);
-        res.status(500).json({ error: '获取物品失败' });
+        console.error('Error getting item:', error);
+        res.status(500).json({ error: 'Failed to get item' });
     }
 });
 
-// 获取单个物品
+// Get single item
 router.get('/:id', async (req, res) => {
     try {
         const item = await ItemModel.findById(req.params.id);
         if (!item) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.json(item);
     } catch (error) {
-        console.error('获取物品时出错:', error);
-        res.status(500).json({ error: '获取物品失败' });
+        console.error('Error getting item:', error);
+        res.status(500).json({ error: 'Failed to get item' });
     }
 });
 
-// 添加新物品
+// Add new item
 router.post('/', async (req, res) => {
     try {
         const { name, quantity, familyId } = req.body;
@@ -76,65 +76,65 @@ router.post('/', async (req, res) => {
     }
 });
 
-// 按名称更新物品
+// Update item by name
 router.put('/name/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const { quantity } = req.body;
         if (quantity === undefined) {
-            return res.status(400).json({ error: '数量是必需的' });
+            return res.status(400).json({ error: 'Quantity is required' });
         }
         const item = await ItemModel.updateByName(name, { quantity });
         if (!item) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.json(item);
     } catch (error) {
-        console.error('更新物品时出错:', error);
-        res.status(500).json({ error: '更新物品失败' });
+        console.error('Error updating item:', error);
+        res.status(500).json({ error: 'Failed to update item' });
     }
 });
 
-// 更新物品
+// Update item
 router.put('/:id', async (req, res) => {
     try {
         const item = await ItemModel.update(req.params.id, req.body);
         if (!item) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.json(item);
     } catch (error) {
-        console.error('更新物品时出错:', error);
-        res.status(500).json({ error: '更新物品失败' });
+        console.error('Error updating item:', error);
+        res.status(500).json({ error: 'Failed to update item' });
     }
 });
 
-// 按名称删除物品
+// Delete item by name
 router.delete('/name/:name', async (req, res) => {
     try {
         const { name } = req.params;
         const success = await ItemModel.deleteByName(name);
         if (!success) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.status(204).send();
     } catch (error) {
-        console.error('删除物品时出错:', error);
-        res.status(500).json({ error: '删除物品失败' });
+        console.error('Error deleting item:', error);
+        res.status(500).json({ error: 'Failed to delete item' });
     }
 });
 
-// 删除物品
+// Delete item
 router.delete('/:id', async (req, res) => {
     try {
         const success = await ItemModel.delete(req.params.id);
         if (!success) {
-            return res.status(404).json({ error: '物品不存在' });
+            return res.status(404).json({ error: 'Item does not exist' });
         }
         res.status(204).send();
     } catch (error) {
-        console.error('删除物品时出错:', error);
-        res.status(500).json({ error: '删除物品失败' });
+        console.error('Error deleting item:', error);
+        res.status(500).json({ error: 'Failed to delete item' });
     }
 });
 

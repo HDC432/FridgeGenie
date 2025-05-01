@@ -3,30 +3,30 @@ const router = express.Router();
 const familyController = require('../controllers/familyController');
 const auth = require('../middleware/auth');
 
-// 所有路由都需要认证
+// All routes require authentication
 router.use(auth);
 
-// 创建家庭
+// Create family
 router.post('/', familyController.createFamily);
 
-// 加入家庭
+// Join family
 router.post('/join', familyController.joinFamily);
 
-// 获取家庭信息
+// Get family information
 router.get('/', familyController.getFamilyInfo);
 
-// 获取家庭成员
+// Get family members
 router.get('/:familyId/members', familyController.getFamilyMembers);
 
-// 移除家庭成员
+// Remove family member
 router.delete('/:familyId/members/:userId', familyController.removeMember);
 
-// 更新成员角色
+// Update member role
 router.put('/:familyId/members/:userId/role', familyController.updateMemberRole);
 
-// 退出家庭
+// Leave family
 router.delete('/:familyId/leave', (req, res, next) => {
-  console.log('FamilyRoutes - 收到退出家庭请求:', {
+  console.log('FamilyRoutes - Received leave family request:', {
     method: req.method,
     url: req.url,
     params: req.params,
@@ -35,7 +35,7 @@ router.delete('/:familyId/leave', (req, res, next) => {
   next();
 }, familyController.leaveFamily.bind(familyController));
 
-// 获取家庭成员健康标签
+// Get family members health tags
 router.get('/:familyId/health-tags', familyController.getFamilyHealthTags);
 
 module.exports = router; 
