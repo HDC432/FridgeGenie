@@ -17,6 +17,7 @@ import { format, addDays } from 'date-fns';
 import { addItem } from '../services/databaseService';
 import { useAuth } from '../contexts/AuthContext';
 import theme from '../styles/theme';
+import { Picker } from '@react-native-picker/picker';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
@@ -138,31 +139,31 @@ const SimpleDatePicker = ({ date, onDateChange, onClose }) => {
       <View style={styles.yearMonthSelector}>
         <View style={styles.selectContainer}>
           <Text style={styles.selectLabel}>Year:</Text>
-          <select
-            value={selectedYear}
-            onChange={(e) => handleYearChange(Number(e.target.value))}
-            style={styles.select}
-          >
-            {yearOptions.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedYear.toString()}
+              onValueChange={(value) => handleYearChange(Number(value))}
+              style={styles.picker}
+            >
+              {yearOptions.map((year) => (
+                <Picker.Item key={year} label={year.toString()} value={year.toString()} />
+              ))}
+            </Picker>
+          </View>
         </View>
         <View style={styles.selectContainer}>
           <Text style={styles.selectLabel}>Month:</Text>
-          <select
-            value={selectedMonth}
-            onChange={(e) => handleMonthChange(Number(e.target.value))}
-            style={styles.select}
-          >
-            {monthOptions.map((month) => (
-              <option key={month} value={month}>
-                {month + 1}
-              </option>
-            ))}
-          </select>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedMonth.toString()}
+              onValueChange={(value) => handleMonthChange(Number(value))}
+              style={styles.picker}
+            >
+              {monthOptions.map((month) => (
+                <Picker.Item key={month} label={(month + 1).toString()} value={month.toString()} />
+              ))}
+            </Picker>
+          </View>
         </View>
       </View>
 
@@ -546,15 +547,16 @@ const styles = StyleSheet.create({
     color: COLORS.SECONDARY,
     marginRight: SPACING.SMALL,
   },
-  select: {
-    fontSize: FONT_SIZE.SMALL,
-    color: COLORS.SECONDARY,
-    padding: SPACING.SMALL / 2,
-    borderRadius: BORDER_RADIUS.SMALL,
+  pickerContainer: {
     borderWidth: 1,
     borderColor: COLORS.LIGHT_GRAY,
-    backgroundColor: COLORS.BACKGROUND,
-    minWidth: 80,
+    borderRadius: BORDER_RADIUS.SMALL,
+    backgroundColor: COLORS.WHITE,
+    marginLeft: SPACING.SMALL,
+  },
+  picker: {
+    width: 100,
+    height: 40,
   },
   quickSelectContainer: {
     flexDirection: 'row',

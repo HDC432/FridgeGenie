@@ -14,27 +14,40 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, SHADOW_STYLE, COMMON_STYLES } = theme;
 
+/**
+ * UserProfileScreen component displays the user's profile information and provides navigation
+ * to various user-related features like family management, health profile, and favorite recipes.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object from React Navigation
+ * @returns {React.ReactElement} Rendered component
+ */
 const UserProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
 
+  /**
+   * Handles the logout confirmation process
+   * Shows different confirmation dialogs based on platform (web/mobile)
+   */
   const handleLogout = () => {
     console.log('Logout button pressed');
     
     if (Platform.OS === 'web') {
-      // Web 平台使用 window.confirm
-      if (window.confirm('确定要退出登录吗？')) {
+      // Use window.confirm for web platform
+      if (window.confirm('Are you sure you want to logout?')) {
         console.log('Logout confirmed');
         handleLogoutAction();
       }
     } else {
-      // 移动平台使用 Alert.alert
+      // Use Alert.alert for mobile platforms
       Alert.alert(
-        '确认退出',
-        '确定要退出登录吗？',
+        'Confirm Logout',
+        'Are you sure you want to logout?',
         [
-          { text: '取消', style: 'cancel' },
+          { text: 'Cancel', style: 'cancel' },
           {
-            text: '退出',
+            text: 'Logout',
             style: 'destructive',
             onPress: handleLogoutAction,
           },
@@ -43,12 +56,16 @@ const UserProfileScreen = ({ navigation }) => {
     }
   };
 
+  /**
+   * Executes the logout action and handles navigation
+   * @async
+   */
   const handleLogoutAction = async () => {
     console.log('Logout confirmed');
     try {
       await logout();
       console.log('Logout successful');
-      // 登出后导航到登录页面
+      // Navigate to login screen after logout
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
@@ -56,26 +73,30 @@ const UserProfileScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Logout failed:', error);
       if (Platform.OS === 'web') {
-        window.alert('退出登录失败，请重试');
+        window.alert('Logout failed, please try again');
       } else {
-        Alert.alert('错误', '退出登录失败，请重试');
+        Alert.alert('Error', 'Logout failed, please try again');
       }
     }
   };
 
+  /**
+   * Menu items configuration for the profile screen
+   * @type {Array<{title: string, icon: string, onPress: Function}>}
+   */
   const menuItems = [
     {
-      title: '我的家庭',
+      title: 'My Family',
       icon: 'people-outline',
       onPress: () => navigation.navigate('Family'),
     },
     {
-      title: '健康档案',
+      title: 'Health Profile',
       icon: 'medkit-outline',
       onPress: () => navigation.navigate('HealthProfile'),
     },
     {
-      title: '收藏的菜谱',
+      title: 'Favorite Recipes',
       icon: 'heart-outline',
       onPress: () => navigation.navigate('FavoriteRecipes'),
     },
@@ -112,7 +133,7 @@ const UserProfileScreen = ({ navigation }) => {
         onPress={handleLogout}
       >
         <Ionicons name="log-out-outline" size={24} color={COLORS.DANGER} />
-        <Text style={styles.logoutText}>退出登录</Text>
+        <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </ScrollView>
   );
