@@ -1,3 +1,8 @@
+/**
+ * Main server file for the FridgeGenie application
+ * @module server/index
+ */
+
 const express = require('express');
 const cors = require('cors');
 const auth = require('./middleware/auth');
@@ -10,45 +15,51 @@ require('dotenv').config();
 
 const app = express();
 
-// 添加请求日志中间件
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// CORS 配置
+// CORS configuration
 app.use(cors({
-  origin: ['http://localhost:8081', 'http://localhost:3000'],
+  origin: ['http://localhost:8081', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
-// 中间件
+// Middleware
 app.use(express.json());
 
-// 用户相关路由
+// User routes
 app.use('/users', userRoutes);
 
-// 家庭相关路由
+// Family routes
 app.use('/families', familyRoutes);
 
-// 物品相关路由
+// Item routes
 app.use('/items', itemRoutes);
 
-// 健康相关路由
+// Health check routes
 app.use('/health', healthRoutes);
 
-// 收藏相关路由
+// Favorite recipes routes
 app.use('/favorites', favoriteRecipeRoutes);
 
-// 错误处理中间件
+/**
+ * Error handling middleware
+ * @param {Error} err - The error object
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ error: '服务器内部错误' });
+    res.status(500).json({ error: 'Internal Server Error' });
 });
 
 const PORT = 3001;
 app.listen(PORT, () => {
-    console.log(`服务器运行在端口 ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 }); 
