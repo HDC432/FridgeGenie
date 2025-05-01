@@ -122,9 +122,14 @@ export default function RecipeScreen({ navigation }) {
 
     const quantities = {};
     recipe.ingredients.forEach(ing => {
-      const fridgeItem = refrigeratorItems.find(item => item.name === ing.name);
+      const normalizedIngredientName = ing.name.toLowerCase().trim();
+      const fridgeItem = refrigeratorItems.find(item => 
+        item.name.toLowerCase().trim() === normalizedIngredientName
+      );
+      
       console.log('Looking for ingredient:', {
         name: ing.name,
+        normalizedName: normalizedIngredientName,
         required: ing.quantity,
         found: fridgeItem ? true : false,
         available: fridgeItem ? fridgeItem.quantity : 0
@@ -161,17 +166,45 @@ export default function RecipeScreen({ navigation }) {
     if (!selectedRecipe) return;
     
     try {
+      console.log('Starting to confirm ingredient usage:', {
+        selectedQuantities,
+        refrigeratorItems
+      });
+
       for (const [name, quantity] of Object.entries(selectedQuantities)) {
-        const item = refrigeratorItems.find(i => i.name === name);
+        const normalizedName = name.toLowerCase().trim();
+        const item = refrigeratorItems.find(i => 
+          i.name.toLowerCase().trim() === normalizedName
+        );
+        
         if (item) {
-          const newQuantity = item.quantity - quantity;
+          const newQuantity = Math.max(0, item.quantity - quantity);
+          console.log('Updating ingredient quantity:', {
+            itemId: item.id,
+            oldQuantity: item.quantity,
+            newQuantity,
+            deducted: quantity,
+            name: item.name
+          });
+
           const updatedItem = await updateItemQuantity(item.id, newQuantity);
+          console.log('Update result:', updatedItem);
+
           if (updatedItem === null) {
-            // Item has been deleted, remove from local state
+            console.log('Item has been deleted, removing from local state:', item.id);
             setRefrigeratorItems(prevItems => 
               prevItems.filter(i => i.id !== item.id)
             );
+          } else {
+            // Update local state immediately
+            setRefrigeratorItems(prevItems =>
+              prevItems.map(i =>
+                i.id === item.id ? { ...i, quantity: newQuantity } : i
+              )
+            );
           }
+        } else {
+          console.log('Item not found in refrigerator:', name);
         }
       }
 
@@ -179,7 +212,6 @@ export default function RecipeScreen({ navigation }) {
       setIsModalVisible(false);
       setSelectedRecipe(null);
       setSelectedQuantities({});
-      loadRefrigeratorItems();
     } catch (error) {
       console.error('Error confirming ingredient usage:', error);
       Alert.alert('Error', 'Failed to confirm ingredient usage');
@@ -197,7 +229,11 @@ export default function RecipeScreen({ navigation }) {
       refrigeratorItems
     });
     
-    const fridgeItem = refrigeratorItems.find(item => item.name === ingredient.name);
+    const normalizedIngredientName = ingredient.name.toLowerCase().trim();
+    const fridgeItem = refrigeratorItems.find(item => 
+      item.name.toLowerCase().trim() === normalizedIngredientName
+    );
+    
     console.log('Found refrigerator item:', fridgeItem);
     
     if (!fridgeItem) {

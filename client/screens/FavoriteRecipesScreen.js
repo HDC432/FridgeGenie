@@ -205,12 +205,12 @@ const FavoriteRecipesScreen = ({ navigation }) => {
 
   const handleConfirmConsumption = async () => {
     if (!selectedRecipe) {
-      console.log('没有选中的菜谱');
+      console.log('No recipe selected');
       return;
     }
     
     try {
-      console.log('开始确认使用食材:', {
+      console.log('Starting to confirm ingredient usage:', {
         selectedQuantities,
         refrigeratorItems
       });
@@ -218,32 +218,28 @@ const FavoriteRecipesScreen = ({ navigation }) => {
       for (const [name, quantity] of Object.entries(selectedQuantities)) {
         const normalizedName = name.toLowerCase().trim();
         const item = refrigeratorItems.find(i => 
-          i.name.toLowerCase().trim() === normalizedName ||
-          (name.toLowerCase().includes('walnut') && i.name.toLowerCase().includes('核桃')) ||
-          (name.toLowerCase().includes('apple') && i.name.toLowerCase().includes('苹果'))
+          i.name.toLowerCase().trim() === normalizedName
         );
 
         if (item) {
           const newQuantity = Math.max(0, item.quantity - quantity);
-          console.log('更新食材数量:', {
+          console.log('Updating ingredient quantity:', {
             itemId: item.id,
             oldQuantity: item.quantity,
             newQuantity,
             deducted: quantity
           });
 
-          updateLocalQuantity(item.id, newQuantity);
-          
           const updatedItem = await updateItemQuantity(item.id, newQuantity);
-          console.log('更新结果:', updatedItem);
+          console.log('Update result:', updatedItem);
 
           if (updatedItem === null) {
-            console.log('物品已被删除，从本地状态中移除:', item.id);
+            console.log('Item has been deleted, removing from local state:', item.id);
             setRefrigeratorItems(prevItems => 
               prevItems.filter(i => i.id !== item.id)
             );
           } else {
-            // 更新本地状态
+            // Update local state
             setRefrigeratorItems(prevItems =>
               prevItems.map(i =>
                 i.id === item.id ? { ...i, quantity: newQuantity } : i
@@ -253,36 +249,31 @@ const FavoriteRecipesScreen = ({ navigation }) => {
         }
       }
 
-      showMessage('成功', '食材使用已确认');
+      showMessage('Success', 'Ingredient usage confirmed');
       setIsModalVisible(false);
       setSelectedRecipe(null);
       setSelectedQuantities({});
-      setLocalQuantities({});
     } catch (error) {
-      console.error('确认使用食材时出错:', error);
-      showMessage('错误', '确认使用食材失败: ' + error.message);
+      console.error('Error confirming ingredient usage:', error);
+      showMessage('Error', 'Failed to confirm ingredient usage: ' + error.message);
     }
   };
 
   const renderQuantityPicker = (ingredient) => {
     const normalizedIngredientName = ingredient.name.toLowerCase().trim();
     const fridgeItem = refrigeratorItems.find(item => 
-      item.name.toLowerCase().trim() === normalizedIngredientName ||
-      (ingredient.name.toLowerCase().includes('walnut') && item.name.toLowerCase().includes('核桃')) ||
-      (ingredient.name.toLowerCase().includes('apple') && item.name.toLowerCase().includes('苹果'))
+      item.name.toLowerCase().trim() === normalizedIngredientName
     );
     
     if (!fridgeItem) {
       return (
         <Text style={styles.errorText}>
-          冰箱没有 {ingredient.name}，无法消耗
+          {ingredient.name} not found in refrigerator, cannot consume
         </Text>
       );
     }
 
-    const maxQuantity = localQuantities[fridgeItem.id] !== undefined 
-      ? localQuantities[fridgeItem.id] 
-      : fridgeItem.quantity;
+    const maxQuantity = fridgeItem.quantity;
     const currentQuantity = selectedQuantities[ingredient.name] || 0;
 
     return (
