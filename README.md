@@ -29,6 +29,39 @@ FridgeGenie is an intelligent refrigerator management system that helps users tr
 - iOS Simulator (for iOS development)
 - Android Studio (for Android development)
 
+### Environment Variables
+
+Before running the application, you need to set up your environment variables:
+
+1. In the `server` directory, create a `.env` file with the following variables:
+```env
+# Cosmos DB Configuration
+COSMOS_ENDPOINT=<your cosmos endpoint>
+COSMOS_KEY=<your cosmos key>
+COSMOS_DATABASE=fridgegenie-db
+COSMOS_CONTAINER=items
+
+# JWT Configuration
+JWT_SECRET=<your jwt secret here>
+
+# Server Configuration
+PORT=3001
+
+# OpenAI
+OPENAI_API_KEY=<your OpenAI API key>
+```
+
+2. In the `client` directory, create a `.env` file with:
+```env
+# Azure Speech Service
+AZURE_SPEECH_KEY=<your Azure Speech key>
+
+# OpenAI
+OPENAI_API_KEY=<your OpenAI API key>
+```
+
+Note: Make sure to add `.env` files to your `.gitignore` to keep your sensitive information secure.
+
 ### Setup Instructions
 
 1. Clone the repository:
