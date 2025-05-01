@@ -1,3 +1,8 @@
+/**
+ * @fileoverview LoginScreen component for user authentication
+ * @module LoginScreen
+ */
+
 import React, { useState } from 'react';
 import {
   View,
@@ -14,6 +19,12 @@ import theme from '../styles/theme';
 
 const { COLORS, FONT_SIZE, FONT_WEIGHT, SPACING, BORDER_RADIUS, COMMON_STYLES } = theme;
 
+/**
+ * LoginScreen component for user authentication
+ * @param {Object} props - Component props
+ * @param {Object} props.navigation - Navigation object for screen navigation
+ * @returns {JSX.Element} Rendered component
+ */
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,9 +32,13 @@ const LoginScreen = ({ navigation }) => {
   const [error, setError] = useState('');
   const { login } = useAuth();
 
+  /**
+   * Handles the login process
+   * @async
+   */
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('请输入邮箱和密码');
+      setError('Please enter email and password');
       return;
     }
 
@@ -38,11 +53,11 @@ const LoginScreen = ({ navigation }) => {
           routes: [{ name: 'Home' }],
         });
       } else {
-        setError('登录失败，请检查您的邮箱和密码');
+        setError('Login failed. Please check your email and password');
       }
     } catch (err) {
-      console.error('登录错误:', err);
-      setError(err.message || '登录失败，请稍后重试');
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please try again later');
     } finally {
       setLoading(false);
     }
@@ -59,14 +74,14 @@ const LoginScreen = ({ navigation }) => {
           />
         </View>
         <Text style={styles.appName}>FridgeGenie</Text>
-        <Text style={styles.tagline}>智能管理你的冰箱，减少食物浪费</Text>
+        <Text style={styles.tagline}>Smart fridge management to reduce food waste</Text>
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>邮箱</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入邮箱"
+          placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -75,10 +90,10 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={styles.label}>密码</Text>
+        <Text style={styles.label}>Password</Text>
         <TextInput
           style={styles.input}
-          placeholder="请输入密码"
+          placeholder="Enter your password"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -88,7 +103,7 @@ const LoginScreen = ({ navigation }) => {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <TouchableOpacity style={styles.forgotPassword}>
-        <Text style={styles.forgotPasswordText}>忘记密码？</Text>
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -99,13 +114,13 @@ const LoginScreen = ({ navigation }) => {
         {loading ? (
           <ActivityIndicator size="small" color={COLORS.SECONDARY} />
         ) : (
-          <Text style={styles.loginButtonText}>登录</Text>
+          <Text style={styles.loginButtonText}>Login</Text>
         )}
       </TouchableOpacity>
 
       <View style={styles.orContainer}>
         <View style={styles.orLine} />
-        <Text style={styles.orText}>或</Text>
+        <Text style={styles.orText}>or</Text>
         <View style={styles.orLine} />
       </View>
 
@@ -122,9 +137,9 @@ const LoginScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>还没有账号？</Text>
+        <Text style={styles.registerText}>Don't have an account?</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}>立即注册</Text>
+          <Text style={styles.registerLink}>Sign Up Now</Text>
         </TouchableOpacity>
       </View>
     </View>

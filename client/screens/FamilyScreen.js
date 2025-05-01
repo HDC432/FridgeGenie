@@ -89,6 +89,8 @@ const FamilyScreen = () => {
 
   /**
    * Fetches the current family information
+   * @async
+   * @returns {Promise<void>}
    */
   const fetchFamilyInfo = async () => {
     try {
@@ -131,6 +133,8 @@ const FamilyScreen = () => {
 
   /**
    * Creates a new family
+   * @async
+   * @returns {Promise<void>}
    */
   const handleCreateFamily = async () => {
     if (!familyName.trim()) {
@@ -180,6 +184,8 @@ const FamilyScreen = () => {
 
   /**
    * Joins an existing family using an invite code
+   * @async
+   * @returns {Promise<void>}
    */
   const handleJoinFamily = async () => {
     if (!inviteCode.trim()) {
@@ -228,7 +234,9 @@ const FamilyScreen = () => {
 
   /**
    * Removes a member from the family
+   * @async
    * @param {string} memberId - The ID of the member to remove
+   * @returns {Promise<void>}
    */
   const handleRemoveMember = async (memberId) => {
     if (!family) return;
@@ -288,6 +296,8 @@ const FamilyScreen = () => {
 
   /**
    * Handles leaving the current family
+   * @async
+   * @returns {Promise<void>}
    */
   const handleLeaveFamily = async () => {
     if (!family || !user.familyId) {
@@ -340,6 +350,7 @@ const FamilyScreen = () => {
   /**
    * Renders a member item in the family list
    * @param {Object} param0 - The item to render
+   * @param {Object} param0.item - The member item data
    * @returns {JSX.Element} The rendered member item
    */
   const renderMemberItem = ({ item }) => (

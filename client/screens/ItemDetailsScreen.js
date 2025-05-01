@@ -1,19 +1,34 @@
+/**
+ * @fileoverview ItemDetailsScreen component for displaying and managing food item details
+ * @module ItemDetailsScreen
+ */
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { updateItem, deleteItem } from '../services/databaseService';
 import { getFoodSuggestions, generateExpiryReminder } from '../services/aiService';
 import axios from 'axios';
-// import { OPENAI_API_KEY } from '@env';
 
 const AZURE_AI_ENDPOINT = 'YOUR_AZURE_AI_ENDPOINT';
 const AZURE_AI_KEY = 'YOUR_AZURE_AI_KEY';
-// const OPENAI_API_KEY = 'your_api_key_here';
 
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1秒
+const RETRY_DELAY = 1000; // 1 second
 
+/**
+ * Utility function to create a delay
+ * @param {number} ms - Milliseconds to delay
+ * @returns {Promise} Promise that resolves after the specified delay
+ */
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * ItemDetailsScreen component displays detailed information about a food item
+ * @param {Object} props - Component props
+ * @param {Object} props.route - Navigation route object containing item data
+ * @param {Object} props.navigation - Navigation object for screen navigation
+ * @returns {JSX.Element} Rendered component
+ */
 export default function ItemDetailsScreen({ route, navigation }) {
   const { item } = route.params;
   const [isEditing, setIsEditing] = useState(false);
@@ -26,42 +41,54 @@ export default function ItemDetailsScreen({ route, navigation }) {
     loadReminder();
   }, [item]);
 
+  /**
+   * Loads AI-generated food suggestions for the current item
+   * @async
+   */
   const loadSuggestions = async () => {
     setIsLoading(true);
     try {
       const suggestions = await getFoodSuggestions([item.name]);
       setSuggestions(suggestions);
     } catch (error) {
-      console.error('获取建议错误:', error);
+      console.error('Error getting suggestions:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  /**
+   * Loads AI-generated expiry reminder for the current item
+   * @async
+   */
   const loadReminder = async () => {
     try {
       const reminder = await generateExpiryReminder(item);
       setReminder(reminder);
     } catch (error) {
-      console.error('生成提醒错误:', error);
+      console.error('Error generating reminder:', error);
     }
   };
 
+  /**
+   * Handles the deletion of the current item
+   * @async
+   */
   const handleDelete = async () => {
     Alert.alert(
-      '确认删除',
-      '确定要删除这个食材吗？',
+      'Confirm Deletion',
+      'Are you sure you want to delete this item?',
       [
-        { text: '取消', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: '删除',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await deleteItem(item.id);
               navigation.goBack();
             } catch (error) {
-              Alert.alert('错误', '删除食材失败');
+              Alert.alert('Error', 'Failed to delete item');
             }
           },
         },
@@ -69,17 +96,21 @@ export default function ItemDetailsScreen({ route, navigation }) {
     );
   };
 
+  /**
+   * Determines the expiry status of the item
+   * @returns {Object} Object containing status text and color
+   */
   const getExpiryStatus = () => {
     const today = new Date();
     const expiryDate = new Date(item.expiryDate);
     const daysUntilExpiry = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
 
     if (daysUntilExpiry < 0) {
-      return { status: '已过期', color: '#d32f2f' };
+      return { status: 'Expired', color: '#d32f2f' };
     } else if (daysUntilExpiry <= 3) {
-      return { status: '即将过期', color: '#ff9800' };
+      return { status: 'Expiring Soon', color: '#ff9800' };
     } else {
-      return { status: '正常', color: '#4caf50' };
+      return { status: 'Normal', color: '#4caf50' };
     }
   };
 
@@ -88,19 +119,19 @@ export default function ItemDetailsScreen({ route, navigation }) {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.detailsContainer}>
-        <Text style={styles.label}>食材名称</Text>
+        <Text style={styles.label}>Item Name</Text>
         <Text style={styles.value}>{item.name}</Text>
 
-        <Text style={styles.label}>数量</Text>
+        <Text style={styles.label}>Quantity</Text>
         <Text style={styles.value}>{item.quantity}</Text>
 
-        <Text style={styles.label}>保质期</Text>
+        <Text style={styles.label}>Expiry Date</Text>
         <Text style={styles.value}>{new Date(item.expiryDate).toLocaleDateString()}</Text>
 
-        <Text style={styles.label}>分类</Text>
+        <Text style={styles.label}>Category</Text>
         <Text style={styles.value}>{item.category}</Text>
 
-        <Text style={styles.label}>状态</Text>
+        <Text style={styles.label}>Status</Text>
         <Text style={[styles.value, { color: expiryStatus.color }]}>
           {expiryStatus.status}
         </Text>
@@ -108,14 +139,14 @@ export default function ItemDetailsScreen({ route, navigation }) {
 
       {reminder && (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>AI 提醒</Text>
+          <Text style={styles.sectionTitle}>AI Reminder</Text>
           <Text style={styles.sectionContent}>{reminder}</Text>
         </View>
       )}
 
       {suggestions && (
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>AI 建议</Text>
+          <Text style={styles.sectionTitle}>AI Suggestions</Text>
           <Text style={styles.sectionContent}>{suggestions}</Text>
         </View>
       )}
@@ -125,13 +156,13 @@ export default function ItemDetailsScreen({ route, navigation }) {
           style={[styles.button, styles.editButton]}
           onPress={() => setIsEditing(true)}
         >
-          <Text style={styles.buttonText}>编辑</Text>
+          <Text style={styles.buttonText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.deleteButton]}
           onPress={handleDelete}
         >
-          <Text style={styles.buttonText}>删除</Text>
+          <Text style={styles.buttonText}>Delete</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
