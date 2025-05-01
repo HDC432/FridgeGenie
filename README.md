@@ -16,8 +16,8 @@ FridgeGenie is an intelligent refrigerator management system that helps users tr
 - [Installation](#installation)
 - [Project Structure](#project-structure)
 - [Technology Stack](#technology-stack)
+- [AI Features](#ai-features)
 - [API Documentation](#api-documentation)
-- [Getting Started](#getting-started)
 
 ## Installation
 
@@ -57,26 +57,55 @@ npm start
    - For iOS simulator: Press 'i' in the terminal
    - For Android emulator: Press 'a' in the terminal
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 FridgeGenie/
-├── client/                 # React Native frontend
-│   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── screens/      # Screen components
-│   │   ├── navigation/   # Navigation configuration
-│   │   └── services/     # API services
-│   └── App.js
+client/
+├── assets/
+├── components/
+│   ├── ItemList.js
+│   ├── UserAvatar.js
+│   └── UserMenu.js
+├── config/
+├── contexts/
+├── navigation/
+├── node_modules/
+├── screens/
+│   ├── AddItemScreen.js
+│   ├── FamilyScreen.js
+│   ├── FavoriteRecipesScreen.js
+│   ├── HealthEditScreen.js
+│   ├── HealthProfileScreen.js
+│   ├── ItemDetailsScreen.js
+│   ├── LoginScreen.js
+│   ├── RecipeScreen.js
+│   ├── RecommendedItemsScreen.js
+│   ├── RegisterScreen.js
+│   └── UserProfileScreen.js
+├── scripts/
+├── services/
+│   ├── aiService.js
+│   ├── authService.js
+│   └── databaseService.js
+└── src/                        ← AI Assistant core
+│   ├── components/             ← UI pieces for chat & voice
+│   │   └── AIAssistant.js      ← main assistant widget    
+│   ├── contexts/               ← global state & hooks
+│   │   └── AuthContext.js  
+│   ├── services/               ← thin wrappers over aiService/ 
+│   └── utils/                  ← date parsing, prompt formatting
+│       └── avatarUtils.js
 │
-└── server/                # Node.js backend
-    ├── models/           # Database models
-    ├── controllers/      # Business logic
-    ├── routes/          # API routes
-    └── services/        # External services
+└── server/                     ← Node.js backend
+    ├── models/                 ← Database models
+    ├── controllers/            ← Business logic
+    ├── routes/                 ← API routes
+    └── services/               ← External services
+
 ```
 
-## 💻 Technology Stack
+## Technology Stack
 
 ### Backend
 - **Runtime**: Node.js
@@ -202,10 +231,37 @@ Remove recipe from favorites (requires authentication)
 #### GET /favorites/:recipeId/check
 Check if recipe is favorited (requires authentication)
 
-## Contributing
+## AI Features
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+FridgeGenie leverages advanced AI capabilities to provide an intelligent and personalized experience:
 
-## License
+### 1. AI Assistant
+- Natural language interface for managing your fridge inventory
+- Voice and text-based commands for adding, removing, and updating food items
+- Smart search and filtering capabilities
+- Conversational interface for easy interaction
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+### 2. Recipe Generation
+- AI-powered recipe suggestions based on available ingredients
+- Personalized recommendations considering:
+  - User's dietary preferences
+  - Food expiration dates
+  - Nutritional requirements
+  - Cooking skill level
+- Recipe adaptation based on available ingredients
+
+### 3. Nutritional Analysis
+- Detailed breakdown of nutritional content for meals
+- Calorie tracking and monitoring
+- Macro and micronutrient analysis
+- Dietary restriction compliance checking
+- Personalized nutritional insights
+
+### 4. Smart Shopping Recommendations
+- AI-driven shopping list generation
+- Personalized recommendations based on:
+  - User's eating habits
+  - Nutritional goals
+  - Budget constraints
+  - Seasonal availability
+- Smart inventory management to prevent over-purchasing
