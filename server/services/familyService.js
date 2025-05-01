@@ -3,53 +3,53 @@ const User = require('../models/User');
 const HealthProfile = require('../models/healthModel');
 
 class FamilyService {
-    // 创建家庭
+    // Create family
     async createFamily(name, creatorId) {
         try {
-            console.log('创建家庭服务 - 开始检查用户是否已加入其他家庭');
-            // 检查用户是否已经加入其他家庭
+            console.log('Create family service - Starting to check if user has joined other families');
+            // Check if user has already joined another family
             const existingFamily = await Family.findByUserId(creatorId);
-            console.log('创建家庭服务 - 检查结果:', existingFamily);
+            console.log('Create family service - Check result:', existingFamily);
             
             if (existingFamily) {
-                console.log('创建家庭服务 - 错误: 用户已加入其他家庭');
-                throw new Error('用户已经加入其他家庭');
+                console.log('Create family service - Error: User has already joined another family');
+                throw new Error('User has already joined another family');
             }
 
-            console.log('创建家庭服务 - 开始创建新家庭');
+            console.log('Create family service - Starting to create new family');
             const family = new Family(name, creatorId);
-            console.log('创建家庭服务 - 新家庭对象:', family);
+            console.log('Create family service - New family object:', family);
             
-            console.log('创建家庭服务 - 开始保存家庭');
+            console.log('Create family service - Starting to save family');
             const savedFamily = await family.save();
-            console.log('创建家庭服务 - 保存结果:', savedFamily);
+            console.log('Create family service - Save result:', savedFamily);
             
             return savedFamily;
         } catch (error) {
-            console.error('创建家庭服务 - 错误:', error);
+            console.error('Create family service - Error:', error);
             throw error;
         }
     }
 
-    // 加入家庭
+    // Join family
     async joinFamily(inviteCode, userId) {
         try {
-            // 检查用户是否已经加入其他家庭
+            // Check if user has already joined another family
             const existingFamily = await Family.findByUserId(userId);
             if (existingFamily) {
-                throw new Error('用户已经加入其他家庭');
+                throw new Error('User has already joined another family');
             }
 
-            // 查找家庭
+            // Find family
             const family = await Family.findByInviteCode(inviteCode);
             if (!family) {
-                throw new Error('邀请码无效');
+                throw new Error('Invalid invite code');
             }
 
-            // 添加成员
+            // Add member
             const updatedFamily = await Family.addMember(family.id, userId);
             
-            // 更新用户的 familyId
+            // Update user's familyId
             await User.updateFamilyId(userId, family.id);
             
             return updatedFamily;
@@ -58,31 +58,31 @@ class FamilyService {
         }
     }
 
-    // 获取家庭信息
+    // Get family information
     async getFamilyInfo(userId) {
         try {
-            console.log('获取家庭信息 - 开始查找用户家庭');
-            console.log('获取家庭信息 - 用户ID:', userId);
+            console.log('Get family info - Starting to find user\'s family');
+            console.log('Get family info - User ID:', userId);
             
             const family = await Family.findByUserId(userId);
-            console.log('获取家庭信息 - 家庭查询结果:', family);
+            console.log('Get family info - Family query result:', family);
             
             if (!family) {
-                console.log('获取家庭信息 - 用户未加入任何家庭');
+                console.log('Get family info - User has not joined any family');
                 return null;
             }
 
-            // 获取所有成员的用户信息
-            console.log('获取家庭信息 - 开始获取成员信息');
+            // Get user information for all members
+            console.log('Get family info - Starting to get member information');
             const membersWithInfo = await Promise.all(
                 family.members.map(async (member) => {
-                    console.log('获取家庭信息 - 获取成员信息:', member.userId);
+                    console.log('Get family info - Getting member info:', member.userId);
                     const user = await User.findById(member.userId);
-                    console.log('获取家庭信息 - 成员信息查询结果:', user);
+                    console.log('Get family info - Member info query result:', user);
                     return {
                         ...member,
-                        username: user ? user.username : '未知用户',
-                        email: user ? user.email : '未知邮箱'
+                        username: user ? user.username : 'Unknown User',
+                        email: user ? user.email : 'Unknown Email'
                     };
                 })
             );
@@ -91,95 +91,95 @@ class FamilyService {
                 ...family,
                 members: membersWithInfo
             };
-            console.log('获取家庭信息 - 最终返回结果:', result);
+            console.log('Get family info - Final return result:', result);
             return result;
         } catch (error) {
-            console.error('获取家庭信息 - 错误:', error);
+            console.error('Get family info - Error:', error);
             throw error;
         }
     }
 
-    // 移除家庭成员
+    // Remove family member
     async removeMember(familyId, userId, adminId) {
         try {
-            console.log('FamilyService - removeMember - 开始:', { familyId, userId, adminId });
+            console.log('FamilyService - removeMember - Starting:', { familyId, userId, adminId });
             
-            // 查找家庭
+            // Find family
             const family = await Family.findById(familyId);
             if (!family) {
-                console.log('FamilyService - removeMember - 家庭不存在');
-                return { success: false, message: '家庭不存在' };
+                console.log('FamilyService - removeMember - Family does not exist');
+                return { success: false, message: 'Family does not exist' };
             }
 
-            // 如果是管理员移除其他成员，检查权限
+            // If admin is removing other member, check permissions
             if (adminId && adminId !== userId) {
                 const admin = family.members.find(m => m.userId === adminId);
                 if (!admin || admin.role !== 'admin') {
-                    console.log('FamilyService - removeMember - 操作者不是管理员');
-                    return { success: false, message: '只有管理员可以移除成员' };
+                    console.log('FamilyService - removeMember - Operator is not admin');
+                    return { success: false, message: 'Only admin can remove members' };
                 }
             }
 
-            // 检查用户是否是家庭成员
+            // Check if user is a family member
             const memberIndex = family.members.findIndex(m => m.userId === userId);
             if (memberIndex === -1) {
-                console.log('FamilyService - removeMember - 用户不是家庭成员');
-                return { success: false, message: '用户不是家庭成员' };
+                console.log('FamilyService - removeMember - User is not a family member');
+                return { success: false, message: 'User is not a family member' };
             }
 
-            // 如果是最后一个成员，删除家庭
+            // If last member, delete family
             if (family.members.length === 1) {
-                console.log('FamilyService - removeMember - 删除最后一个成员，家庭将被删除');
+                console.log('FamilyService - removeMember - Removing last member, family will be deleted');
                 await Family.delete(familyId);
-                // 更新用户的 familyId 为 null
+                // Update user's familyId to null
                 await User.updateFamilyId(userId, null);
-                return { success: true, message: '家庭已删除' };
+                return { success: true, message: 'Family has been deleted' };
             }
 
-            // 如果是管理员退出，需要转移管理员权限和creatorId
+            // If admin is leaving, transfer admin rights and creatorId
             if (family.members[memberIndex].role === 'admin') {
-                console.log('FamilyService - removeMember - 管理员退出，需要转移权限');
-                // 找到第一个非管理员成员
+                console.log('FamilyService - removeMember - Admin leaving, need to transfer rights');
+                // Find first non-admin member
                 const newAdminIndex = family.members.findIndex(m => m.role !== 'admin' && m.userId !== userId);
                 if (newAdminIndex !== -1) {
                     family.members[newAdminIndex].role = 'admin';
-                    // 更新 creatorId 为新管理员的 ID
+                    // Update creatorId to new admin's ID
                     family.creatorId = family.members[newAdminIndex].userId;
                 }
             }
 
-            // 直接从 members 数组中删除用户
+            // Remove user directly from members array
             family.members = family.members.filter(m => m.userId !== userId);
 
-            // 更新家庭信息
+            // Update family information
             await Family.update(familyId, family);
             
-            // 更新用户的 familyId 为 null
+            // Update user's familyId to null
             await User.updateFamilyId(userId, null);
             
-            console.log('FamilyService - removeMember - 完成');
-            return { success: true, message: '成功移除成员' };
+            console.log('FamilyService - removeMember - Completed');
+            return { success: true, message: 'Successfully removed member' };
         } catch (error) {
-            console.error('FamilyService - removeMember - 错误:', error);
+            console.error('FamilyService - removeMember - Error:', error);
             throw error;
         }
     }
 
-    // 更新成员角色
+    // Update member role
     async updateMemberRole(familyId, userId, newRole, adminId) {
         try {
-            // 检查操作者是否是管理员
+            // Check if operator is admin
             const family = await Family.findByUserId(adminId);
             if (!family || family.id !== familyId) {
-                throw new Error('无权操作');
+                throw new Error('No permission to operate');
             }
 
             const admin = family.members.find(m => m.userId === adminId);
             if (!admin || admin.role !== 'admin') {
-                throw new Error('只有管理员可以更新成员角色');
+                throw new Error('Only admin can update member roles');
             }
 
-            // 更新角色
+            // Update role
             const updatedFamily = await Family.updateMemberRole(familyId, userId, newRole);
             return updatedFamily;
         } catch (error) {
@@ -187,31 +187,31 @@ class FamilyService {
         }
     }
 
-    // 获取家庭成员健康标签
+    // Get family members health tags
     async getFamilyHealthTags(familyId) {
         try {
-            console.log('获取家庭成员健康标签 - 开始:', familyId);
+            console.log('Get family members health tags - Starting:', familyId);
 
-            // 获取家庭信息
+            // Get family information
             const family = await Family.findById(familyId);
             if (!family) {
-                throw new Error('家庭不存在');
+                throw new Error('Family does not exist');
             }
 
-            // 获取所有成员的用户信息
+            // Get user information for all members
             const membersWithInfo = await Promise.all(
                 family.members.map(async (member) => {
-                    console.log('获取成员健康标签 - 开始处理成员:', member.userId);
+                    console.log('Get member health tags - Starting to process member:', member.userId);
                     
                     const user = await User.findById(member.userId);
-                    console.log('获取成员健康标签 - 用户信息:', user);
+                    console.log('Get member health tags - User info:', user);
                     
                     const healthProfile = await HealthProfile.findByUserId(member.userId);
-                    console.log('获取成员健康标签 - 健康档案:', healthProfile);
+                    console.log('Get member health tags - Health profile:', healthProfile);
                     
-                    // 如果没有健康档案，创建一个空的
+                    // If no health profile, create an empty one
                     if (!healthProfile) {
-                        console.log('获取成员健康标签 - 成员没有健康档案，创建新档案');
+                        console.log('Get member health tags - Member has no health profile, creating new profile');
                         const newHealthProfile = await HealthProfile.create({
                             userId: member.userId,
                             basicInfo: {},
@@ -221,27 +221,27 @@ class FamilyService {
                         });
                         return {
                             userId: member.userId,
-                            username: user ? user.username : '未知用户',
+                            username: user ? user.username : 'Unknown User',
                             healthTags: newHealthProfile.healthTags || []
                         };
                     }
 
-                    // 确保健康标签存在
+                    // Ensure health tags exist
                     const healthTags = healthProfile.healthTags || [];
-                    console.log('获取成员健康标签 - 健康标签:', healthTags);
+                    console.log('Get member health tags - Health tags:', healthTags);
                     
                     return {
                         userId: member.userId,
-                        username: user ? user.username : '未知用户',
+                        username: user ? user.username : 'Unknown User',
                         healthTags: healthTags
                     };
                 })
             );
 
-            console.log('获取家庭成员健康标签 - 成功:', membersWithInfo);
+            console.log('Get family members health tags - Success:', membersWithInfo);
             return membersWithInfo;
         } catch (error) {
-            console.error('获取家庭成员健康标签失败:', error);
+            console.error('Failed to get family members health tags:', error);
             throw error;
         }
     }
